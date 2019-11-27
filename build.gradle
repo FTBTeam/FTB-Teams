@@ -10,8 +10,10 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
 
+def ENV = System.getenv()
+version = ENV.BUILD_NUMBER ? "${mod_version}.${ENV.BUILD_NUMBER}" : "${mod_version}.custom"
 version = project.mod_version
 group = project.mod_package
 archivesBaseName = project.mod_name
@@ -92,15 +94,17 @@ def reobfArtifact = artifacts.add('default', reobfFile) {
 	type 'jar'
 	builtBy 'reobfJar'
 }
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			artifact reobfArtifact
-		}
-	}
-	repositories {
-		maven {
-			url "file:///${project.projectDir}/mcmodsrepo"
+
+artifacts {
+	archives deobfJar
+}
+
+if (ENV.LOCAL_MAVEN) {
+	uploadArchives {
+		repositories {
+			mavenDeployer {
+				repository(url: "file://${ENV.LOCAL_MAVEN}")
+			}
 		}
 	}
 }

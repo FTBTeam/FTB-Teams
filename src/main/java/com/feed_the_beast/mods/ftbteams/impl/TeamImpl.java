@@ -397,7 +397,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 
 		for (GameProfile member : members)
 		{
-			membersNBT.add(new StringNBT(ProfileUtils.serializeProfile(member)));
+			membersNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(member)));
 		}
 
 		nbt.put("members", membersNBT);
@@ -406,7 +406,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 
 		for (GameProfile invited : invited)
 		{
-			invitedNBT.add(new StringNBT(ProfileUtils.serializeProfile(invited)));
+			invitedNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(invited)));
 		}
 
 		nbt.put("invited", invitedNBT);
@@ -415,7 +415,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 
 		for (GameProfile ally : allies)
 		{
-			alliesNBT.add(new StringNBT(ProfileUtils.serializeProfile(ally)));
+			alliesNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(ally)));
 		}
 
 		nbt.put("allies", alliesNBT);

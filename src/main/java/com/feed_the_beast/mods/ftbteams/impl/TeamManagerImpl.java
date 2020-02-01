@@ -236,7 +236,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 		for (GameProfile profile : knownPlayers)
 		{
-			knownPlayersNBT.add(new StringNBT(ProfileUtils.serializeProfile(profile)));
+			knownPlayersNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(profile)));
 		}
 
 		nbt.put("known_players", knownPlayersNBT);

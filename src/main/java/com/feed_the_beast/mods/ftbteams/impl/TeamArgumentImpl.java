@@ -17,6 +17,7 @@ import net.minecraft.command.arguments.EntitySelector;
 import net.minecraft.command.arguments.EntitySelectorParser;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 /**
  * @author LatvianModder
@@ -75,6 +76,13 @@ public class TeamArgumentImpl implements TeamArgument
 		}
 	}
 
+	public final Supplier<Iterable<String>> suggestions;
+
+	public TeamArgumentImpl(Supplier<Iterable<String>> s)
+	{
+		suggestions = s;
+	}
+
 	@Override
 	public TeamArgumentProvider parse(StringReader reader) throws CommandSyntaxException
 	{
@@ -105,6 +113,6 @@ public class TeamArgumentImpl implements TeamArgument
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder)
 	{
-		return ISuggestionProvider.suggest(FTBTeamsAPI.INSTANCE.getManager().getTeamNameMap().keySet(), builder);
+		return ISuggestionProvider.suggest(suggestions.get(), builder);
 	}
 }

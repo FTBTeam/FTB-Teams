@@ -17,7 +17,7 @@ public class FTBTeamsAPIImpl extends FTBTeamsAPI
 	@Override
 	public TeamArgument argument()
 	{
-		return new TeamArgumentImpl();
+		return new TeamArgumentImpl(() -> FTBTeamsAPI.INSTANCE.getManager().getTeamNameMap().keySet());
 	}
 
 	@Override

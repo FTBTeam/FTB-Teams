@@ -4,19 +4,28 @@ import com.feed_the_beast.mods.ftbteams.api.FTBTeamsAPI;
 import com.feed_the_beast.mods.ftbteams.event.TeamConfigEvent;
 import com.feed_the_beast.mods.ftbteams.impl.FTBTeamsAPIImpl;
 import com.feed_the_beast.mods.ftbteams.impl.FTBTeamsCommands;
+import com.feed_the_beast.mods.ftbteams.impl.TeamArgumentImpl;
 import com.feed_the_beast.mods.ftbteams.impl.TeamImpl;
 import com.feed_the_beast.mods.ftbteams.impl.TeamManagerImpl;
+import com.feed_the_beast.mods.ftbteams.impl.TeamPropertyArgument;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.command.arguments.ArgumentSerializer;
+import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Mod(FTBTeams.MOD_ID)
 public class FTBTeams
@@ -24,17 +33,23 @@ public class FTBTeams
 	public static final String MOD_ID = "ftbteams";
 	public static final String MOD_NAME = "FTB Teams";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
+	private static List<String> teamArgumentSuggestions = new ArrayList<>();
 
 	public FTBTeams()
 	{
 		FTBTeamsAPI.INSTANCE = new FTBTeamsAPIImpl();
-		//FMLJavaModLoadingContext.get().getModEventBus().addListener(this::commonSetup);
-		//FMLJavaModLoadingContext.get().getModEventBus().addListener(this::clientSetup);
+		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
 		MinecraftForge.EVENT_BUS.addListener(this::serverStarting);
 		MinecraftForge.EVENT_BUS.addListener(this::serverStopped);
 		MinecraftForge.EVENT_BUS.addListener(this::worldSaved);
 		MinecraftForge.EVENT_BUS.addListener(this::teamConfig);
 		MinecraftForge.EVENT_BUS.addListener(this::playerLoggedIn);
+	}
+
+	private void setup(FMLCommonSetupEvent event)
+	{
+		ArgumentTypes.register("ftbteams_team", TeamArgumentImpl.class, new ArgumentSerializer<>(() -> new TeamArgumentImpl(() -> teamArgumentSuggestions)));
+		ArgumentTypes.register("ftbteams_team_property", TeamPropertyArgument.class, new ArgumentSerializer<>(TeamPropertyArgument::new));
 	}
 
 	private void serverStarting(FMLServerStartingEvent event)

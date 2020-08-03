@@ -16,11 +16,15 @@ import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.network.FMLNetworkConstants;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,7 +37,7 @@ public class FTBTeams
 	public static final String MOD_ID = "ftbteams";
 	public static final String MOD_NAME = "FTB Teams";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
-	private static List<String> teamArgumentSuggestions = new ArrayList<>();
+	private static final List<String> teamArgumentSuggestions = new ArrayList<>();
 
 	public FTBTeams()
 	{
@@ -44,6 +48,7 @@ public class FTBTeams
 		MinecraftForge.EVENT_BUS.addListener(this::worldSaved);
 		MinecraftForge.EVENT_BUS.addListener(this::teamConfig);
 		MinecraftForge.EVENT_BUS.addListener(this::playerLoggedIn);
+		ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
 	}
 
 	private void setup(FMLCommonSetupEvent event)

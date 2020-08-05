@@ -12,8 +12,8 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.command.arguments.ArgumentSerializer;
 import net.minecraft.command.arguments.ArgumentTypes;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.world.dimension.DimensionType;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.ExtensionPoint;
@@ -44,6 +44,7 @@ public class FTBTeams
 		FTBTeamsAPI.INSTANCE = new FTBTeamsAPIImpl();
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
 		MinecraftForge.EVENT_BUS.addListener(this::serverStarting);
+		MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
 		MinecraftForge.EVENT_BUS.addListener(this::serverStopped);
 		MinecraftForge.EVENT_BUS.addListener(this::worldSaved);
 		MinecraftForge.EVENT_BUS.addListener(this::teamConfig);
@@ -59,9 +60,13 @@ public class FTBTeams
 
 	private void serverStarting(FMLServerStartingEvent event)
 	{
-		new FTBTeamsCommands().register(event.getCommandDispatcher());
 		TeamManagerImpl.instance = new TeamManagerImpl(event.getServer());
 		TeamManagerImpl.instance.load();
+	}
+
+	private void registerCommands(RegisterCommandsEvent event)
+	{
+		new FTBTeamsCommands().register(event.getDispatcher());
 	}
 
 	private void serverStopped(FMLServerStoppedEvent event)
@@ -71,7 +76,7 @@ public class FTBTeams
 
 	private void worldSaved(WorldEvent.Save event)
 	{
-		if (TeamManagerImpl.instance != null && event.getWorld().getDimension().getType() == DimensionType.OVERWORLD)
+		if (TeamManagerImpl.instance != null)
 		{
 			TeamManagerImpl.instance.saveAll();
 		}

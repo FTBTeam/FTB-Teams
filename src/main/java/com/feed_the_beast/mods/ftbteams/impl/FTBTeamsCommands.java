@@ -15,7 +15,6 @@ import net.minecraft.command.Commands;
 import net.minecraft.command.arguments.EntityArgument;
 import net.minecraft.command.arguments.GameProfileArgument;
 import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 
@@ -167,7 +166,7 @@ public class FTBTeamsCommands
 	private static int create(CommandSource source, String name) throws CommandSyntaxException
 	{
 		Team team = TeamManagerImpl.instance.createPlayerTeam(source.asPlayer(), name);
-		source.sendFeedback(new StringTextComponent("Created new team ").appendSibling(team.getName()), true);
+		source.sendFeedback(new StringTextComponent("Created new team ").append(team.getName()), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -180,13 +179,13 @@ public class FTBTeamsCommands
 		team.setProperty(TeamImpl.COLOR, TeamImpl.randomColor(source.getWorld().rand));
 		team.create();
 
-		source.sendFeedback(new StringTextComponent("Created new server team ").appendSibling(team.getName()), true);
+		source.sendFeedback(new StringTextComponent("Created new server team ").append(team.getName()), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
 	private int list(CommandSource source)
 	{
-		ITextComponent list = new StringTextComponent("");
+		StringTextComponent list = new StringTextComponent("");
 
 		boolean first = true;
 
@@ -198,10 +197,10 @@ public class FTBTeamsCommands
 			}
 			else
 			{
-				list.appendText(", ");
+				list.appendString(", ");
 			}
 
-			list.appendSibling(team.getName());
+			list.append(team.getName());
 		}
 
 		source.sendFeedback(new TranslationTextComponent("ftbteams.list", list), true);

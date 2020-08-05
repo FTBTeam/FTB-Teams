@@ -14,7 +14,7 @@ import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.dimension.DimensionType;
+import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.INBTSerializable;
 
@@ -36,7 +36,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 	public final MinecraftServer server;
 	private boolean shouldSave;
-	private Set<GameProfile> knownPlayers;
+	private final Set<GameProfile> knownPlayers;
 	public final Int2ObjectOpenHashMap<Team> teamMap;
 	public final Map<GameProfile, TeamImpl> playerTeamMap;
 	Map<String, Team> nameMap;
@@ -123,7 +123,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 	public void load()
 	{
-		File directory = new File(server.getWorld(DimensionType.OVERWORLD).getSaveHandler().getWorldDirectory(), "data/ftbteams");
+		File directory = server.func_240776_a_(new FolderName("data/ftbteams")).toFile();
 
 		if (!directory.exists() || !directory.isDirectory())
 		{
@@ -193,7 +193,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 	public void saveAll()
 	{
-		File directory = new File(server.getWorld(DimensionType.OVERWORLD).getSaveHandler().getWorldDirectory(), "data/ftbteams");
+		File directory = server.func_240776_a_(new FolderName("data/ftbteams")).toFile();
 
 		if (!directory.exists())
 		{

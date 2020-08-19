@@ -1,29 +1,30 @@
-modLoader="javafml"
-loaderVersion="[30,)"
-issueTrackerURL="https://github.com/FTBTeam/FTB-Teams/issues"
+modLoader = "javafml"
+loaderVersion = "[32,)"
+issueTrackerURL = "https://github.com/FTBTeam/FTB-Teams/issues"
+license = "All Rights Reserved"
 
 [[mods]]
-modId="ftbteams"
-version="${file.jarVersion}"
-displayName="FTB Teams"
-authors="LatvianModder"
-description='''
+modId = "ftbteams"
+version = "${file.jarVersion}"
+displayName = "FTB Teams"
+authors = "LatvianModder"
+description = '''
 FTB Teams adds ability to create your own teams that can be used for quests etc.
 '''
 
 [[dependencies.ftbteams]]
-    modId="forge"
-    mandatory=true
-    versionRange="[30,)"
-    ordering="NONE"
-    side="BOTH"
+modId = "forge"
+mandatory = true
+versionRange = "[32,)"
+ordering = "NONE"
+side = "BOTH"
 
 [[dependencies.ftbteams]]
-    modId="minecraft"
-    mandatory=true
-    versionRange="[1.15,)"
-    ordering="NONE"
-    side="BOTH"
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.16,)"
+ordering = "NONE"
+side = "BOTH"
 
 [[dependencies.ftbteams]]
     modId="ftbguilibrary"

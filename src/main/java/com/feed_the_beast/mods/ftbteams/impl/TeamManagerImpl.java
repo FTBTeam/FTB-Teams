@@ -32,6 +32,7 @@ import java.util.Set;
  */
 public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNBT>
 {
+	public static final FolderName FOLDER_NAME = new FolderName("data/ftbteams");
 	public static TeamManagerImpl instance;
 
 	public final MinecraftServer server;
@@ -123,7 +124,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 	public void load()
 	{
-		File directory = server.func_240776_a_(new FolderName("data/ftbteams")).toFile();
+		File directory = server.func_240776_a_(FOLDER_NAME).toFile();
 
 		if (!directory.exists() || !directory.isDirectory())
 		{
@@ -193,7 +194,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 	public void saveAll()
 	{
-		File directory = server.func_240776_a_(new FolderName("data/ftbteams")).toFile();
+		File directory = server.func_240776_a_(FOLDER_NAME).toFile();
 
 		if (!directory.exists())
 		{

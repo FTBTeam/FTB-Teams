@@ -20,7 +20,7 @@ import net.minecraftforge.fml.ExtensionPoint;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.event.server.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.network.FMLNetworkConstants;
@@ -43,7 +43,7 @@ public class FTBTeams
 	{
 		FTBTeamsAPI.INSTANCE = new FTBTeamsAPIImpl();
 		FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-		MinecraftForge.EVENT_BUS.addListener(this::serverStarting);
+		MinecraftForge.EVENT_BUS.addListener(this::serverAboutToStart);
 		MinecraftForge.EVENT_BUS.addListener(this::registerCommands);
 		MinecraftForge.EVENT_BUS.addListener(this::serverStopped);
 		MinecraftForge.EVENT_BUS.addListener(this::worldSaved);
@@ -58,7 +58,7 @@ public class FTBTeams
 		ArgumentTypes.register("ftbteams_team_property", TeamPropertyArgument.class, new ArgumentSerializer<>(TeamPropertyArgument::new));
 	}
 
-	private void serverStarting(FMLServerStartingEvent event)
+	private void serverAboutToStart(FMLServerAboutToStartEvent event)
 	{
 		TeamManagerImpl.instance = new TeamManagerImpl(event.getServer());
 		TeamManagerImpl.instance.load();

@@ -1,10 +1,9 @@
 package com.feed_the_beast.mods.ftbteams.api.property;
 
 import com.feed_the_beast.mods.ftbteams.api.TeamProperty;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.MathHelper;
-
 import java.util.Optional;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 
 /**
  * @author LatvianModder
@@ -32,7 +31,7 @@ public class DoubleProperty extends TeamProperty<Double>
 		try
 		{
 			double num = Double.parseDouble(string);
-			return Optional.of(MathHelper.clamp(num, minValue, maxValue));
+			return Optional.of(Mth.clamp(num, minValue, maxValue));
 		}
 		catch (Exception ex)
 		{

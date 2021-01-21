@@ -8,13 +8,13 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.INBTSerializable;
 
@@ -30,9 +30,9 @@ import java.util.Set;
 /**
  * @author LatvianModder
  */
-public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNBT>
+public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundTag>
 {
-	public static final FolderName FOLDER_NAME = new FolderName("data/ftbteams");
+	public static final LevelResource FOLDER_NAME = new LevelResource("data/ftbteams");
 	public static TeamManagerImpl instance;
 
 	public final MinecraftServer server;
@@ -124,7 +124,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 	public void load()
 	{
-		File directory = server.func_240776_a_(FOLDER_NAME).toFile();
+		File directory = server.getWorldPath(FOLDER_NAME).toFile();
 
 		if (!directory.exists() || !directory.isDirectory())
 		{
@@ -137,7 +137,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 		{
 			try
 			{
-				deserializeNBT(Objects.requireNonNull(CompressedStreamTools.read(dataFile)));
+				deserializeNBT(Objects.requireNonNull(NbtIo.read(dataFile)));
 			}
 			catch (Exception ex)
 			{
@@ -161,7 +161,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 			try
 			{
-				CompoundNBT nbt = Objects.requireNonNull(CompressedStreamTools.read(file));
+				CompoundTag nbt = Objects.requireNonNull(NbtIo.read(file));
 
 				int id = nbt.getInt("id");
 
@@ -194,7 +194,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 
 	public void saveAll()
 	{
-		File directory = server.func_240776_a_(FOLDER_NAME).toFile();
+		File directory = server.getWorldPath(FOLDER_NAME).toFile();
 
 		if (!directory.exists())
 		{
@@ -205,7 +205,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 		{
 			try
 			{
-				CompressedStreamTools.write(serializeNBT(), new File(directory, "ftbteams.nbt"));
+				NbtIo.write(serializeNBT(), new File(directory, "ftbteams.nbt"));
 				shouldSave = false;
 			}
 			catch (Exception ex)
@@ -228,16 +228,16 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 	}
 
 	@Override
-	public CompoundNBT serializeNBT()
+	public CompoundTag serializeNBT()
 	{
-		CompoundNBT nbt = new CompoundNBT();
+		CompoundTag nbt = new CompoundTag();
 		nbt.putInt("last_id", lastUID);
 
-		ListNBT knownPlayersNBT = new ListNBT();
+		ListTag knownPlayersNBT = new ListTag();
 
 		for (GameProfile profile : knownPlayers)
 		{
-			knownPlayersNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(profile)));
+			knownPlayersNBT.add(StringTag.valueOf(ProfileUtils.serializeProfile(profile)));
 		}
 
 		nbt.put("known_players", knownPlayersNBT);
@@ -245,12 +245,12 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 	}
 
 	@Override
-	public void deserializeNBT(CompoundNBT nbt)
+	public void deserializeNBT(CompoundTag nbt)
 	{
 		lastUID = nbt.getInt("last_id");
 
 		knownPlayers.clear();
-		ListNBT knownPlayersNBT = nbt.getList("known_players", Constants.NBT.TAG_STRING);
+		ListTag knownPlayersNBT = nbt.getList("known_players", Constants.NBT.TAG_STRING);
 
 		for (int i = 0; i < knownPlayersNBT.size(); i++)
 		{
@@ -263,7 +263,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 		}
 	}
 
-	public Team createPlayerTeam(ServerPlayerEntity player, String customName) throws CommandSyntaxException
+	public Team createPlayerTeam(ServerPlayer player, String customName) throws CommandSyntaxException
 	{
 		Optional<Team> oldTeam = getTeam(player);
 
@@ -284,7 +284,7 @@ public class TeamManagerImpl implements TeamManager, INBTSerializable<CompoundNB
 			team.setProperty(TeamImpl.DISPLAY_NAME, player.getGameProfile().getName() + "'s Team");
 		}
 
-		team.setProperty(TeamImpl.COLOR, TeamImpl.randomColor(player.world.rand));
+		team.setProperty(TeamImpl.COLOR, TeamImpl.randomColor(player.level.random));
 		team.create();
 		team.addMember(player);
 		return team;

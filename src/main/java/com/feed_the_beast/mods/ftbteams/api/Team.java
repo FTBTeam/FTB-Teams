@@ -2,10 +2,9 @@ package com.feed_the_beast.mods.ftbteams.api;
 
 import com.feed_the_beast.mods.ftbteams.impl.TeamManagerImpl;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.ITextComponent;
-
 import javax.annotation.Nullable;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import java.util.List;
 import java.util.Set;
 
@@ -22,7 +21,7 @@ public interface Team
 
 	String getStringID();
 
-	ITextComponent getName();
+	Component getName();
 
 	boolean isServerTeam();
 
@@ -36,7 +35,7 @@ public interface Team
 
 	boolean isOwner(GameProfile profile);
 
-	default boolean isOwner(ServerPlayerEntity player)
+	default boolean isOwner(ServerPlayer player)
 	{
 		return isOwner(player.getGameProfile());
 	}
@@ -44,26 +43,26 @@ public interface Team
 	GameProfile getOwner();
 
 	@Nullable
-	ServerPlayerEntity getOwnerPlayer();
+	ServerPlayer getOwnerPlayer();
 
 	boolean isMember(GameProfile profile);
 
-	default boolean isMember(ServerPlayerEntity player)
+	default boolean isMember(ServerPlayer player)
 	{
 		return isMember(player.getGameProfile());
 	}
 
 	Set<GameProfile> getMembers();
 
-	List<ServerPlayerEntity> getOnlineMembers();
+	List<ServerPlayer> getOnlineMembers();
 
-	boolean addMember(ServerPlayerEntity player);
+	boolean addMember(ServerPlayer player);
 
 	boolean removeMember(GameProfile profile, boolean deleteWhenEmpty);
 
 	boolean isAlly(GameProfile profile);
 
-	default boolean isAlly(ServerPlayerEntity player)
+	default boolean isAlly(ServerPlayer player)
 	{
 		return isAlly(player.getGameProfile());
 	}
@@ -72,7 +71,7 @@ public interface Team
 
 	boolean isInvited(GameProfile profile);
 
-	default boolean isInvited(ServerPlayerEntity player)
+	default boolean isInvited(ServerPlayer player)
 	{
 		return isInvited(player.getGameProfile());
 	}

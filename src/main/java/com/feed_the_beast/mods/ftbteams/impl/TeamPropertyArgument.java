@@ -9,9 +9,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 
 import java.util.LinkedHashMap;
@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class TeamPropertyArgument implements ArgumentType<TeamProperty>
 {
-	private static final SimpleCommandExceptionType PROPERTY_NOT_FOUND = new SimpleCommandExceptionType(new TranslationTextComponent("ftbteams.property_not_found"));
+	private static final SimpleCommandExceptionType PROPERTY_NOT_FOUND = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.property_not_found"));
 
 	@Override
 	public TeamProperty parse(StringReader reader) throws CommandSyntaxException
@@ -48,7 +48,7 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty>
 		{
 			Map<String, TeamProperty> map = new LinkedHashMap<>();
 			MinecraftForge.EVENT_BUS.post(new TeamConfigEvent(property -> map.put(property.id.toString(), property)));
-			return ISuggestionProvider.suggest(map.keySet(), builder);
+			return SharedSuggestionProvider.suggest(map.keySet(), builder);
 		}
 		catch (Exception ex)
 		{

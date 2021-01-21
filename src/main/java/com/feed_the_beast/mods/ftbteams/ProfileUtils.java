@@ -2,9 +2,8 @@ package com.feed_the_beast.mods.ftbteams;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
-import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.server.MinecraftServer;
-
+import net.minecraft.server.level.ServerPlayer;
 import javax.annotation.Nullable;
 import java.util.UUID;
 
@@ -16,10 +15,10 @@ public class ProfileUtils
 	public static final GameProfile NO_PROFILE = new GameProfile(new UUID(0L, 0L), "-");
 
 	@Nullable
-	public static ServerPlayerEntity getPlayerByProfile(MinecraftServer server, GameProfile profile)
+	public static ServerPlayer getPlayerByProfile(MinecraftServer server, GameProfile profile)
 	{
-		ServerPlayerEntity playerEntity = profile.getId() == null ? null : server.getPlayerList().getPlayerByUUID(profile.getId());
-		return playerEntity != null ? playerEntity : profile.getName() != null ? server.getPlayerList().getPlayerByUsername(profile.getName()) : null;
+		ServerPlayer playerEntity = profile.getId() == null ? null : server.getPlayerList().getPlayer(profile.getId());
+		return playerEntity != null ? playerEntity : profile.getName() != null ? server.getPlayerList().getPlayerByName(profile.getName()) : null;
 	}
 
 	public static GameProfile normalize(@Nullable GameProfile profile)

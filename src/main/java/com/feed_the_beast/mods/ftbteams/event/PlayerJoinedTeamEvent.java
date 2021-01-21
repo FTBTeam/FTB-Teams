@@ -1,9 +1,8 @@
 package com.feed_the_beast.mods.ftbteams.event;
 
 import com.feed_the_beast.mods.ftbteams.api.Team;
-import net.minecraft.entity.player.ServerPlayerEntity;
-
 import java.util.Optional;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * @author LatvianModder
@@ -11,9 +10,9 @@ import java.util.Optional;
 public class PlayerJoinedTeamEvent extends TeamEvent
 {
 	private final Optional<Team> previousTeam;
-	private final ServerPlayerEntity player;
+	private final ServerPlayer player;
 
-	public PlayerJoinedTeamEvent(Team t, Optional<Team> t0, ServerPlayerEntity p)
+	public PlayerJoinedTeamEvent(Team t, Optional<Team> t0, ServerPlayer p)
 	{
 		super(t);
 		previousTeam = t0;
@@ -25,7 +24,7 @@ public class PlayerJoinedTeamEvent extends TeamEvent
 		return previousTeam;
 	}
 
-	public ServerPlayerEntity getPlayer()
+	public ServerPlayer getPlayer()
 	{
 		return player;
 	}

@@ -1,7 +1,7 @@
 package com.feed_the_beast.mods.ftbteams.api;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 /**
  * @author LatvianModder
@@ -9,5 +9,5 @@ import net.minecraft.command.CommandSource;
 @FunctionalInterface
 public interface TeamArgumentProvider
 {
-	Team getTeam(CommandSource source) throws CommandSyntaxException;
+	Team getTeam(CommandSourceStack source) throws CommandSyntaxException;
 }

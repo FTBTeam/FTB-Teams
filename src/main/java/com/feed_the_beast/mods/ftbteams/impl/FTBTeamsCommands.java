@@ -10,25 +10,24 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.Commands;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.command.arguments.GameProfileArgument;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TranslationTextComponent;
-
 import java.util.Optional;
 import java.util.function.Predicate;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * @author LatvianModder
  */
 public class FTBTeamsCommands
 {
-	private Predicate<CommandSource> requiresOPorSP()
+	private Predicate<CommandSourceStack> requiresOPorSP()
 	{
-		return source -> source.getServer().isSinglePlayer() || source.hasPermissionLevel(2);
+		return source -> source.getServer().isSingleplayer() || source.hasPermission(2);
 	}
 
 	private String string(CommandContext<?> context, String name)
@@ -36,14 +35,14 @@ public class FTBTeamsCommands
 		return StringArgumentType.getString(context, name);
 	}
 
-	private TeamImpl team(CommandContext<CommandSource> context, String arg) throws CommandSyntaxException
+	private TeamImpl team(CommandContext<CommandSourceStack> context, String arg) throws CommandSyntaxException
 	{
 		return (TeamImpl) TeamArgument.get(context, arg);
 	}
 
-	private TeamImpl team(CommandContext<CommandSource> context) throws CommandSyntaxException
+	private TeamImpl team(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
 	{
-		ServerPlayerEntity player = context.getSource().asPlayer();
+		ServerPlayer player = context.getSource().getPlayerOrException();
 		Optional<Team> team = FTBTeamsAPI.INSTANCE.getManager().getTeam(player);
 
 		if (!team.isPresent())
@@ -54,9 +53,9 @@ public class FTBTeamsCommands
 		return (TeamImpl) team.get();
 	}
 
-	private TeamImpl teamAsOwner(CommandContext<CommandSource> context) throws CommandSyntaxException
+	private TeamImpl teamAsOwner(CommandContext<CommandSourceStack> context) throws CommandSyntaxException
 	{
-		ServerPlayerEntity player = context.getSource().asPlayer();
+		ServerPlayer player = context.getSource().getPlayerOrException();
 		Optional<Team> team = FTBTeamsAPI.INSTANCE.getManager().getTeam(player);
 
 		if (!team.isPresent())
@@ -74,9 +73,9 @@ public class FTBTeamsCommands
 		return (TeamImpl) t;
 	}
 
-	public void register(CommandDispatcher<CommandSource> dispatcher)
+	public void register(CommandDispatcher<CommandSourceStack> dispatcher)
 	{
-		LiteralCommandNode<CommandSource> command = dispatcher.register(Commands.literal("ftbteams")
+		LiteralCommandNode<CommandSourceStack> command = dispatcher.register(Commands.literal("ftbteams")
 				.then(Commands.literal("create")
 						.then(Commands.argument("name", StringArgumentType.greedyString())
 								.executes(ctx -> create(ctx.getSource(), string(ctx, "name")))
@@ -163,29 +162,29 @@ public class FTBTeamsCommands
 		//dispatcher.register(Commands.literal("ftbteam").redirect(command));
 	}
 
-	private static int create(CommandSource source, String name) throws CommandSyntaxException
+	private static int create(CommandSourceStack source, String name) throws CommandSyntaxException
 	{
-		Team team = TeamManagerImpl.instance.createPlayerTeam(source.asPlayer(), name);
-		source.sendFeedback(new StringTextComponent("Created new team ").append(team.getName()), true);
+		Team team = TeamManagerImpl.instance.createPlayerTeam(source.getPlayerOrException(), name);
+		source.sendSuccess(new TextComponent("Created new team ").append(team.getName()), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
-	private int createServer(CommandSource source, String name) throws CommandSyntaxException
+	private int createServer(CommandSourceStack source, String name) throws CommandSyntaxException
 	{
 		TeamManagerImpl manager = TeamManagerImpl.instance;
 		TeamImpl team = manager.newTeam();
 		team.serverTeam = true;
 		team.setProperty(TeamImpl.DISPLAY_NAME, name);
-		team.setProperty(TeamImpl.COLOR, TeamImpl.randomColor(source.getWorld().rand));
+		team.setProperty(TeamImpl.COLOR, TeamImpl.randomColor(source.getLevel().random));
 		team.create();
 
-		source.sendFeedback(new StringTextComponent("Created new server team ").append(team.getName()), true);
+		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
-	private int list(CommandSource source)
+	private int list(CommandSourceStack source)
 	{
-		StringTextComponent list = new StringTextComponent("");
+		TextComponent list = new TextComponent("");
 
 		boolean first = true;
 
@@ -197,13 +196,13 @@ public class FTBTeamsCommands
 			}
 			else
 			{
-				list.appendString(", ");
+				list.append(", ");
 			}
 
 			list.append(team.getName());
 		}
 
-		source.sendFeedback(new TranslationTextComponent("ftbteams.list", list), true);
+		source.sendSuccess(new TranslatableComponent("ftbteams.list", list), true);
 		return Command.SINGLE_SUCCESS;
 	}
 }

@@ -9,9 +9,9 @@ import com.feed_the_beast.mods.ftbteams.impl.TeamImpl;
 import com.feed_the_beast.mods.ftbteams.impl.TeamManagerImpl;
 import com.feed_the_beast.mods.ftbteams.impl.TeamPropertyArgument;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.command.arguments.ArgumentSerializer;
-import net.minecraft.command.arguments.ArgumentTypes;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.commands.synchronization.ArgumentTypes;
+import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -54,8 +54,8 @@ public class FTBTeams
 
 	private void setup(FMLCommonSetupEvent event)
 	{
-		ArgumentTypes.register("ftbteams_team", TeamArgumentImpl.class, new ArgumentSerializer<>(() -> new TeamArgumentImpl(() -> teamArgumentSuggestions)));
-		ArgumentTypes.register("ftbteams_team_property", TeamPropertyArgument.class, new ArgumentSerializer<>(TeamPropertyArgument::new));
+		ArgumentTypes.register("ftbteams_team", TeamArgumentImpl.class, new EmptyArgumentSerializer<>(() -> new TeamArgumentImpl(() -> teamArgumentSuggestions)));
+		ArgumentTypes.register("ftbteams_team_property", TeamPropertyArgument.class, new EmptyArgumentSerializer<>(TeamPropertyArgument::new));
 	}
 
 	private void serverAboutToStart(FMLServerAboutToStartEvent event)
@@ -94,9 +94,9 @@ public class FTBTeams
 	{
 		TeamManagerImpl manager = TeamManagerImpl.instance;
 
-		if (manager != null && event.getPlayer() instanceof ServerPlayerEntity)
+		if (manager != null && event.getPlayer() instanceof ServerPlayer)
 		{
-			GameProfile profile = ProfileUtils.normalize(new GameProfile(event.getPlayer().getUniqueID(), event.getPlayer().getGameProfile().getName()));
+			GameProfile profile = ProfileUtils.normalize(new GameProfile(event.getPlayer().getUUID(), event.getPlayer().getGameProfile().getName()));
 
 			if (profile != ProfileUtils.NO_PROFILE && !manager.getKnownPlayers().contains(profile))
 			{
@@ -104,7 +104,7 @@ public class FTBTeams
 
 				try
 				{
-					manager.createPlayerTeam((ServerPlayerEntity) event.getPlayer(), "");
+					manager.createPlayerTeam((ServerPlayer) event.getPlayer(), "");
 				}
 				catch (Exception ex)
 				{

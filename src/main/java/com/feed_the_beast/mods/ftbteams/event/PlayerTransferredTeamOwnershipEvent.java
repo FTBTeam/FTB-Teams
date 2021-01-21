@@ -1,28 +1,28 @@
 package com.feed_the_beast.mods.ftbteams.event;
 
 import com.feed_the_beast.mods.ftbteams.api.Team;
-import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
  * @author LatvianModder
  */
 public class PlayerTransferredTeamOwnershipEvent extends TeamEvent
 {
-	private final ServerPlayerEntity from, to;
+	private final ServerPlayer from, to;
 
-	public PlayerTransferredTeamOwnershipEvent(Team t, ServerPlayerEntity pf, ServerPlayerEntity pt)
+	public PlayerTransferredTeamOwnershipEvent(Team t, ServerPlayer pf, ServerPlayer pt)
 	{
 		super(t);
 		from = pf;
 		to = pt;
 	}
 
-	public ServerPlayerEntity getFrom()
+	public ServerPlayer getFrom()
 	{
 		return from;
 	}
 
-	public ServerPlayerEntity getTo()
+	public ServerPlayer getTo()
 	{
 		return to;
 	}

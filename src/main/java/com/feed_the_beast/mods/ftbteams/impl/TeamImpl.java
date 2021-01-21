@@ -19,20 +19,20 @@ import com.feed_the_beast.mods.ftbteams.event.TeamSavedEvent;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandSource;
-import net.minecraft.entity.player.ServerPlayerEntity;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.util.text.event.ClickEvent;
-import net.minecraft.world.storage.FolderName;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Constants;
@@ -56,7 +56,7 @@ import java.util.Set;
 /**
  * @author LatvianModder
  */
-public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
+public class TeamImpl implements Team, INBTSerializable<CompoundTag>
 {
 	public static final StringProperty DISPLAY_NAME = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "display_name"), "");
 	public static final StringProperty DESCRIPTION = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "description"), "");
@@ -167,7 +167,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 				file.getParentFile().mkdirs();
 			}
 
-			CompressedStreamTools.write(serializeNBT(), file);
+			NbtIo.write(serializeNBT(), file);
 			shouldSave = false;
 		}
 	}
@@ -186,11 +186,11 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 	}
 
 	@Override
-	public ITextComponent getName()
+	public Component getName()
 	{
-		StringTextComponent text = new StringTextComponent(getProperty(DISPLAY_NAME));
-		text.mergeStyle(TextFormatting.AQUA);
-		text.setStyle(text.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getStringID())));
+		TextComponent text = new TextComponent(getProperty(DISPLAY_NAME));
+		text.withStyle(ChatFormatting.AQUA);
+		text.setStyle(text.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getStringID())));
 		return text;
 	}
 
@@ -234,7 +234,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 			return false;
 		}
 
-		File directory = manager.getServer().func_240776_a_(new FolderName("data/ftbteams")).toFile();
+		File directory = manager.getServer().getWorldPath(new LevelResource("data/ftbteams")).toFile();
 		File deletedDirectory = new File(directory, "deleted");
 
 		try
@@ -244,7 +244,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 				deletedDirectory.mkdirs();
 			}
 
-			CompressedStreamTools.write(serializeNBT(), new File(deletedDirectory, getId() + ".nbt"));
+			NbtIo.write(serializeNBT(), new File(deletedDirectory, getId() + ".nbt"));
 		}
 		catch (Exception ex)
 		{
@@ -277,7 +277,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 
 	@Override
 	@Nullable
-	public ServerPlayerEntity getOwnerPlayer()
+	public ServerPlayer getOwnerPlayer()
 	{
 		return ProfileUtils.getPlayerByProfile(manager.server, owner);
 	}
@@ -295,13 +295,13 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 	}
 
 	@Override
-	public List<ServerPlayerEntity> getOnlineMembers()
+	public List<ServerPlayer> getOnlineMembers()
 	{
-		List<ServerPlayerEntity> list = new ArrayList<>();
+		List<ServerPlayer> list = new ArrayList<>();
 
 		for (GameProfile member : members)
 		{
-			ServerPlayerEntity player = ProfileUtils.getPlayerByProfile(manager.server, member);
+			ServerPlayer player = ProfileUtils.getPlayerByProfile(manager.server, member);
 
 			if (player != null)
 			{
@@ -313,7 +313,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 	}
 
 	@Override
-	public boolean addMember(ServerPlayerEntity player)
+	public boolean addMember(ServerPlayer player)
 	{
 		Optional<Team> oldTeam = manager.getTeam(player);
 		Team ot = oldTeam.orElse(null);
@@ -387,41 +387,41 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 	// Data IO //
 
 	@Override
-	public CompoundNBT serializeNBT()
+	public CompoundTag serializeNBT()
 	{
-		CompoundNBT nbt = new CompoundNBT();
+		CompoundTag nbt = new CompoundTag();
 		nbt.putInt("id", id);
 		nbt.putBoolean("server_team", serverTeam);
 		nbt.putString("owner", ProfileUtils.serializeProfile(owner));
 
-		ListNBT membersNBT = new ListNBT();
+		ListTag membersNBT = new ListTag();
 
 		for (GameProfile member : members)
 		{
-			membersNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(member)));
+			membersNBT.add(StringTag.valueOf(ProfileUtils.serializeProfile(member)));
 		}
 
 		nbt.put("members", membersNBT);
 
-		ListNBT invitedNBT = new ListNBT();
+		ListTag invitedNBT = new ListTag();
 
 		for (GameProfile invited : invited)
 		{
-			invitedNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(invited)));
+			invitedNBT.add(StringTag.valueOf(ProfileUtils.serializeProfile(invited)));
 		}
 
 		nbt.put("invited", invitedNBT);
 
-		ListNBT alliesNBT = new ListNBT();
+		ListTag alliesNBT = new ListTag();
 
 		for (GameProfile ally : allies)
 		{
-			alliesNBT.add(StringNBT.valueOf(ProfileUtils.serializeProfile(ally)));
+			alliesNBT.add(StringTag.valueOf(ProfileUtils.serializeProfile(ally)));
 		}
 
 		nbt.put("allies", alliesNBT);
 
-		CompoundNBT propertiesNBT = new CompoundNBT();
+		CompoundTag propertiesNBT = new CompoundTag();
 
 		for (Map.Entry<TeamProperty, Object> property : properties.entrySet())
 		{
@@ -430,7 +430,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 
 		nbt.put("properties", propertiesNBT);
 
-		CompoundNBT extra = new CompoundNBT();
+		CompoundTag extra = new CompoundTag();
 		MinecraftForge.EVENT_BUS.post(new TeamSavedEvent(this, extra));
 		nbt.put("extra", extra);
 
@@ -438,13 +438,13 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 	}
 
 	@Override
-	public void deserializeNBT(CompoundNBT nbt)
+	public void deserializeNBT(CompoundTag nbt)
 	{
 		serverTeam = nbt.getBoolean("server_team");
 		owner = ProfileUtils.deserializeProfile(nbt.getString("owner"));
 
 		members.clear();
-		ListNBT membersNBT = nbt.getList("members", Constants.NBT.TAG_STRING);
+		ListTag membersNBT = nbt.getList("members", Constants.NBT.TAG_STRING);
 
 		for (int i = 0; i < membersNBT.size(); i++)
 		{
@@ -457,7 +457,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 		}
 
 		invited.clear();
-		ListNBT invitedNBT = nbt.getList("invited", Constants.NBT.TAG_STRING);
+		ListTag invitedNBT = nbt.getList("invited", Constants.NBT.TAG_STRING);
 
 		for (int i = 0; i < invitedNBT.size(); i++)
 		{
@@ -470,7 +470,7 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 		}
 
 		allies.clear();
-		ListNBT alliesNBT = nbt.getList("allies", Constants.NBT.TAG_STRING);
+		ListTag alliesNBT = nbt.getList("allies", Constants.NBT.TAG_STRING);
 
 		for (int i = 0; i < alliesNBT.size(); i++)
 		{
@@ -483,12 +483,12 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 		}
 
 		properties.clear();
-		CompoundNBT propertiesNBT = nbt.getCompound("properties");
+		CompoundTag propertiesNBT = nbt.getCompound("properties");
 
 		Map<String, TeamProperty> map = new HashMap<>();
 		MinecraftForge.EVENT_BUS.post(new TeamConfigEvent(p -> map.put(p.id.toString(), p)));
 
-		for (String key : propertiesNBT.keySet())
+		for (String key : propertiesNBT.getAllKeys())
 		{
 			TeamProperty property = map.get(key);
 
@@ -508,25 +508,25 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 
 	// Commands //
 
-	int delete(CommandSource source) throws CommandSyntaxException
+	int delete(CommandSourceStack source) throws CommandSyntaxException
 	{
 		if (delete())
 		{
-			source.sendFeedback(new StringTextComponent("Deleted " + getId()), true);
+			source.sendSuccess(new TextComponent("Deleted " + getId()), true);
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int settings(CommandSource source, TeamProperty key, String value) throws CommandSyntaxException
+	int settings(CommandSourceStack source, TeamProperty key, String value) throws CommandSyntaxException
 	{
 		if (value.isEmpty())
 		{
-			StringTextComponent keyc = new StringTextComponent(key.id.toString());
-			keyc.mergeStyle(TextFormatting.YELLOW);
-			StringTextComponent valuec = new StringTextComponent(key.toString(getProperty(key)));
-			valuec.mergeStyle(TextFormatting.AQUA);
-			source.sendFeedback(new StringTextComponent("").append(keyc).appendString(" is set to ").append(valuec), true);
+			TextComponent keyc = new TextComponent(key.id.toString());
+			keyc.withStyle(ChatFormatting.YELLOW);
+			TextComponent valuec = new TextComponent(key.toString(getProperty(key)));
+			valuec.withStyle(ChatFormatting.AQUA);
+			source.sendSuccess(new TextComponent("").append(keyc).append(" is set to ").append(valuec), true);
 		}
 		else
 		{
@@ -535,24 +535,24 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 			if (!optional.isPresent())
 			{
 				//throw CommandSyntaxException
-				source.sendFeedback(new StringTextComponent("Failed to parse value!"), true);
+				source.sendSuccess(new TextComponent("Failed to parse value!"), true);
 				return 0;
 			}
 
 			setProperty(key, optional.get());
-			StringTextComponent keyc = new StringTextComponent(key.id.toString());
-			keyc.mergeStyle(TextFormatting.YELLOW);
-			StringTextComponent valuec = new StringTextComponent(value);
-			valuec.mergeStyle(TextFormatting.AQUA);
-			source.sendFeedback(new StringTextComponent("Set ").append(keyc).appendString(" to ").append(valuec), true);
+			TextComponent keyc = new TextComponent(key.id.toString());
+			keyc.withStyle(ChatFormatting.YELLOW);
+			TextComponent valuec = new TextComponent(value);
+			valuec.withStyle(ChatFormatting.AQUA);
+			source.sendSuccess(new TextComponent("Set ").append(keyc).append(" to ").append(valuec), true);
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int join(CommandSource source) throws CommandSyntaxException
+	int join(CommandSourceStack source) throws CommandSyntaxException
 	{
-		ServerPlayerEntity player = source.asPlayer();
+		ServerPlayer player = source.getPlayerOrException();
 		Optional<Team> oldTeam = manager.getTeam(player);
 
 		if (oldTeam.isPresent())
@@ -568,32 +568,32 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 		invited.remove(player.getGameProfile());
 		addMember(player);
 
-		for (ServerPlayerEntity member : getOnlineMembers())
+		for (ServerPlayer member : getOnlineMembers())
 		{
-			member.sendStatusMessage(new StringTextComponent("").append(player.getDisplayName()).appendString(" joined ").append(getName()), false);
+			member.displayClientMessage(new TextComponent("").append(player.getDisplayName()).append(" joined ").append(getName()), false);
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int leave(CommandSource source) throws CommandSyntaxException
+	int leave(CommandSourceStack source) throws CommandSyntaxException
 	{
-		ServerPlayerEntity player = source.asPlayer();
+		ServerPlayer player = source.getPlayerOrException();
 
-		List<ServerPlayerEntity> onlineMembers = getOnlineMembers();
+		List<ServerPlayer> onlineMembers = getOnlineMembers();
 
 		if (removeMember(player.getGameProfile(), true))
 		{
-			for (ServerPlayerEntity member : onlineMembers)
+			for (ServerPlayer member : onlineMembers)
 			{
-				member.sendStatusMessage(new StringTextComponent("").append(player.getDisplayName()).appendString(" left ").append(getName()), false);
+				member.displayClientMessage(new TextComponent("").append(player.getDisplayName()).append(" left ").append(getName()), false);
 			}
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int invite(CommandSource source, Collection<GameProfile> players) throws CommandSyntaxException
+	int invite(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException
 	{
 		if (!getProperty(FREE_TO_JOIN) && invited.addAll(players))
 		{
@@ -602,60 +602,60 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 
 		for (GameProfile player : players)
 		{
-			ServerPlayerEntity playerEntity = ProfileUtils.getPlayerByProfile(manager.getServer(), player);
+			ServerPlayer playerEntity = ProfileUtils.getPlayerByProfile(manager.getServer(), player);
 
 			if (playerEntity != null)
 			{
-				source.sendFeedback(new StringTextComponent("Invited ").append(playerEntity.getDisplayName()).appendString(" to ").append(getName()), true);
-				IFormattableTextComponent component = new StringTextComponent("You have been invited to ").append(getName()).appendString("!");
-				playerEntity.sendStatusMessage(component, false);
+				source.sendSuccess(new TextComponent("Invited ").append(playerEntity.getDisplayName()).append(" to ").append(getName()), true);
+				MutableComponent component = new TextComponent("You have been invited to ").append(getName()).append("!");
+				playerEntity.displayClientMessage(component, false);
 
-				StringTextComponent accept = new StringTextComponent("[Click here to accept the invite]");
-				accept.setStyle(accept.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams join " + getStringID())));
-				accept.mergeStyle(TextFormatting.GREEN);
-				playerEntity.sendStatusMessage(accept, false);
+				TextComponent accept = new TextComponent("[Click here to accept the invite]");
+				accept.setStyle(accept.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams join " + getStringID())));
+				accept.withStyle(ChatFormatting.GREEN);
+				playerEntity.displayClientMessage(accept, false);
 
-				StringTextComponent deny = new StringTextComponent("[Click here to deny the invite]");
-				deny.mergeStyle(TextFormatting.RED);
-				deny.setStyle(deny.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams deny_invite " + getStringID())));
-				playerEntity.sendStatusMessage(deny, false);
+				TextComponent deny = new TextComponent("[Click here to deny the invite]");
+				deny.withStyle(ChatFormatting.RED);
+				deny.setStyle(deny.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams deny_invite " + getStringID())));
+				playerEntity.displayClientMessage(deny, false);
 			}
 			else
 			{
-				source.sendFeedback(new StringTextComponent("Invited " + player.getName() + " to ").append(getName()), true);
+				source.sendSuccess(new TextComponent("Invited " + player.getName() + " to ").append(getName()), true);
 			}
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int denyInvite(CommandSource source) throws CommandSyntaxException
+	int denyInvite(CommandSourceStack source) throws CommandSyntaxException
 	{
-		if (invited.remove(source.asPlayer().getGameProfile()))
+		if (invited.remove(source.getPlayerOrException().getGameProfile()))
 		{
-			source.sendFeedback(new StringTextComponent("Invite denied"), true);
+			source.sendSuccess(new TextComponent("Invite denied"), true);
 			save();
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int kick(CommandSource source, Collection<GameProfile> players) throws CommandSyntaxException
+	int kick(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException
 	{
 		invited.removeAll(players);
 
 		for (GameProfile player : players)
 		{
-			ServerPlayerEntity playerEntity = ProfileUtils.getPlayerByProfile(manager.getServer(), player);
+			ServerPlayer playerEntity = ProfileUtils.getPlayerByProfile(manager.getServer(), player);
 
 			if (playerEntity != null)
 			{
-				source.sendFeedback(new StringTextComponent("Kicked ").append(playerEntity.getDisplayName()).appendString(" from ").append(getName()), true);
-				playerEntity.sendStatusMessage(new StringTextComponent("You have been kicked from ").append(getName()).appendString("!"), false);
+				source.sendSuccess(new TextComponent("Kicked ").append(playerEntity.getDisplayName()).append(" from ").append(getName()), true);
+				playerEntity.displayClientMessage(new TextComponent("You have been kicked from ").append(getName()).append("!"), false);
 			}
 			else
 			{
-				source.sendFeedback(new StringTextComponent("Kicked " + player.getName() + " from ").append(getName()), true);
+				source.sendSuccess(new TextComponent("Kicked " + player.getName() + " from ").append(getName()), true);
 			}
 
 			removeMember(player, true);
@@ -664,9 +664,9 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int transferOwnership(CommandSource source, ServerPlayerEntity to) throws CommandSyntaxException
+	int transferOwnership(CommandSourceStack source, ServerPlayer to) throws CommandSyntaxException
 	{
-		ServerPlayerEntity from = source.asPlayer();
+		ServerPlayer from = source.getPlayerOrException();
 
 		if (!isMember(to))
 		{
@@ -676,68 +676,68 @@ public class TeamImpl implements Team, INBTSerializable<CompoundNBT>
 		owner = to.getGameProfile();
 		save();
 		MinecraftForge.EVENT_BUS.post(new PlayerTransferredTeamOwnershipEvent(this, from, to));
-		source.sendFeedback(new StringTextComponent("Transferred ownership to ").append(to.getDisplayName()), true);
+		source.sendSuccess(new TextComponent("Transferred ownership to ").append(to.getDisplayName()), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int info(CommandSource source) throws CommandSyntaxException
+	int info(CommandSourceStack source) throws CommandSyntaxException
 	{
-		StringTextComponent infoComponent = new StringTextComponent("");
-		infoComponent.getStyle().setBold(true);
-		infoComponent.appendString("== ");
+		TextComponent infoComponent = new TextComponent("");
+		infoComponent.getStyle().withBold(true);
+		infoComponent.append("== ");
 		infoComponent.append(getName());
-		infoComponent.appendString(" ==");
-		source.sendFeedback(infoComponent, true);
+		infoComponent.append(" ==");
+		source.sendSuccess(infoComponent, true);
 
-		StringTextComponent idComponent = new StringTextComponent(String.valueOf(id));
-		idComponent.mergeStyle(TextFormatting.YELLOW);
-		source.sendFeedback(new TranslationTextComponent("ftbteams.info.id", idComponent), true);
+		TextComponent idComponent = new TextComponent(String.valueOf(id));
+		idComponent.withStyle(ChatFormatting.YELLOW);
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.id", idComponent), true);
 
-		StringTextComponent ownerComponent = new StringTextComponent(getOwner().getName());
-		ownerComponent.mergeStyle(TextFormatting.YELLOW);
-		source.sendFeedback(new TranslationTextComponent("ftbteams.info.owner", ownerComponent), true);
+		TextComponent ownerComponent = new TextComponent(getOwner().getName());
+		ownerComponent.withStyle(ChatFormatting.YELLOW);
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", ownerComponent), true);
 
-		source.sendFeedback(new TranslationTextComponent("ftbteams.info.members"), true);
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.members"), true);
 
 		for (GameProfile member : getMembers())
 		{
-			StringTextComponent memberComponent = new StringTextComponent("- " + member.getName());
-			memberComponent.mergeStyle(TextFormatting.YELLOW);
-			source.sendFeedback(memberComponent, true);
+			TextComponent memberComponent = new TextComponent("- " + member.getName());
+			memberComponent.withStyle(ChatFormatting.YELLOW);
+			source.sendSuccess(memberComponent, true);
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int msg(CommandSource source, String message) throws CommandSyntaxException
+	int msg(CommandSourceStack source, String message) throws CommandSyntaxException
 	{
-		StringTextComponent component = new StringTextComponent("<");
-		component.append(source.getDisplayName().deepCopy().mergeStyle(TextFormatting.YELLOW));
-		component.appendString(" @");
+		TextComponent component = new TextComponent("<");
+		component.append(source.getDisplayName().copy().withStyle(ChatFormatting.YELLOW));
+		component.append(" @");
 		component.append(getName());
-		component.appendString("> ");
+		component.append("> ");
 		component.append(ForgeHooks.newChatWithLinks(message));
 
-		for (ServerPlayerEntity player : getOnlineMembers())
+		for (ServerPlayer player : getOnlineMembers())
 		{
-			player.sendStatusMessage(component, false);
+			player.displayClientMessage(component, false);
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	int gui(CommandSource source) throws CommandSyntaxException
+	int gui(CommandSourceStack source) throws CommandSyntaxException
 	{
 		if (ModList.get().isLoaded("ftbguilibrary"))
 		{
-			openGUI(source.asPlayer());
+			openGUI(source.getPlayerOrException());
 			return Command.SINGLE_SUCCESS;
 		}
 
 		throw TeamArgument.NO_GUI_LIBRARY.create();
 	}
 
-	public void openGUI(ServerPlayerEntity player)
+	public void openGUI(ServerPlayer player)
 	{
 		if (ModList.get().isLoaded("ftbguilibrary"))
 		{

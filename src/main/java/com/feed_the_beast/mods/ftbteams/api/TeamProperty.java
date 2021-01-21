@@ -1,9 +1,8 @@
 package com.feed_the_beast.mods.ftbteams.api;
 
-import net.minecraft.util.ResourceLocation;
-
 import java.util.Optional;
 import java.util.function.Predicate;
+import net.minecraft.resources.ResourceLocation;
 
 /**
  * @author LatvianModder

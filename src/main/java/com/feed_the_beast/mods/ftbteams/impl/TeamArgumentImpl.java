@@ -10,14 +10,13 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.command.arguments.EntityArgument;
-import net.minecraft.command.arguments.EntitySelector;
-import net.minecraft.command.arguments.EntitySelectorParser;
-
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.selector.EntitySelector;
+import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 
 /**
  * @author LatvianModder
@@ -34,9 +33,9 @@ public class TeamArgumentImpl implements TeamArgument
 		}
 
 		@Override
-		public Team getTeam(CommandSource source) throws CommandSyntaxException
+		public Team getTeam(CommandSourceStack source) throws CommandSyntaxException
 		{
-			return FTBTeamsAPI.INSTANCE.getManager().getTeam(selector.selectOnePlayer(source)).orElseThrow(TeamArgument.NOT_IN_TEAM::create);
+			return FTBTeamsAPI.INSTANCE.getManager().getTeam(selector.findSinglePlayer(source)).orElseThrow(TeamArgument.NOT_IN_TEAM::create);
 		}
 	}
 
@@ -50,7 +49,7 @@ public class TeamArgumentImpl implements TeamArgument
 		}
 
 		@Override
-		public Team getTeam(CommandSource source) throws CommandSyntaxException
+		public Team getTeam(CommandSourceStack source) throws CommandSyntaxException
 		{
 			try
 			{
@@ -65,7 +64,7 @@ public class TeamArgumentImpl implements TeamArgument
 			{
 			}
 
-			GameProfile profile = source.getServer().getPlayerProfileCache().getGameProfileForUsername(id);
+			GameProfile profile = source.getServer().getProfileCache().get(id);
 
 			if (profile != null)
 			{
@@ -92,7 +91,7 @@ public class TeamArgumentImpl implements TeamArgument
 
 			if (selector.includesEntities())
 			{
-				throw EntityArgument.ONLY_PLAYERS_ALLOWED.create();
+				throw EntityArgument.ERROR_ONLY_PLAYERS_ALLOWED.create();
 			}
 			else
 			{
@@ -113,6 +112,6 @@ public class TeamArgumentImpl implements TeamArgument
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder)
 	{
-		return ISuggestionProvider.suggest(suggestions.get(), builder);
+		return SharedSuggestionProvider.suggest(suggestions.get(), builder);
 	}
 }

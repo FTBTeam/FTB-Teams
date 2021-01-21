@@ -1,9 +1,8 @@
 package com.feed_the_beast.mods.ftbteams.api.property;
 
 import com.feed_the_beast.mods.ftbteams.api.TeamProperty;
-import net.minecraft.util.ResourceLocation;
-
 import javax.annotation.Nullable;
+import net.minecraft.resources.ResourceLocation;
 import java.util.Optional;
 import java.util.regex.Pattern;
 

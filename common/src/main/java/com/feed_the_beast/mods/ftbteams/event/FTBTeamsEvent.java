@@ -6,5 +6,6 @@ import me.shedaniel.architectury.ForgeEvent;
  * @author LatvianModder
  */
 @ForgeEvent
-public class FTBTeamsEvent {
+public class FTBTeamsEvent
+{
 }

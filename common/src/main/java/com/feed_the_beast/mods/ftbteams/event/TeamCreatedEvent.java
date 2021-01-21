@@ -12,6 +12,7 @@ import java.util.function.Consumer;
 public class TeamCreatedEvent extends TeamEvent
 {
 	public static final Event<Consumer<TeamCreatedEvent>> EVENT = EventFactory.createConsumerLoop(TeamCreatedEvent.class);
+
 	public TeamCreatedEvent(Team t)
 	{
 		super(t);

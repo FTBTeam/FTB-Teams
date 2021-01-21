@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;

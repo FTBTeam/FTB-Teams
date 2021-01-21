@@ -1,8 +1,9 @@
 package com.feed_the_beast.mods.ftbteams.api.property;
 
 import com.feed_the_beast.mods.ftbteams.api.TeamProperty;
-import java.util.Optional;
 import net.minecraft.resources.ResourceLocation;
+
+import java.util.Optional;
 
 /**
  * @author LatvianModder

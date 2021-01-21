@@ -2,9 +2,10 @@ package com.feed_the_beast.mods.ftbteams.api;
 
 import com.feed_the_beast.mods.ftbteams.impl.TeamManagerImpl;
 import com.mojang.authlib.GameProfile;
-import javax.annotation.Nullable;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 

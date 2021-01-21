@@ -1,12 +1,12 @@
 package com.feed_the_beast.mods.ftbteams.event;
 
 import com.feed_the_beast.mods.ftbteams.api.Team;
-import java.util.Optional;
-import java.util.function.Consumer;
-
 import me.shedaniel.architectury.event.Event;
 import me.shedaniel.architectury.event.EventFactory;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * @author LatvianModder

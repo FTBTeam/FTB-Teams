@@ -5,7 +5,8 @@ import net.minecraft.network.chat.TextComponent;
 
 public class TeamImplImpl // we love this name
 {
-	public static Component newChatWithLinks(String message) {
+	public static Component newChatWithLinks(String message)
+	{
 		return new TextComponent(message);
 	}
 }

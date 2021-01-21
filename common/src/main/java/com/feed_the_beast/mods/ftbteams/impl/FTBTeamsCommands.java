@@ -10,8 +10,6 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import java.util.Optional;
-import java.util.function.Predicate;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -19,6 +17,9 @@ import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.Optional;
+import java.util.function.Predicate;
 
 /**
  * @author LatvianModder
@@ -158,8 +159,6 @@ public class FTBTeamsCommands
 				)
 				.executes(ctx -> team(ctx).gui(ctx.getSource()))
 		);
-
-		//dispatcher.register(Commands.literal("ftbteam").redirect(command));
 	}
 
 	private static int create(CommandSourceStack source, String name) throws CommandSyntaxException

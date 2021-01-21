@@ -36,7 +36,6 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.storage.LevelResource;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -722,9 +721,10 @@ public class TeamImpl implements Team
 
 		return Command.SINGLE_SUCCESS;
 	}
-	
+
 	@ExpectPlatform
-	private static Component newChatWithLinks(String message) {
+	private static Component newChatWithLinks(String message)
+	{
 		throw new AssertionError();
 	}
 

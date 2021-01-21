@@ -1,8 +1,9 @@
 package com.feed_the_beast.mods.ftbteams.api.property;
 
 import com.feed_the_beast.mods.ftbteams.api.TeamProperty;
-import java.util.Optional;
 import net.minecraft.resources.ResourceLocation;
+
+import java.util.Optional;
 
 /**
  * @author LatvianModder
@@ -17,11 +18,12 @@ public class ColorProperty extends TeamProperty<Integer>
 	@Override
 	public Optional<Integer> fromString(String string)
 	{
-		if (string.length() == 6 || string.length() == 7 && string.startsWith("#"))
+		if (string.length() >= 7 && string.startsWith("#"))
 		{
 			try
 			{
-				return Optional.of(Integer.valueOf(string.charAt(0) == '#' ? string.substring(1) : string, 16));
+				long col = Long.decode(string) & 0xFFFFFFL;
+				return Optional.of((int) col);
 			}
 			catch (Exception ex)
 			{
@@ -34,6 +36,6 @@ public class ColorProperty extends TeamProperty<Integer>
 	@Override
 	public String toString(Integer value)
 	{
-		return String.format("#%06x", value);
+		return String.format("#%06X", value & 0xFFFFFF);
 	}
 }

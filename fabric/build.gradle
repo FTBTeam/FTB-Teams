@@ -22,6 +22,7 @@ dependencies {
 
 	modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
 	modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
+	modApi "com.feed_the_beast.mods:ftb-gui-library-fabric:${rootProject.ftb_gui_library_version}"
 
 	implementation(project(path: ":common")) {
 		transitive = false
@@ -59,9 +60,6 @@ if (ENV.CURSEFORGE_KEY) {
 			id = project.curseforge_id_fabric
 			releaseType = "release"
 			addGameVersion "Fabric"
-			addGameVersion "1.16.2"
-			addGameVersion "1.16.3"
-			addGameVersion "1.16.4"
 			addGameVersion "1.16.5"
 			mainArtifact(remapJar.archivePath)
 			relations {

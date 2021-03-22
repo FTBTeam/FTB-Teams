@@ -35,7 +35,7 @@ side = "BOTH"
 
 [[dependencies.ftbteams]]
 modId = "ftbguilibrary"
-mandatory = false
+mandatory = true
 versionRange = "[1.0.0,)"
 ordering = "AFTER"
 side = "CLIENT"

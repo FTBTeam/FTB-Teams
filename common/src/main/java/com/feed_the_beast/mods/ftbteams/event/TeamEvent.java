@@ -1,21 +1,18 @@
 package com.feed_the_beast.mods.ftbteams.event;
 
-import com.feed_the_beast.mods.ftbteams.api.Team;
+import com.feed_the_beast.mods.ftbteams.data.Team;
 
 /**
  * @author LatvianModder
  */
-public class TeamEvent extends FTBTeamsEvent
-{
+public class TeamEvent {
 	private final Team team;
 
-	public TeamEvent(Team t)
-	{
+	public TeamEvent(Team t) {
 		team = t;
 	}
 
-	public Team getTeam()
-	{
+	public Team getTeam() {
 		return team;
 	}
 }

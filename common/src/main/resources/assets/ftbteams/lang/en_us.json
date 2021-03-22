@@ -1,5 +1,4 @@
 {
-	"ftbteams.no_gui_library": "FTB GUI Library mod not found! You can only use commands without it",
 	"ftbteams.already_in_team": "You are already in a team!",
 	"ftbteams.not_in_team": "You haven't created or joined a team!",
 	"ftbteams.team_not_found": "Team '%s' not found!",
@@ -10,5 +9,6 @@
 	"ftbteams.info.owner": "Owner: %s",
 	"ftbteams.info.members": "Members:",
 	"ftbteams.list": "All FTB Teams: %s",
-	"ftbteams.property_not_found": "Property ID not found!"
+	"ftbteams.property_not_found": "Property ID not found!",
+	"sidebar_button.ftbteams.my_team": "My Team"
 }

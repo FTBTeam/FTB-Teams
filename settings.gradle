@@ -1,13 +1,12 @@
 pluginManagement {
 	repositories {
-		jcenter()
 		maven { url "https://maven.fabricmc.net/" }
-		maven { url "https://maven.shedaniel.me" }
-		maven { url "https://files.minecraftforge.net/maven/" }
+		maven { url "https://maven.shedaniel.me/" }
+		maven { url "https://forge.modpacks.ch/maven/" }
 		gradlePluginPortal()
 	}
 }
 
 include "common", "fabric", "forge"
 
-rootProject.name = "FTB-Teams"
+rootProject.name = 'FTB-Teams-1.16.5'

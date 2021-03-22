@@ -19,7 +19,8 @@
 	},
 	"depends": {
 		"fabric": "*",
-		"minecraft": "~1.16.4",
-		"architectury": ">=1.3.84"
+		"minecraft": "~1.16.5",
+		"architectury": ">=1.3.84",
+		"ftbguilibrary": ">=1.0.0"
 	}
 }

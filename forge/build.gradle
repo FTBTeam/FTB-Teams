@@ -21,6 +21,10 @@ dependencies {
 	forge "net.minecraftforge:forge:${rootProject.forge_version}"
 
 	modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
+	modApi "com.feed_the_beast.mods:ftb-gui-library-forge:${rootProject.ftb_gui_library_version}"
+
+	modRuntime "curse.maven:ftb-quests-289412:3242959"
+	modRuntime "curse.maven:item-filters-309674:3231742"
 
 	implementation(project(path: ":common")) {
 		transitive = false
@@ -58,9 +62,6 @@ if (ENV.CURSEFORGE_KEY) {
 			id = project.curseforge_id_forge
 			releaseType = "release"
 			addGameVersion "Forge"
-			addGameVersion "1.16.2"
-			addGameVersion "1.16.3"
-			addGameVersion "1.16.4"
 			addGameVersion "1.16.5"
 			mainArtifact(remapJar.archivePath)
 			relations {

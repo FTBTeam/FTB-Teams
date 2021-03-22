@@ -1,6 +1,6 @@
 package com.feed_the_beast.mods.ftbteams.data;
 
-import com.mojang.authlib.GameProfile;
+import com.mojang.util.UUIDTypeAdapter;
 import me.shedaniel.architectury.utils.NbtType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -8,9 +8,10 @@ import net.minecraft.nbt.StringTag;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class PlayerTeam extends Team {
-	final HashSet<GameProfile> allies;
+	final Set<UUID> allies;
 
 	public PlayerTeam(TeamManager m) {
 		super(m);
@@ -22,7 +23,7 @@ public class PlayerTeam extends Team {
 		return TeamType.PLAYER;
 	}
 
-	public Set<GameProfile> getAllies() {
+	public Set<UUID> getAllies() {
 		return allies;
 	}
 
@@ -37,8 +38,8 @@ public class PlayerTeam extends Team {
 
 		ListTag alliesNBT = new ListTag();
 
-		for (GameProfile ally : allies) {
-			alliesNBT.add(StringTag.valueOf(FTBTUtils.serializeProfile(ally)));
+		for (UUID ally : allies) {
+			alliesNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(ally)));
 		}
 
 		tag.put("allies", alliesNBT);
@@ -54,11 +55,7 @@ public class PlayerTeam extends Team {
 		ListTag alliesNBT = tag.getList("allies", NbtType.STRING);
 
 		for (int i = 0; i < alliesNBT.size(); i++) {
-			GameProfile profile = FTBTUtils.deserializeProfile(alliesNBT.getString(i));
-
-			if (profile != FTBTUtils.NO_PROFILE) {
-				allies.add(profile);
-			}
+			allies.add(UUIDTypeAdapter.fromString(alliesNBT.getString(i)));
 		}
 	}
 }

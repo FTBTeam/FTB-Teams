@@ -31,22 +31,12 @@ public class FTBTeamsCommands {
 
 	private Team team(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
 		ServerPlayer player = context.getSource().getPlayerOrException();
-		Team team = FTBTeamsAPI.getManager().getTeam(player);
-
-		if (team == null) {
-			throw TeamArgument.NOT_IN_TEAM.create();
-		}
-
-		return team;
+		return FTBTeamsAPI.getManager().getPlayerTeam(player);
 	}
 
 	private Team teamAsOwner(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
 		ServerPlayer player = context.getSource().getPlayerOrException();
-		Team team = FTBTeamsAPI.getManager().getTeam(player);
-
-		if (team == null) {
-			throw TeamArgument.NOT_IN_TEAM.create();
-		}
+		Team team = FTBTeamsAPI.getManager().getPlayerTeam(player);
 
 		if (!team.isOwner(player)) {
 			throw TeamArgument.NOT_OWNER.create(team.getName());
@@ -144,12 +134,12 @@ public class FTBTeamsCommands {
 	}
 
 	private static int create(CommandSourceStack source, String name) throws CommandSyntaxException {
-		if (TeamManager.INSTANCE.getTeam(source.getPlayerOrException().getGameProfile()) != null) {
+		if (!TeamManager.INSTANCE.getPlayerTeam(source.getPlayerOrException()).getType().isPlayer()) {
 			throw TeamArgument.ALREADY_IN_TEAM.create();
 		}
 
-		Team team = TeamManager.INSTANCE.createPlayerTeam(TeamType.PARTY, source.getPlayerOrException().getGameProfile(), name);
-		source.sendSuccess(new TextComponent("Created new team ").append(team.getName()), true);
+		//Team team = TeamManager.INSTANCE.createPlayerTeam(TeamType.PARTY, source.getPlayerOrException(), name);
+		//source.sendSuccess(new TextComponent("Created new team ").append(team.getName()), true);
 		return Command.SINGLE_SUCCESS;
 	}
 

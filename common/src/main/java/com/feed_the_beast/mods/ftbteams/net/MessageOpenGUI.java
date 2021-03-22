@@ -1,45 +1,39 @@
 package com.feed_the_beast.mods.ftbteams.net;
 
-import com.feed_the_beast.mods.ftbteams.FTBTeams;
-import com.feed_the_beast.mods.ftbteams.data.TeamMessage;
+import com.feed_the_beast.mods.ftbteams.FTBTeamsAPI;
+import com.feed_the_beast.mods.ftbteams.data.PartyTeam;
+import com.feed_the_beast.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
-
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.server.level.ServerPlayer;
 
 public class MessageOpenGUI extends MessageBase {
-	public final List<TeamMessage> messages;
-
 	MessageOpenGUI(FriendlyByteBuf buffer) {
-		long now = Instant.now().toEpochMilli();
-
-		int m = buffer.readVarInt();
-		messages = new ArrayList<>(m);
-
-		for (int i = 0; i < m; i++) {
-			messages.add(new TeamMessage(now, buffer));
-		}
 	}
 
-	public MessageOpenGUI(List<TeamMessage> m) {
-		messages = m;
+	public MessageOpenGUI() {
 	}
 
 	@Override
 	public void write(FriendlyByteBuf buffer) {
-		long now = Instant.now().toEpochMilli();
-
-		buffer.writeVarInt(messages.size());
-
-		for (TeamMessage message : messages) {
-			message.write(now, buffer);
-		}
 	}
 
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
-		FTBTeams.PROXY.openGui(messages);
+		ServerPlayer player = (ServerPlayer) context.getPlayer();
+		Team team = FTBTeamsAPI.getPlayerTeam(player.getUUID());
+
+		if (team == null) {
+			return;
+		}
+
+		MessageOpenGUIResponse res = new MessageOpenGUIResponse();
+		res.displayName = team.getDisplayName();
+
+		if (team instanceof PartyTeam) {
+			res.messages.addAll(((PartyTeam) team).messageHistory);
+		}
+
+		res.sendTo(player);
 	}
 }

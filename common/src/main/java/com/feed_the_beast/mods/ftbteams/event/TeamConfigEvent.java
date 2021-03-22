@@ -11,6 +11,7 @@ import java.util.function.Consumer;
  */
 public class TeamConfigEvent {
 	public static final Event<Consumer<TeamConfigEvent>> EVENT = EventFactory.createConsumerLoop(TeamConfigEvent.class);
+
 	private final Consumer<TeamProperty> callback;
 
 	public TeamConfigEvent(Consumer<TeamProperty> c) {

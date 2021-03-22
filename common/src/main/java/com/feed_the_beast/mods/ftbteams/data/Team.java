@@ -1,19 +1,18 @@
 package com.feed_the_beast.mods.ftbteams.data;
 
 import com.feed_the_beast.mods.ftbteams.FTBTeams;
-import com.feed_the_beast.mods.ftbteams.event.PlayerJoinedTeamEvent;
-import com.feed_the_beast.mods.ftbteams.event.PlayerLeftTeamEvent;
+import com.feed_the_beast.mods.ftbteams.event.PlayerChangedTeamEvent;
 import com.feed_the_beast.mods.ftbteams.event.TeamConfigEvent;
-import com.feed_the_beast.mods.ftbteams.event.TeamCreatedEvent;
 import com.feed_the_beast.mods.ftbteams.event.TeamDeletedEvent;
 import com.feed_the_beast.mods.ftbteams.event.TeamLoadedEvent;
 import com.feed_the_beast.mods.ftbteams.event.TeamSavedEvent;
 import com.feed_the_beast.mods.ftbteams.property.BooleanProperty;
 import com.feed_the_beast.mods.ftbteams.property.ColorProperty;
 import com.feed_the_beast.mods.ftbteams.property.StringProperty;
-import com.mojang.authlib.GameProfile;
+import com.mojang.util.UUIDTypeAdapter;
 import me.shedaniel.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
@@ -36,34 +35,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author LatvianModder
  */
 public abstract class Team {
-	public static final StringProperty DISPLAY_NAME = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "display_name"), "");
+	public static final StringProperty DISPLAY_NAME = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "display_name"), "Unknown");
 	public static final StringProperty DESCRIPTION = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "description"), "");
 	public static final ColorProperty COLOR = new ColorProperty(new ResourceLocation(FTBTeams.MOD_ID, "color"), 0xFFFFFF);
 	public static final BooleanProperty FREE_TO_JOIN = new BooleanProperty(new ResourceLocation(FTBTeams.MOD_ID, "free_to_join"), false);
 
 	public final TeamManager manager;
 	boolean shouldSave;
-	int id;
-	GameProfile owner;
-	protected final HashSet<GameProfile> members;
+	UUID id;
+	UUID owner;
+	protected final HashSet<UUID> members;
 	protected final Map<TeamProperty, Object> properties;
+	private CompoundTag extraData;
 
 	public Team(TeamManager m) {
-		id = 0;
+		id = Util.NIL_UUID;
 		manager = m;
-		owner = FTBTUtils.NO_PROFILE;
+		owner = Util.NIL_UUID;
 		members = new HashSet<>();
 		properties = new HashMap<>();
+		extraData = new CompoundTag();
 	}
 
 	@Override
 	public int hashCode() {
-		return id;
+		return id.hashCode();
 	}
 
 	@Override
@@ -71,7 +73,7 @@ public abstract class Team {
 		if (o == this) {
 			return true;
 		} else if (o instanceof Team) {
-			return id == ((Team) o).getId();
+			return id.equals(((Team) o).getId());
 		}
 
 		return false;
@@ -79,7 +81,7 @@ public abstract class Team {
 
 	@Override
 	public String toString() {
-		return owner == FTBTUtils.NO_PROFILE ? String.valueOf(getId()) : owner.getName();
+		return getStringID();
 	}
 
 	public abstract TeamType getType();
@@ -89,17 +91,29 @@ public abstract class Team {
 		manager.nameMap = null;
 	}
 
-	public int getId() {
+	public UUID getId() {
 		return id;
 	}
 
+	public CompoundTag getExtraData() {
+		return extraData;
+	}
+
+	public String getDisplayName() {
+		return getProperty(DISPLAY_NAME);
+	}
+
+	public int getColor() {
+		return getProperty(COLOR) & 0xFFFFFF;
+	}
+
 	public String getStringID() {
-		String s = getProperty(DISPLAY_NAME).replaceAll("\\W", "");
+		String s = getDisplayName().replaceAll("\\W", "");
 		return (s.length() > 50 ? s.substring(0, 50) : s) + "#" + getId();
 	}
 
 	public Component getName() {
-		TextComponent text = new TextComponent(getProperty(DISPLAY_NAME));
+		TextComponent text = new TextComponent(getDisplayName());
 		text.withStyle(ChatFormatting.AQUA);
 		text.setStyle(text.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getStringID())));
 		return text;
@@ -113,16 +127,6 @@ public abstract class Team {
 	public <T> void setProperty(TeamProperty<T> property, T value) {
 		properties.put(property, value);
 		save();
-	}
-
-	boolean create() {
-		manager.lastUID++;
-		id = manager.lastUID;
-		manager.teamMap.put(id, this);
-		TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(this));
-		save();
-		manager.save();
-		return true;
 	}
 
 	public boolean delete() {
@@ -147,10 +151,10 @@ public abstract class Team {
 			ex.printStackTrace();
 		}
 
-		Set<GameProfile> prevMembers = Collections.unmodifiableSet(new HashSet<>(members));
+		Set<UUID> prevMembers = Collections.unmodifiableSet(new HashSet<>(members));
 
-		for (GameProfile profile : prevMembers) {
-			removeMember(profile, false);
+		for (UUID id : prevMembers) {
+			removeMember(id, false);
 		}
 
 		TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(this, prevMembers));
@@ -159,40 +163,62 @@ public abstract class Team {
 		return true;
 	}
 
-	public boolean isOwner(GameProfile profile) {
+	public TeamRank getHighestRank(UUID playerId) {
+		if (owner.equals(playerId)) {
+			return TeamRank.OWNER;
+		}
+
+		if (getOfficers().contains(playerId)) {
+			return TeamRank.OFFICER;
+		}
+
+		if (members.contains(playerId)) {
+			return TeamRank.MEMBER;
+		}
+
+		// TODO: Implement enemies here
+
+		if (getProperty(FREE_TO_JOIN) || getAllies().contains(playerId) || getInvited().contains(playerId)) {
+			return TeamRank.ALLY;
+		}
+
+		return TeamRank.NONE;
+	}
+
+	public boolean isOwner(UUID profile) {
 		return owner.equals(profile);
 	}
 
 	public boolean isOwner(ServerPlayer player) {
-		return isOwner(player.getGameProfile());
+		return isOwner(player.getUUID());
 	}
 
-	public GameProfile getOwner() {
+	public UUID getOwner() {
 		return owner;
 	}
 
 	@Nullable
 	public ServerPlayer getOwnerPlayer() {
-		return FTBTUtils.getPlayerByProfile(manager.server, owner);
+		return FTBTUtils.getPlayerByUUID(manager.server, owner);
 	}
 
-	public boolean isMember(GameProfile profile) {
-		return members.contains(profile);
+	public boolean isMember(UUID uuid) {
+		return members.contains(uuid);
 	}
 
 	public boolean isMember(ServerPlayer player) {
-		return isMember(player.getGameProfile());
+		return isMember(player.getUUID());
 	}
 
-	public Set<GameProfile> getMembers() {
+	public Set<UUID> getMembers() {
 		return members;
 	}
 
 	public List<ServerPlayer> getOnlineMembers() {
 		List<ServerPlayer> list = new ArrayList<>();
 
-		for (GameProfile member : members) {
-			ServerPlayer player = FTBTUtils.getPlayerByProfile(manager.server, member);
+		for (UUID member : members) {
+			ServerPlayer player = FTBTUtils.getPlayerByUUID(manager.server, member);
 
 			if (player != null) {
 				list.add(player);
@@ -202,19 +228,22 @@ public abstract class Team {
 		return list;
 	}
 
-	public boolean addMember(GameProfile player) {
-		Team ot = manager.getTeam(player);
+	public void changedTeam(Optional<Team> prev, UUID player) {
+		PlayerChangedTeamEvent.EVENT.invoker().accept(new PlayerChangedTeamEvent(this, prev, player));
+	}
+
+	public boolean addMember(UUID uuid) {
+		Team ot = manager.getPlayerTeam(uuid);
 
 		if (ot == this) {
 			return false;
 		} else if (ot != null) {
-			ot.removeMember(player, false);
+			ot.removeMember(uuid, false);
 		}
 
-		manager.playerTeamMap.put(player, this);
-		members.add(player);
+		manager.playerTeamMap.put(uuid, this);
+		members.add(uuid);
 		save();
-		PlayerJoinedTeamEvent.EVENT.invoker().accept(new PlayerJoinedTeamEvent(this, Optional.ofNullable(ot), player));
 
 		if (ot != null && ot.getMembers().isEmpty() && ot.getType().isParty()) {
 			ot.delete();
@@ -223,15 +252,13 @@ public abstract class Team {
 		return true;
 	}
 
-	public boolean removeMember(GameProfile profile, boolean deleteWhenEmpty) {
-		if (!members.remove(profile)) {
+	public boolean removeMember(UUID id, boolean deleteWhenEmpty) {
+		if (!members.remove(id)) {
 			return false;
 		}
 
-		PlayerLeftTeamEvent.EVENT.invoker().accept(new PlayerLeftTeamEvent(this, profile));
-
 		if (!getType().isPlayer()) {
-			manager.playerTeamMap.put(profile, manager.getPlayerTeam(profile));
+			manager.playerTeamMap.put(id, manager.getPlayerTeam(id));
 		}
 
 		if (deleteWhenEmpty && members.isEmpty() && getType().isParty()) {
@@ -243,54 +270,54 @@ public abstract class Team {
 		return true;
 	}
 
-	public boolean isAlly(GameProfile profile) {
-		return isOwner(profile) || isMember(profile) || getAllies().contains(profile);
+	public boolean isAlly(UUID profile) {
+		return isOwner(profile) || isMember(profile) || getAllies().contains(profile) || isInvited(profile);
 	}
 
 	public boolean isAlly(ServerPlayer player) {
-		return isAlly(player.getGameProfile());
+		return isAlly(player.getUUID());
 	}
 
-	public Set<GameProfile> getAllies() {
+	public Set<UUID> getAllies() {
 		return Collections.emptySet();
 	}
 
-	public boolean isOfficer(GameProfile profile) {
+	public boolean isOfficer(UUID profile) {
 		return isOwner(profile) || getOfficers().contains(profile);
 	}
 
 	public boolean isOfficer(ServerPlayer player) {
-		return isOfficer(player.getGameProfile());
+		return isOfficer(player.getUUID());
 	}
 
-	public Set<GameProfile> getOfficers() {
+	public Set<UUID> getOfficers() {
 		return Collections.emptySet();
 	}
 
-	public boolean isInvited(GameProfile profile) {
+	public boolean isInvited(UUID profile) {
 		return getProperty(FREE_TO_JOIN) || !isOwner(profile) && !isMember(profile) && getInvited().contains(profile);
 	}
 
 	public boolean isInvited(ServerPlayer player) {
-		return isInvited(player.getGameProfile());
+		return isInvited(player.getUUID());
 	}
 
-	public Set<GameProfile> getInvited() {
+	public Set<UUID> getInvited() {
 		return Collections.emptySet();
 	}
 
 	// Data IO //
 
 	public CompoundTag serializeNBT() {
-		CompoundTag tag = new CompoundTag();
-		tag.putInt("id", id);
+		CompoundTag tag = new OrderedCompoundTag();
+		tag.putString("id", UUIDTypeAdapter.fromUUID(getId()));
 		tag.putString("type", getType().getSerializedName());
-		tag.putString("owner", FTBTUtils.serializeProfile(owner));
+		tag.putString("owner", UUIDTypeAdapter.fromUUID(getOwner()));
 
 		ListTag membersNBT = new ListTag();
 
-		for (GameProfile member : members) {
-			membersNBT.add(StringTag.valueOf(FTBTUtils.serializeProfile(member)));
+		for (UUID member : members) {
+			membersNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(member)));
 		}
 
 		tag.put("members", membersNBT);
@@ -303,25 +330,20 @@ public abstract class Team {
 
 		tag.put("properties", propertiesNBT);
 
-		CompoundTag extra = new CompoundTag();
-		TeamSavedEvent.EVENT.invoker().accept(new TeamSavedEvent(this, extra));
-		tag.put("extra", extra);
+		TeamSavedEvent.EVENT.invoker().accept(new TeamSavedEvent(this));
+		tag.put("extra", extraData);
 
 		return tag;
 	}
 
 	public void deserializeNBT(CompoundTag tag) {
-		owner = FTBTUtils.deserializeProfile(tag.getString("owner"));
+		owner = UUIDTypeAdapter.fromString(tag.getString("owner"));
 
 		members.clear();
 		ListTag membersNBT = tag.getList("members", NbtType.STRING);
 
 		for (int i = 0; i < membersNBT.size(); i++) {
-			GameProfile profile = FTBTUtils.deserializeProfile(membersNBT.getString(i));
-
-			if (profile != FTBTUtils.NO_PROFILE) {
-				members.add(profile);
-			}
+			members.add(UUIDTypeAdapter.fromString(membersNBT.getString(i)));
 		}
 
 		properties.clear();
@@ -342,7 +364,8 @@ public abstract class Team {
 			}
 		}
 
-		TeamLoadedEvent.EVENT.invoker().accept(new TeamLoadedEvent(this, tag.getCompound("extra")));
+		extraData = tag.getCompound("extra");
+		TeamLoadedEvent.EVENT.invoker().accept(new TeamLoadedEvent(this));
 	}
 
 	// Commands //

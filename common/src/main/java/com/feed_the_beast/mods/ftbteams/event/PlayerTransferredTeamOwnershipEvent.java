@@ -12,6 +12,7 @@ import java.util.function.Consumer;
  */
 public class PlayerTransferredTeamOwnershipEvent extends TeamEvent {
 	public static final Event<Consumer<PlayerTransferredTeamOwnershipEvent>> EVENT = EventFactory.createConsumerLoop(PlayerTransferredTeamOwnershipEvent.class);
+
 	private final ServerPlayer from, to;
 
 	public PlayerTransferredTeamOwnershipEvent(Team t, ServerPlayer pf, ServerPlayer pt) {

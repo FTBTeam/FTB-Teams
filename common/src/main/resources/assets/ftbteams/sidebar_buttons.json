@@ -3,7 +3,7 @@
 		"group": "ftbguilibrary:info",
 		"icon": "ftbteams:textures/teams.png",
 		"x": 0,
-		"click": "command:/ftbteams",
+		"click": "ftbteams:open_gui",
 		"loading_screen": true
 	}
 }

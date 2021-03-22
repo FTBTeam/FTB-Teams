@@ -1,6 +1,7 @@
 package com.feed_the_beast.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.util.UUIDTypeAdapter;
 import me.shedaniel.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -15,19 +16,20 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class PartyTeam extends Team {
-	final HashSet<GameProfile> invited;
-	final HashSet<GameProfile> officers;
-	final List<TeamMessage> messageHistory;
-	final HashSet<GameProfile> allies;
+	final Set<UUID> invited;
+	final Set<UUID> officers;
+	final Set<UUID> allies;
+	public final List<TeamMessage> messageHistory;
 
 	public PartyTeam(TeamManager m) {
 		super(m);
 		invited = new HashSet<>();
 		officers = new HashSet<>();
-		messageHistory = new ArrayList<>();
 		allies = new HashSet<>();
+		messageHistory = new ArrayList<>();
 	}
 
 	@Override
@@ -35,15 +37,15 @@ public class PartyTeam extends Team {
 		return TeamType.PARTY;
 	}
 
-	public Set<GameProfile> getAllies() {
+	public Set<UUID> getAllies() {
 		return allies;
 	}
 
-	public Set<GameProfile> getOfficers() {
+	public Set<UUID> getOfficers() {
 		return officers;
 	}
 
-	public Set<GameProfile> getInvited() {
+	public Set<UUID> getInvited() {
 		return invited;
 	}
 
@@ -53,16 +55,16 @@ public class PartyTeam extends Team {
 
 		ListTag invitedNBT = new ListTag();
 
-		for (GameProfile invited : invited) {
-			invitedNBT.add(StringTag.valueOf(FTBTUtils.serializeProfile(invited)));
+		for (UUID invited : invited) {
+			invitedNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(invited)));
 		}
 
 		tag.put("invited", invitedNBT);
 
 		ListTag alliesNBT = new ListTag();
 
-		for (GameProfile ally : allies) {
-			alliesNBT.add(StringTag.valueOf(FTBTUtils.serializeProfile(ally)));
+		for (UUID ally : allies) {
+			alliesNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(ally)));
 		}
 
 		tag.put("allies", alliesNBT);
@@ -78,22 +80,14 @@ public class PartyTeam extends Team {
 		ListTag invitedNBT = tag.getList("invited", NbtType.STRING);
 
 		for (int i = 0; i < invitedNBT.size(); i++) {
-			GameProfile profile = FTBTUtils.deserializeProfile(invitedNBT.getString(i));
-
-			if (profile != FTBTUtils.NO_PROFILE) {
-				invited.add(profile);
-			}
+			invited.add(UUIDTypeAdapter.fromString(invitedNBT.getString(i)));
 		}
 
 		allies.clear();
 		ListTag alliesNBT = tag.getList("allies", NbtType.STRING);
 
 		for (int i = 0; i < alliesNBT.size(); i++) {
-			GameProfile profile = FTBTUtils.deserializeProfile(alliesNBT.getString(i));
-
-			if (profile != FTBTUtils.NO_PROFILE) {
-				allies.add(profile);
-			}
+			allies.add(UUIDTypeAdapter.fromString(alliesNBT.getString(i)));
 		}
 	}
 

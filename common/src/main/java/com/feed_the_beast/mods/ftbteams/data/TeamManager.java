@@ -1,13 +1,11 @@
 package com.feed_the_beast.mods.ftbteams.data;
 
-import com.mojang.authlib.GameProfile;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import com.feed_the_beast.mods.ftbteams.event.TeamCreatedEvent;
+import com.mojang.util.UUIDTypeAdapter;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -22,6 +20,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -33,34 +33,32 @@ public class TeamManager {
 
 	public final MinecraftServer server;
 	private boolean shouldSave;
-	final Map<GameProfile, PlayerTeam> knownPlayers;
-	final Int2ObjectLinkedOpenHashMap<Team> teamMap;
-	final Map<GameProfile, Team> playerTeamMap;
+	final Map<UUID, PlayerTeam> knownPlayers;
+	final Map<UUID, Team> teamMap;
+	final Map<UUID, Team> playerTeamMap;
 	Map<String, Team> nameMap;
-	int lastUID;
 
 	public TeamManager(MinecraftServer s) {
 		server = s;
 		knownPlayers = new LinkedHashMap<>();
-		teamMap = new Int2ObjectLinkedOpenHashMap<>();
-		playerTeamMap = new HashMap<>();
-		lastUID = 0;
+		teamMap = new LinkedHashMap<>();
+		playerTeamMap = new LinkedHashMap<>();
 	}
 
 	public MinecraftServer getServer() {
 		return server;
 	}
 
-	public Map<GameProfile, PlayerTeam> getKnownPlayers() {
+	public Map<UUID, PlayerTeam> getKnownPlayers() {
 		return knownPlayers;
 	}
 
-	public Collection<Team> getTeams() {
-		return teamMap.values();
+	public Map<UUID, Team> getTeamMap() {
+		return teamMap;
 	}
 
-	public IntSet getTeamIDs() {
-		return teamMap.keySet();
+	public Collection<Team> getTeams() {
+		return getTeamMap().values();
 	}
 
 	public Map<String, Team> getTeamNameMap() {
@@ -76,35 +74,30 @@ public class TeamManager {
 	}
 
 	@Nullable
-	public Team getTeam(int id) {
-		if (id <= 0) {
-			return null;
-		}
+	public Team getTeamByID(UUID uuid) {
+		return uuid == Util.NIL_UUID ? null : teamMap.get(uuid);
+	}
 
-		return teamMap.get(id);
+	public PlayerTeam getInternalPlayerTeam(UUID uuid) {
+		return knownPlayers.get(uuid);
 	}
 
 	@Nullable
-	public Team getTeam(GameProfile profile) {
-		return playerTeamMap.get(profile);
+	public Team getPlayerTeam(UUID uuid) {
+		return playerTeamMap.get(uuid);
 	}
 
-	@Nullable
-	public Team getTeam(ServerPlayer player) {
-		return getTeam(player.getGameProfile());
+	public Team getPlayerTeam(ServerPlayer player) {
+		return Objects.requireNonNull(getPlayerTeam(player.getUUID()));
 	}
 
 	public boolean arePlayersInSameTeam(ServerPlayer player1, ServerPlayer player2) {
-		return getTeam(player1).equals(getTeam(player2));
+		return getPlayerTeam(player1).equals(getPlayerTeam(player2));
 	}
 
-	public int getTeamID(GameProfile profile) {
+	public UUID getPlayerTeamID(UUID profile) {
 		Team team = playerTeamMap.get(profile);
-		return team == null ? 0 : team.getId();
-	}
-
-	public int getTeamID(ServerPlayer player) {
-		return getTeamID(player.getGameProfile());
+		return team == null ? profile : team.getId();
 	}
 
 	public void load() {
@@ -119,7 +112,7 @@ public class TeamManager {
 		if (Files.exists(dataFile)) {
 			try (InputStream stream = Files.newInputStream(dataFile)) {
 				CompoundTag tag = Objects.requireNonNull(NbtIo.readCompressed(stream));
-				lastUID = tag.getInt("last_id");
+				// read some data, I guess?
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -133,19 +126,14 @@ public class TeamManager {
 					for (Path file : Files.list(dir).filter(path -> path.getFileName().toString().endsWith(".nbt")).collect(Collectors.toList())) {
 						try (InputStream stream = Files.newInputStream(file)) {
 							CompoundTag nbt = Objects.requireNonNull(NbtIo.readCompressed(stream));
+							Team team = type.factory.apply(this);
+							team.id = UUIDTypeAdapter.fromString(nbt.getString("id"));
+							teamMap.put(team.id, team);
 
-							int id = nbt.getInt("id");
+							team.deserializeNBT(nbt);
 
-							if (id > 0) {
-								Team team = type.factory.apply(this);
-								team.id = id;
-								teamMap.put(id, team);
-
-								team.deserializeNBT(nbt);
-
-								for (GameProfile member : team.members) {
-									playerTeamMap.put(member, team);
-								}
+							for (UUID member : team.members) {
+								playerTeamMap.put(member, team);
 							}
 						} catch (Exception ex) {
 							ex.printStackTrace();
@@ -189,20 +177,24 @@ public class TeamManager {
 			}
 		}
 
+		for (TeamType type : TeamType.MAP.values()) {
+			Path path = directory.resolve(type.getSerializedName());
+
+			if (Files.notExists(path)) {
+				try {
+					Files.createDirectories(path);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		}
+
 		for (Team team : getTeams()) {
 			if (team.shouldSave) {
-				Path path = directory.resolve(team.getType().getSerializedName() + "/" + team.getId() + ".nbt");
-
-				if (Files.notExists(path.getParent())) {
-					try {
-						Files.createDirectories(path.getParent());
-					} catch (Exception ex) {
-						ex.printStackTrace();
-					}
-				}
+				Path path = directory.resolve(team.getType().getSerializedName() + "/" + UUIDTypeAdapter.fromUUID(team.getId()) + ".nbt");
 
 				try (OutputStream stream = Files.newOutputStream(path)) {
-					NbtIo.writeCompressed(serializeNBT(), stream);
+					NbtIo.writeCompressed(team.serializeNBT(), stream);
 					team.shouldSave = false;
 				} catch (Exception ex) {
 					ex.printStackTrace();
@@ -213,52 +205,42 @@ public class TeamManager {
 
 	public CompoundTag serializeNBT() {
 		CompoundTag nbt = new OrderedCompoundTag();
-		nbt.putInt("last_id", lastUID);
-
-		ListTag knownPlayersNBT = new ListTag();
-
-		for (GameProfile profile : knownPlayers.keySet()) {
-			knownPlayersNBT.add(StringTag.valueOf(FTBTUtils.serializeProfile(profile)));
-		}
-
-		nbt.put("known_players", knownPlayersNBT);
+		// No data to save rn
 		return nbt;
 	}
 
-	public Team createPlayerTeam(TeamType type, GameProfile player, String customName) {
-		Team team = type.factory.apply(this);
-		team.owner = player;
-
-		if (!customName.isEmpty()) {
-			team.setProperty(Team.DISPLAY_NAME, customName);
-		} else {
-			team.setProperty(Team.DISPLAY_NAME, player.getName());
-		}
-
-		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
-		team.create();
-		team.addMember(player);
-		return team;
-	}
-
 	public Team createServerTeam(String name) {
-		TeamManager manager = TeamManager.INSTANCE;
-		Team team = TeamType.SERVER.factory.apply(manager);
+		Team team = TeamType.SERVER.factory.apply(this);
+		team.id = UUID.randomUUID();
+		teamMap.put(team.id, team);
+
 		team.setProperty(Team.DISPLAY_NAME, name);
 		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
-		team.create();
-		return team;
-	}
 
-	public PlayerTeam getPlayerTeam(GameProfile profile) {
-		return knownPlayers.get(profile);
+		TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(team));
+		team.save();
+		save();
+		return team;
 	}
 
 	public void playerLoggedIn(ServerPlayer player) {
-		GameProfile profile = FTBTUtils.normalize(new GameProfile(player.getUUID(), player.getGameProfile().getName()));
+		UUID id = player.getUUID();
 
-		if (profile != FTBTUtils.NO_PROFILE && !knownPlayers.containsKey(profile)) {
-			knownPlayers.put(profile, (PlayerTeam) createPlayerTeam(TeamType.PLAYER, player.getGameProfile(), ""));
+		if (!knownPlayers.containsKey(id)) {
+			PlayerTeam team = (PlayerTeam) TeamType.PLAYER.factory.apply(this);
+			team.id = id;
+			team.owner = id;
+			teamMap.put(id, team);
+			knownPlayers.put(id, team);
+			playerTeamMap.put(id, team);
+
+			team.setProperty(Team.DISPLAY_NAME, player.getGameProfile().getName());
+			team.setProperty(Team.COLOR, FTBTUtils.randomColor());
+
+			TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(team));
+			team.members.add(id);
+			team.changedTeam(Optional.empty(), id);
+			team.save();
 			save();
 		}
 	}

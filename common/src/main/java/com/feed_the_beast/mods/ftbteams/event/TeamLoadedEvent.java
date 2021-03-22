@@ -12,14 +12,12 @@ import java.util.function.Consumer;
  */
 public class TeamLoadedEvent extends TeamEvent {
 	public static final Event<Consumer<TeamLoadedEvent>> EVENT = EventFactory.createConsumerLoop(TeamLoadedEvent.class);
-	private final CompoundTag extra;
 
-	public TeamLoadedEvent(Team t, CompoundTag e) {
+	public TeamLoadedEvent(Team t) {
 		super(t);
-		extra = e;
 	}
 
 	public CompoundTag getExtraData() {
-		return extra;
+		return getTeam().getExtraData();
 	}
 }

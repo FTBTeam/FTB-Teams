@@ -4,6 +4,7 @@ import com.feed_the_beast.mods.ftbguilibrary.utils.MathUtils;
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
+import net.minecraft.Util;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,18 +16,17 @@ public class FTBTUtils {
 	public static final GameProfile NO_PROFILE = new GameProfile(new UUID(0L, 0L), "-");
 
 	@Nullable
-	public static ServerPlayer getPlayerByProfile(MinecraftServer server, GameProfile profile) {
-		if (profile == NO_PROFILE) {
-			return null;
-		}
-
-		ServerPlayer playerEntity = profile.getId() == null ? null : server.getPlayerList().getPlayer(profile.getId());
-		return playerEntity != null ? playerEntity : profile.getName() != null ? server.getPlayerList().getPlayerByName(profile.getName()) : null;
+	public static ServerPlayer getPlayerByUUID(MinecraftServer server, UUID id) {
+		return id == Util.NIL_UUID ? null : server.getPlayerList().getPlayer(id);
 	}
 
 	public static GameProfile normalize(@Nullable GameProfile profile) {
 		if (profile == null || profile.getId() == null || profile.getName() == null || profile.equals(NO_PROFILE)) {
 			return NO_PROFILE;
+		}
+
+		if (!profile.getProperties().isEmpty()) {
+			return new GameProfile(profile.getId(), profile.getName());
 		}
 
 		return profile;
@@ -56,7 +56,7 @@ public class FTBTUtils {
 	}
 
 	private static int rgb(float r, float g, float b) {
-		return 0xFF000000 | ((int) r << 16) | ((int) g << 8) | ((int) b);
+		return ((int) r << 16) | ((int) g << 8) | ((int) b);
 	}
 
 	public static int randomColor() {

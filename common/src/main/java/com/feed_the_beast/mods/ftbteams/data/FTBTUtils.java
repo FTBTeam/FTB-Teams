@@ -16,8 +16,8 @@ public class FTBTUtils {
 	public static final GameProfile NO_PROFILE = new GameProfile(new UUID(0L, 0L), "-");
 
 	@Nullable
-	public static ServerPlayer getPlayerByUUID(MinecraftServer server, UUID id) {
-		return id == Util.NIL_UUID ? null : server.getPlayerList().getPlayer(id);
+	public static ServerPlayer getPlayerByUUID(MinecraftServer server, @Nullable UUID id) {
+		return id == null || id == Util.NIL_UUID ? null : server.getPlayerList().getPlayer(id);
 	}
 
 	public static GameProfile normalize(@Nullable GameProfile profile) {

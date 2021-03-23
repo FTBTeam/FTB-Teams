@@ -2,33 +2,26 @@ package com.feed_the_beast.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
-import me.shedaniel.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 
+import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 public class PartyTeam extends Team {
-	final Set<UUID> invited;
-	final Set<UUID> officers;
-	final Set<UUID> allies;
+	UUID owner;
 	public final List<TeamMessage> messageHistory;
 
 	public PartyTeam(TeamManager m) {
 		super(m);
-		invited = new HashSet<>();
-		officers = new HashSet<>();
-		allies = new HashSet<>();
+		owner = Util.NIL_UUID;
 		messageHistory = new ArrayList<>();
 	}
 
@@ -37,58 +30,17 @@ public class PartyTeam extends Team {
 		return TeamType.PARTY;
 	}
 
-	public Set<UUID> getAllies() {
-		return allies;
-	}
-
-	public Set<UUID> getOfficers() {
-		return officers;
-	}
-
-	public Set<UUID> getInvited() {
-		return invited;
-	}
-
 	@Override
 	public CompoundTag serializeNBT() {
 		CompoundTag tag = super.serializeNBT();
-
-		ListTag invitedNBT = new ListTag();
-
-		for (UUID invited : invited) {
-			invitedNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(invited)));
-		}
-
-		tag.put("invited", invitedNBT);
-
-		ListTag alliesNBT = new ListTag();
-
-		for (UUID ally : allies) {
-			alliesNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(ally)));
-		}
-
-		tag.put("allies", alliesNBT);
-
+		tag.putString("owner", UUIDTypeAdapter.fromUUID(owner));
 		return tag;
 	}
 
 	@Override
 	public void deserializeNBT(CompoundTag tag) {
 		super.deserializeNBT(tag);
-
-		invited.clear();
-		ListTag invitedNBT = tag.getList("invited", NbtType.STRING);
-
-		for (int i = 0; i < invitedNBT.size(); i++) {
-			invited.add(UUIDTypeAdapter.fromString(invitedNBT.getString(i)));
-		}
-
-		allies.clear();
-		ListTag alliesNBT = tag.getList("allies", NbtType.STRING);
-
-		for (int i = 0; i < alliesNBT.size(); i++) {
-			allies.add(UUIDTypeAdapter.fromString(alliesNBT.getString(i)));
-		}
+		owner = UUIDTypeAdapter.fromString(tag.getString("owner"));
 	}
 
 	public void sendMessage(GameProfile from, Component text) {
@@ -108,5 +60,39 @@ public class PartyTeam extends Team {
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
 		}
+	}
+
+	@Override
+	public TeamRank getHighestRank(UUID playerId) {
+		if (owner.equals(playerId)) {
+			return TeamRank.OWNER;
+		}
+
+		return super.getHighestRank(playerId);
+	}
+
+	public boolean isOwner(UUID profile) {
+		return owner.equals(profile);
+	}
+
+	public boolean isOwner(ServerPlayer player) {
+		return isOwner(player.getUUID());
+	}
+
+	public UUID getOwner() {
+		return owner;
+	}
+
+	@Nullable
+	public ServerPlayer getOwnerPlayer() {
+		return FTBTUtils.getPlayerByUUID(manager.server, owner);
+	}
+
+	public boolean isOfficer(UUID profile) {
+		return getHighestRank(profile).isOfficer();
+	}
+
+	public boolean isOfficer(ServerPlayer player) {
+		return isOfficer(player.getUUID());
 	}
 }

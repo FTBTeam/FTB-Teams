@@ -38,9 +38,9 @@ public class FTBTeamsCommands {
 		ServerPlayer player = context.getSource().getPlayerOrException();
 		Team team = FTBTeamsAPI.getManager().getPlayerTeam(player);
 
-		if (!team.isOwner(player)) {
-			throw TeamArgument.NOT_OWNER.create(team.getName());
-		}
+		//if (!team.isOwner(player)) {
+		//	throw TeamArgument.NOT_OWNER.create(team.getName());
+		//}
 
 		return team;
 	}
@@ -144,7 +144,7 @@ public class FTBTeamsCommands {
 	}
 
 	private int createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
-		Team team = TeamManager.INSTANCE.createServerTeam(name);
+		Team team = TeamManager.INSTANCE.createServerTeam(source.getPlayerOrException(), name);
 		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
 		return Command.SINGLE_SUCCESS;
 	}

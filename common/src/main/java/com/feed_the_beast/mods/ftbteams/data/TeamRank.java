@@ -1,16 +1,20 @@
 package com.feed_the_beast.mods.ftbteams.data;
 
+import com.feed_the_beast.mods.ftbguilibrary.config.NameMap;
 import net.minecraft.util.StringRepresentable;
 
 public enum TeamRank implements StringRepresentable {
 	ENEMY("enemy", -100),
 	NONE("none", 0),
 	ALLY("ally", 50),
+	INVITED("invited", 75),
 	MEMBER("member", 100),
 	OFFICER("officer", 500),
 	OWNER("owner", 1000),
 
 	;
+
+	public static final NameMap<TeamRank> NAME_MAP = NameMap.of(NONE, values()).create();
 
 	private final String name;
 	private final int power;

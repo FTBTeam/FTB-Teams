@@ -3,34 +3,24 @@ package com.feed_the_beast.mods.ftbteams.data;
 import com.feed_the_beast.mods.ftbteams.FTBTeams;
 import com.feed_the_beast.mods.ftbteams.event.PlayerChangedTeamEvent;
 import com.feed_the_beast.mods.ftbteams.event.TeamConfigEvent;
-import com.feed_the_beast.mods.ftbteams.event.TeamDeletedEvent;
+import com.feed_the_beast.mods.ftbteams.event.TeamCreatedEvent;
 import com.feed_the_beast.mods.ftbteams.event.TeamLoadedEvent;
 import com.feed_the_beast.mods.ftbteams.event.TeamSavedEvent;
 import com.feed_the_beast.mods.ftbteams.property.BooleanProperty;
 import com.feed_the_beast.mods.ftbteams.property.ColorProperty;
 import com.feed_the_beast.mods.ftbteams.property.StringProperty;
 import com.mojang.util.UUIDTypeAdapter;
-import me.shedaniel.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
-import javax.annotation.Nullable;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,16 +39,14 @@ public abstract class Team {
 	public final TeamManager manager;
 	boolean shouldSave;
 	UUID id;
-	UUID owner;
-	protected final HashSet<UUID> members;
+	final Map<UUID, TeamRank> ranks;
 	protected final Map<TeamProperty, Object> properties;
 	private CompoundTag extraData;
 
 	public Team(TeamManager m) {
 		id = Util.NIL_UUID;
 		manager = m;
-		owner = Util.NIL_UUID;
-		members = new HashSet<>();
+		ranks = new HashMap<>();
 		properties = new HashMap<>();
 		extraData = new CompoundTag();
 	}
@@ -129,6 +117,7 @@ public abstract class Team {
 		save();
 	}
 
+	/*
 	public boolean delete() {
 		if (!manager.teamMap.containsKey(id)) {
 			return false;
@@ -151,7 +140,17 @@ public abstract class Team {
 			ex.printStackTrace();
 		}
 
-		Set<UUID> prevMembers = Collections.unmodifiableSet(new HashSet<>(members));
+		Set<UUID> prevMembers = new HashSet<>();
+
+		if (!owner.equals(Util.NIL_UUID)) {
+			prevMembers.add(owner);
+		}
+
+		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
+			if (entry.getValue().is(TeamRank.MEMBER)) {
+				prevMembers.add(entry.getKey());
+			}
+		}
 
 		for (UUID id : prevMembers) {
 			removeMember(id, false);
@@ -162,63 +161,51 @@ public abstract class Team {
 		directory.resolve(getId() + ".nbt").toFile().delete();
 		return true;
 	}
+	 */
 
 	public TeamRank getHighestRank(UUID playerId) {
-		if (owner.equals(playerId)) {
-			return TeamRank.OWNER;
+		TeamRank rank = ranks.get(playerId);
+
+		if (rank != null) {
+			return rank;
 		}
 
-		if (getOfficers().contains(playerId)) {
-			return TeamRank.OFFICER;
-		}
-
-		if (members.contains(playerId)) {
-			return TeamRank.MEMBER;
-		}
-
-		// TODO: Implement enemies here
-
-		if (getProperty(FREE_TO_JOIN) || getAllies().contains(playerId) || getInvited().contains(playerId)) {
-			return TeamRank.ALLY;
+		if (getProperty(FREE_TO_JOIN)) {
+			return TeamRank.INVITED;
 		}
 
 		return TeamRank.NONE;
 	}
 
-	public boolean isOwner(UUID profile) {
-		return owner.equals(profile);
-	}
-
-	public boolean isOwner(ServerPlayer player) {
-		return isOwner(player.getUUID());
-	}
-
-	public UUID getOwner() {
-		return owner;
-	}
-
-	@Nullable
-	public ServerPlayer getOwnerPlayer() {
-		return FTBTUtils.getPlayerByUUID(manager.server, owner);
-	}
-
 	public boolean isMember(UUID uuid) {
-		return members.contains(uuid);
+		return getHighestRank(uuid).isMember();
 	}
 
 	public boolean isMember(ServerPlayer player) {
 		return isMember(player.getUUID());
 	}
 
-	public Set<UUID> getMembers() {
-		return members;
+	public Map<UUID, TeamRank> getRanked(TeamRank rank) {
+		Map<UUID, TeamRank> map = new HashMap<>();
+
+		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
+			if (entry.getValue().is(rank)) {
+				map.put(entry.getKey(), entry.getValue());
+			}
+		}
+
+		return map;
 	}
 
-	public List<ServerPlayer> getOnlineMembers() {
+	public Set<UUID> getMembers() {
+		return getRanked(TeamRank.MEMBER).keySet();
+	}
+
+	public List<ServerPlayer> getOnlineRanked(TeamRank rank) {
 		List<ServerPlayer> list = new ArrayList<>();
 
-		for (UUID member : members) {
-			ServerPlayer player = FTBTUtils.getPlayerByUUID(manager.server, member);
+		for (UUID id : getRanked(rank).keySet()) {
+			ServerPlayer player = FTBTUtils.getPlayerByUUID(manager.server, id);
 
 			if (player != null) {
 				list.add(player);
@@ -228,99 +215,42 @@ public abstract class Team {
 		return list;
 	}
 
+	public List<ServerPlayer> getOnlineMembers() {
+		return getOnlineRanked(TeamRank.MEMBER);
+	}
+
+	public void created(ServerPlayer p) {
+		TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(this, p));
+		save();
+		manager.save();
+	}
+
 	public void changedTeam(Optional<Team> prev, UUID player) {
 		PlayerChangedTeamEvent.EVENT.invoker().accept(new PlayerChangedTeamEvent(this, prev, player));
 	}
 
-	public boolean addMember(UUID uuid) {
-		Team ot = manager.getPlayerTeam(uuid);
-
-		if (ot == this) {
-			return false;
-		} else if (ot != null) {
-			ot.removeMember(uuid, false);
-		}
-
-		manager.playerTeamMap.put(uuid, this);
-		members.add(uuid);
-		save();
-
-		if (ot != null && ot.getMembers().isEmpty() && ot.getType().isParty()) {
-			ot.delete();
-		}
-
-		return true;
-	}
-
-	public boolean removeMember(UUID id, boolean deleteWhenEmpty) {
-		if (!members.remove(id)) {
-			return false;
-		}
-
-		if (!getType().isPlayer()) {
-			manager.playerTeamMap.put(id, manager.getPlayerTeam(id));
-		}
-
-		if (deleteWhenEmpty && members.isEmpty() && getType().isParty()) {
-			delete();
-		} else {
-			save();
-		}
-
-		return true;
-	}
-
 	public boolean isAlly(UUID profile) {
-		return isOwner(profile) || isMember(profile) || getAllies().contains(profile) || isInvited(profile);
+		return getHighestRank(profile).isAlly();
 	}
 
 	public boolean isAlly(ServerPlayer player) {
 		return isAlly(player.getUUID());
 	}
 
-	public Set<UUID> getAllies() {
-		return Collections.emptySet();
-	}
-
-	public boolean isOfficer(UUID profile) {
-		return isOwner(profile) || getOfficers().contains(profile);
-	}
-
-	public boolean isOfficer(ServerPlayer player) {
-		return isOfficer(player.getUUID());
-	}
-
-	public Set<UUID> getOfficers() {
-		return Collections.emptySet();
-	}
-
-	public boolean isInvited(UUID profile) {
-		return getProperty(FREE_TO_JOIN) || !isOwner(profile) && !isMember(profile) && getInvited().contains(profile);
-	}
-
-	public boolean isInvited(ServerPlayer player) {
-		return isInvited(player.getUUID());
-	}
-
-	public Set<UUID> getInvited() {
-		return Collections.emptySet();
-	}
-
 	// Data IO //
 
 	public CompoundTag serializeNBT() {
-		CompoundTag tag = new OrderedCompoundTag();
+		CompoundTag tag = new CompoundTag();
 		tag.putString("id", UUIDTypeAdapter.fromUUID(getId()));
 		tag.putString("type", getType().getSerializedName());
-		tag.putString("owner", UUIDTypeAdapter.fromUUID(getOwner()));
 
-		ListTag membersNBT = new ListTag();
+		CompoundTag ranksNBT = new CompoundTag();
 
-		for (UUID member : members) {
-			membersNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(member)));
+		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
+			ranksNBT.putString(UUIDTypeAdapter.fromUUID(entry.getKey()), entry.getValue().getSerializedName());
 		}
 
-		tag.put("members", membersNBT);
+		tag.put("ranks", ranksNBT);
 
 		CompoundTag propertiesNBT = new CompoundTag();
 
@@ -337,13 +267,11 @@ public abstract class Team {
 	}
 
 	public void deserializeNBT(CompoundTag tag) {
-		owner = UUIDTypeAdapter.fromString(tag.getString("owner"));
+		ranks.clear();
+		CompoundTag ranksNBT = tag.getCompound("ranks");
 
-		members.clear();
-		ListTag membersNBT = tag.getList("members", NbtType.STRING);
-
-		for (int i = 0; i < membersNBT.size(); i++) {
-			members.add(UUIDTypeAdapter.fromString(membersNBT.getString(i)));
+		for (String s : ranksNBT.getAllKeys()) {
+			ranks.put(UUIDTypeAdapter.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s)));
 		}
 
 		properties.clear();

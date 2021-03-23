@@ -1,6 +1,5 @@
 package com.feed_the_beast.mods.ftbteams.data;
 
-import com.feed_the_beast.mods.ftbteams.event.TeamCreatedEvent;
 import com.mojang.util.UUIDTypeAdapter;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
 import net.minecraft.Util;
@@ -132,7 +131,7 @@ public class TeamManager {
 
 							team.deserializeNBT(nbt);
 
-							for (UUID member : team.members) {
+							for (UUID member : team.getMembers()) {
 								playerTeamMap.put(member, team);
 							}
 						} catch (Exception ex) {
@@ -147,7 +146,7 @@ public class TeamManager {
 
 		for (Team team : teamMap.values()) {
 			if (team instanceof PlayerTeam) {
-				knownPlayers.put(team.owner, (PlayerTeam) team);
+				knownPlayers.put(team.id, (PlayerTeam) team);
 			}
 		}
 	}
@@ -204,22 +203,33 @@ public class TeamManager {
 	}
 
 	public CompoundTag serializeNBT() {
-		CompoundTag nbt = new OrderedCompoundTag();
+		CompoundTag nbt = new CompoundTag();
 		// No data to save rn
 		return nbt;
 	}
 
-	public Team createServerTeam(String name) {
-		Team team = TeamType.SERVER.factory.apply(this);
+	public ServerTeam createServerTeam(ServerPlayer player, String name) {
+		ServerTeam team = new ServerTeam(this);
 		team.id = UUID.randomUUID();
 		teamMap.put(team.id, team);
 
 		team.setProperty(Team.DISPLAY_NAME, name);
 		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
-		TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(team));
-		team.save();
-		save();
+		team.created(player);
+		return team;
+	}
+
+	public PartyTeam createPartyTeam(ServerPlayer player, String name) {
+		PartyTeam team = new PartyTeam(this);
+		team.id = UUID.randomUUID();
+		team.owner = player.getUUID();
+		teamMap.put(team.id, team);
+
+		team.setProperty(Team.DISPLAY_NAME, name);
+		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
+
+		team.created(player);
 		return team;
 	}
 
@@ -227,9 +237,8 @@ public class TeamManager {
 		UUID id = player.getUUID();
 
 		if (!knownPlayers.containsKey(id)) {
-			PlayerTeam team = (PlayerTeam) TeamType.PLAYER.factory.apply(this);
+			PlayerTeam team = new PlayerTeam(this);
 			team.id = id;
-			team.owner = id;
 			teamMap.put(id, team);
 			knownPlayers.put(id, team);
 			playerTeamMap.put(id, team);
@@ -237,8 +246,8 @@ public class TeamManager {
 			team.setProperty(Team.DISPLAY_NAME, player.getGameProfile().getName());
 			team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
-			TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(team));
-			team.members.add(id);
+			team.created(player);
+			team.ranks.put(id, TeamRank.OWNER);
 			team.changedTeam(Optional.empty(), id);
 			team.save();
 			save();

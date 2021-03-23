@@ -1,21 +1,15 @@
 package com.feed_the_beast.mods.ftbteams.data;
 
-import com.mojang.util.UUIDTypeAdapter;
-import me.shedaniel.architectury.utils.NbtType;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class PlayerTeam extends Team {
-	final Set<UUID> allies;
-
 	public PlayerTeam(TeamManager m) {
 		super(m);
-		allies = new HashSet<>();
 	}
 
 	@Override
@@ -23,39 +17,23 @@ public class PlayerTeam extends Team {
 		return TeamType.PLAYER;
 	}
 
-	public Set<UUID> getAllies() {
-		return allies;
+	@Nullable
+	public ServerPlayer getPlayer() {
+		return FTBTUtils.getPlayerByUUID(manager.server, id);
 	}
 
 	@Override
-	public boolean delete() {
-		return false;
-	}
-
-	@Override
-	public CompoundTag serializeNBT() {
-		CompoundTag tag = super.serializeNBT();
-
-		ListTag alliesNBT = new ListTag();
-
-		for (UUID ally : allies) {
-			alliesNBT.add(StringTag.valueOf(UUIDTypeAdapter.fromUUID(ally)));
+	public TeamRank getHighestRank(UUID playerId) {
+		if (playerId.equals(id)) {
+			return TeamRank.OWNER;
 		}
 
-		tag.put("allies", alliesNBT);
-
-		return tag;
+		return super.getHighestRank(playerId);
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
-		super.deserializeNBT(tag);
-
-		allies.clear();
-		ListTag alliesNBT = tag.getList("allies", NbtType.STRING);
-
-		for (int i = 0; i < alliesNBT.size(); i++) {
-			allies.add(UUIDTypeAdapter.fromString(alliesNBT.getString(i)));
-		}
+	public List<ServerPlayer> getOnlineMembers() {
+		ServerPlayer p = getPlayer();
+		return p == null ? Collections.emptyList() : Collections.singletonList(p);
 	}
 }

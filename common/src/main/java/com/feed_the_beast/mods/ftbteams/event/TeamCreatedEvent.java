@@ -3,6 +3,7 @@ package com.feed_the_beast.mods.ftbteams.event;
 import com.feed_the_beast.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.event.Event;
 import me.shedaniel.architectury.event.EventFactory;
+import net.minecraft.server.level.ServerPlayer;
 
 import java.util.function.Consumer;
 
@@ -12,7 +13,14 @@ import java.util.function.Consumer;
 public class TeamCreatedEvent extends TeamEvent {
 	public static final Event<Consumer<TeamCreatedEvent>> EVENT = EventFactory.createConsumerLoop(TeamCreatedEvent.class);
 
-	public TeamCreatedEvent(Team t) {
+	private final ServerPlayer creator;
+
+	public TeamCreatedEvent(Team t, ServerPlayer p) {
 		super(t);
+		creator = p;
+	}
+
+	public ServerPlayer getCreator() {
+		return creator;
 	}
 }

@@ -47,6 +47,7 @@ allprojects {
 			content {
 				includeGroup "dev.latvian.mods"
 				includeGroup "com.feed_the_beast.mods"
+				includeGroup "dev.ftb.mods"
 			}
 		}
 	}

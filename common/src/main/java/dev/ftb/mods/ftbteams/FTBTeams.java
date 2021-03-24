@@ -6,9 +6,9 @@ import dev.ftb.mods.ftbteams.data.FTBTeamsCommands;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamArgument;
 import dev.ftb.mods.ftbteams.data.TeamManager;
-import dev.ftb.mods.ftbteams.data.TeamPropertyArgument;
-import dev.ftb.mods.ftbteams.event.TeamConfigEvent;
+import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
+import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
 import me.shedaniel.architectury.event.events.CommandRegistrationEvent;
 import me.shedaniel.architectury.event.events.LifecycleEvent;
 import me.shedaniel.architectury.event.events.PlayerEvent;
@@ -38,7 +38,7 @@ public class FTBTeams {
 		CommandRegistrationEvent.EVENT.register(this::registerCommands);
 		LifecycleEvent.SERVER_STOPPED.register(this::serverStopped);
 		LifecycleEvent.SERVER_WORLD_SAVE.register(this::worldSaved);
-		TeamConfigEvent.EVENT.register(this::teamConfig);
+		TeamCollectPropertiesEvent.EVENT.register(this::teamConfig);
 		PlayerEvent.PLAYER_JOIN.register(this::playerLoggedIn);
 		FTBTeamsNet.init();
 		PROXY = EnvExecutor.getEnvSpecific(() -> FTBTeamsClient::new, () -> FTBTeamsCommon::new);
@@ -68,7 +68,7 @@ public class FTBTeams {
 		}
 	}
 
-	private void teamConfig(TeamConfigEvent event) {
+	private void teamConfig(TeamCollectPropertiesEvent event) {
 		event.add(Team.DISPLAY_NAME);
 		event.add(Team.DESCRIPTION);
 		event.add(Team.COLOR);

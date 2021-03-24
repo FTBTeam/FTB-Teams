@@ -28,12 +28,12 @@ public class MessageOpenGUI extends MessageBase {
 		}
 
 		MessageOpenGUIResponse res = new MessageOpenGUIResponse();
-		res.displayName = team.getDisplayName();
 
 		if (team instanceof PartyTeam) {
 			res.messages.addAll(((PartyTeam) team).messageHistory);
 		}
 
+		res.properties.copyFrom(team.properties);
 		res.sendTo(player);
 	}
 }

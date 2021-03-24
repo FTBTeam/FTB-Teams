@@ -10,5 +10,10 @@
 	"ftbteams.info.members": "Members:",
 	"ftbteams.list": "All FTB Teams: %s",
 	"ftbteams.property_not_found": "Property ID not found!",
-	"sidebar_button.ftbteams.my_team": "My Team"
+	"sidebar_button.ftbteams.my_team": "My Team",
+	"ftbteamsconfig": "FTB Teams Config",
+	"ftbteamsconfig.ftbteams.display_name": "Display Name",
+	"ftbteamsconfig.ftbteams.description": "Description",
+	"ftbteamsconfig.ftbteams.color": "Color",
+	"ftbteamsconfig.ftbteams.free_to_join": "Free to Join"
 }

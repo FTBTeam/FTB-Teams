@@ -19,5 +19,6 @@ public class FTBTeamsNet {
 
 		register(MessageOpenGUI.class, MessageOpenGUI::new);
 		register(MessageOpenGUIResponse.class, MessageOpenGUIResponse::new);
+		register(MessageUpdateSettings.class, MessageUpdateSettings::new);
 	}
 }

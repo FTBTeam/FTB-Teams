@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.event;
 
-import dev.ftb.mods.ftbteams.data.TeamProperty;
+import dev.ftb.mods.ftbteams.property.TeamProperty;
 import me.shedaniel.architectury.event.Event;
 import me.shedaniel.architectury.event.EventFactory;
 
@@ -9,12 +9,12 @@ import java.util.function.Consumer;
 /**
  * @author LatvianModder
  */
-public class TeamConfigEvent {
-	public static final Event<Consumer<TeamConfigEvent>> EVENT = EventFactory.createConsumerLoop(TeamConfigEvent.class);
+public class TeamCollectPropertiesEvent {
+	public static final Event<Consumer<TeamCollectPropertiesEvent>> EVENT = EventFactory.createConsumerLoop(TeamCollectPropertiesEvent.class);
 
 	private final Consumer<TeamProperty> callback;
 
-	public TeamConfigEvent(Consumer<TeamProperty> c) {
+	public TeamCollectPropertiesEvent(Consumer<TeamProperty> c) {
 		callback = c;
 	}
 

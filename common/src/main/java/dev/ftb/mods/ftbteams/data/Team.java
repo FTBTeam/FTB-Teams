@@ -1,15 +1,17 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.feed_the_beast.mods.ftbguilibrary.icon.Color4I;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
-import dev.ftb.mods.ftbteams.event.TeamConfigEvent;
 import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamLoadedEvent;
 import dev.ftb.mods.ftbteams.event.TeamSavedEvent;
 import dev.ftb.mods.ftbteams.property.BooleanProperty;
 import dev.ftb.mods.ftbteams.property.ColorProperty;
 import dev.ftb.mods.ftbteams.property.StringProperty;
+import dev.ftb.mods.ftbteams.property.TeamProperties;
+import dev.ftb.mods.ftbteams.property.TeamProperty;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
@@ -26,28 +28,30 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 /**
  * @author LatvianModder
  */
 public abstract class Team {
-	public static final StringProperty DISPLAY_NAME = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "display_name"), "Unknown");
+	public static final StringProperty DISPLAY_NAME = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "display_name"), "Unknown", Pattern.compile(".{3,}"));
 	public static final StringProperty DESCRIPTION = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "description"), "");
-	public static final ColorProperty COLOR = new ColorProperty(new ResourceLocation(FTBTeams.MOD_ID, "color"), 0xFFFFFF);
+	public static final ColorProperty COLOR = new ColorProperty(new ResourceLocation(FTBTeams.MOD_ID, "color"), Color4I.WHITE);
 	public static final BooleanProperty FREE_TO_JOIN = new BooleanProperty(new ResourceLocation(FTBTeams.MOD_ID, "free_to_join"), false);
 
 	public final TeamManager manager;
 	boolean shouldSave;
 	UUID id;
 	final Map<UUID, TeamRank> ranks;
-	protected final Map<TeamProperty, Object> properties;
+	public final TeamProperties properties;
 	private CompoundTag extraData;
 
 	public Team(TeamManager m) {
 		id = Util.NIL_UUID;
 		manager = m;
 		ranks = new HashMap<>();
-		properties = new HashMap<>();
+		properties = new TeamProperties();
+		properties.collect();
 		extraData = new CompoundTag();
 	}
 
@@ -92,7 +96,7 @@ public abstract class Team {
 	}
 
 	public int getColor() {
-		return getProperty(COLOR) & 0xFFFFFF;
+		return getProperty(COLOR).rgb();
 	}
 
 	public String getStringID() {
@@ -108,12 +112,11 @@ public abstract class Team {
 	}
 
 	public <T> T getProperty(TeamProperty<T> property) {
-		Object o = properties.get(property);
-		return o == null ? property.defaultValue : (T) o;
+		return properties.get(property);
 	}
 
 	public <T> void setProperty(TeamProperty<T> property, T value) {
-		properties.put(property, value);
+		properties.set(property, value);
 		save();
 	}
 
@@ -251,14 +254,7 @@ public abstract class Team {
 		}
 
 		tag.put("ranks", ranksNBT);
-
-		CompoundTag propertiesNBT = new CompoundTag();
-
-		for (Map.Entry<TeamProperty, Object> property : properties.entrySet()) {
-			propertiesNBT.putString(property.getKey().id.toString(), property.getKey().toString(property.getValue()));
-		}
-
-		tag.put("properties", propertiesNBT);
+		tag.put("properties", properties.write(new CompoundTag()));
 
 		TeamSavedEvent.EVENT.invoker().accept(new TeamSavedEvent(this));
 		tag.put("extra", extraData);
@@ -274,24 +270,7 @@ public abstract class Team {
 			ranks.put(UUIDTypeAdapter.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s)));
 		}
 
-		properties.clear();
-		CompoundTag propertiesNBT = tag.getCompound("properties");
-
-		Map<String, TeamProperty> map = new HashMap<>();
-		TeamConfigEvent.EVENT.invoker().accept(new TeamConfigEvent(p -> map.put(p.id.toString(), p)));
-
-		for (String key : propertiesNBT.getAllKeys()) {
-			TeamProperty property = map.get(key);
-
-			if (property != null && property.isValidFor(this)) {
-				Optional optional = property.fromString(propertiesNBT.getString(key));
-
-				if (optional.isPresent()) {
-					properties.put(property, optional.get());
-				}
-			}
-		}
-
+		properties.read(tag.getCompound("properties"));
 		extraData = tag.getCompound("extra");
 		TeamLoadedEvent.EVENT.invoker().accept(new TeamLoadedEvent(this));
 	}

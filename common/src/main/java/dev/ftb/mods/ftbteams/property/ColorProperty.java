@@ -1,6 +1,8 @@
 package dev.ftb.mods.ftbteams.property;
 
-import dev.ftb.mods.ftbteams.data.TeamProperty;
+import com.feed_the_beast.mods.ftbguilibrary.config.ConfigGroup;
+import com.feed_the_beast.mods.ftbguilibrary.icon.Color4I;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
@@ -8,26 +10,38 @@ import java.util.Optional;
 /**
  * @author LatvianModder
  */
-public class ColorProperty extends TeamProperty<Integer> {
-	public ColorProperty(ResourceLocation id, int def) {
+public class ColorProperty extends TeamProperty<Color4I> {
+	public ColorProperty(ResourceLocation id, Color4I def) {
 		super(id, def);
 	}
 
-	@Override
-	public Optional<Integer> fromString(String string) {
-		if (string.length() >= 7 && string.startsWith("#")) {
-			try {
-				long col = Long.decode(string) & 0xFFFFFFL;
-				return Optional.of((int) col);
-			} catch (Exception ex) {
-			}
-		}
-
-		return Optional.empty();
+	public ColorProperty(ResourceLocation id, FriendlyByteBuf def) {
+		super(id, Color4I.rgb(def.readVarInt()));
 	}
 
 	@Override
-	public String toString(Integer value) {
-		return String.format("#%06X", value & 0xFFFFFF);
+	public TeamPropertyType<Color4I> getType() {
+		return TeamPropertyType.COLOR;
+	}
+
+	@Override
+	public Optional<Color4I> fromString(String string) {
+		Color4I c = Color4I.fromString(string);
+		return c.isEmpty() ? Optional.empty() : Optional.of(c);
+	}
+
+	@Override
+	public void write(FriendlyByteBuf buf) {
+		buf.writeVarInt(defaultValue.rgb());
+	}
+
+	@Override
+	public String toString(Color4I value) {
+		return value.toString();
+	}
+
+	@Override
+	public void config(ConfigGroup config, TeamPropertyValue<Color4I> value) {
+		config.addString(id.getNamespace() + "." + id.getPath(), value.value.toString(), s -> value.consumer.accept(Color4I.fromString(s)), defaultValue.toString());
 	}
 }

@@ -267,9 +267,10 @@ public class TeamManager {
 
 	public void playerLoggedIn(ServerPlayer player) {
 		UUID id = player.getUUID();
+		PlayerTeam team = knownPlayers.get(id);
 
-		if (!knownPlayers.containsKey(id)) {
-			PlayerTeam team = new PlayerTeam(this);
+		if (team == null) {
+			team = new PlayerTeam(this);
 			team.id = id;
 			teamMap.put(id, team);
 			knownPlayers.put(id, team);
@@ -283,6 +284,11 @@ public class TeamManager {
 			team.changedTeam(Optional.empty(), id);
 			team.save();
 			save();
+		}
+
+		if (!team.playerName.equals(player.getGameProfile().getName())) {
+			team.playerName = player.getGameProfile().getName();
+			team.save();
 		}
 	}
 }

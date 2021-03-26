@@ -108,10 +108,6 @@ public abstract class Team extends TeamBase {
 		PlayerChangedTeamEvent.EVENT.invoker().accept(new PlayerChangedTeamEvent(this, prev, player));
 	}
 
-	public boolean isAlly(UUID profile) {
-		return getHighestRank(profile).isAlly();
-	}
-
 	// Data IO //
 
 	public CompoundTag serializeNBT() {

@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -17,7 +18,9 @@ import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 import net.minecraft.network.chat.TranslatableComponent;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -59,44 +62,28 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 			id = s;
 		}
 
-		private static boolean isNumber(String s) {
-			for (int i = 0; i < s.length(); i++) {
-				if (s.charAt(i) < '0' || s.charAt(i) > '9') {
-					return false;
-				}
-			}
-
-			return true;
-		}
-
 		private CommandSyntaxException error() {
 			return TeamArgument.TEAM_NOT_FOUND.create(id);
 		}
 
 		@Override
 		public Team getTeam(CommandSourceStack source) throws CommandSyntaxException {
-			/*
-			int i = id.lastIndexOf('#');
+			Team team = FTBTeamsAPI.getManager().getTeamNameMap().get(id);
 
-			if (i != -1) {
-				try {
-					int iid = Integer.parseInt(id.substring(i + 1));
-					return Optional.ofNullable(FTBTeamsAPI.getManager().getTeamByID(iid)).orElseThrow(this::error);
-				} catch (Exception ex) {
-					throw error();
-				}
-			} else if (isNumber(id)) {
-				int iid = Integer.parseInt(id);
-				return Optional.ofNullable(FTBTeamsAPI.getManager().getTeamByID(iid)).orElseThrow(this::error);
+			if (team != null) {
+				return team;
 			}
 
 			GameProfile profile = source.getServer().getProfileCache().get(id);
 
 			if (profile != null) {
-				return Optional.ofNullable(FTBTeamsAPI.getManager().getTeamByID(profile)).orElseThrow(this::error);
+				Team t = FTBTeamsAPI.getManager().getPlayerTeam(profile.getId());
+
+				if (t != null) {
+					return t;
+				}
 			}
 
-			 */
 			throw error();
 		}
 	}
@@ -124,6 +111,18 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return SharedSuggestionProvider.suggest(TeamManager.INSTANCE == null ? Collections.emptyList() : TeamManager.INSTANCE.getTeamNameMap().keySet(), builder);
+		List<String> list = new ArrayList<>();
+
+		if (FTBTeamsAPI.isManagerLoaded()) {
+			for (Map.Entry<String, Team> entry : FTBTeamsAPI.getManager().getTeamNameMap().entrySet()) {
+				if (entry.getValue().getType().isPlayer() && !((PlayerTeam) entry.getValue()).playerName.isEmpty()) {
+					list.add(((PlayerTeam) entry.getValue()).playerName);
+				} else {
+					list.add(entry.getKey());
+				}
+			}
+		}
+
+		return SharedSuggestionProvider.suggest(list, builder);
 	}
 }

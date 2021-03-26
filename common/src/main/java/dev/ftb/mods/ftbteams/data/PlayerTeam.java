@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,13 +9,29 @@ import java.util.List;
 import java.util.UUID;
 
 public class PlayerTeam extends Team {
+	public String playerName;
+
 	public PlayerTeam(TeamManager m) {
 		super(m);
+		playerName = "";
 	}
 
 	@Override
 	public TeamType getType() {
 		return TeamType.PLAYER;
+	}
+
+	@Override
+	public CompoundTag serializeNBT() {
+		CompoundTag tag = super.serializeNBT();
+		tag.putString("player_name", playerName);
+		return tag;
+	}
+
+	@Override
+	public void deserializeNBT(CompoundTag tag) {
+		super.deserializeNBT(tag);
+		playerName = tag.getString("player_name");
 	}
 
 	@Nullable

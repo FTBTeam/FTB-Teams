@@ -75,10 +75,6 @@ public class PartyTeam extends Team {
 		return owner.equals(profile);
 	}
 
-	public boolean isOwner(ServerPlayer player) {
-		return isOwner(player.getUUID());
-	}
-
 	public UUID getOwner() {
 		return owner;
 	}
@@ -90,9 +86,5 @@ public class PartyTeam extends Team {
 
 	public boolean isOfficer(UUID profile) {
 		return getHighestRank(profile).isOfficer();
-	}
-
-	public boolean isOfficer(ServerPlayer player) {
-		return isOfficer(player.getUUID());
 	}
 }

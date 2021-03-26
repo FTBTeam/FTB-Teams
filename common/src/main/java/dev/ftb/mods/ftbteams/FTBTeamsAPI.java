@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams;
 
+import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.data.TeamArgument;
 import dev.ftb.mods.ftbteams.data.TeamManager;
 import dev.ftb.mods.ftbteams.data.TeamRank;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,16 +14,20 @@ import java.util.UUID;
  * @author LatvianModder
  */
 public class FTBTeamsAPI {
-	public static TeamArgument argument() {
-		return new TeamArgument(() -> getManager().getTeamNameMap().keySet());
-	}
-
 	public static boolean isManagerLoaded() {
 		return TeamManager.INSTANCE != null;
 	}
 
 	public static TeamManager getManager() {
 		return Objects.requireNonNull(TeamManager.INSTANCE);
+	}
+
+	public static boolean isClientManagerLoaded() {
+		return ClientTeamManager.INSTANCE != null;
+	}
+
+	public static ClientTeamManager getClientManager() {
+		return Objects.requireNonNull(ClientTeamManager.INSTANCE);
 	}
 
 	@Nullable

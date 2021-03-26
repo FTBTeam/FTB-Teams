@@ -57,7 +57,7 @@ public class FTBTUtils {
 	}
 
 	public static Color4I randomColor() {
-		return Color4I.hsb(MathUtils.RAND.nextFloat(), 1F, 1F);
+		return Color4I.hsb(MathUtils.RAND.nextFloat(), 0.65F, 1F);
 	}
 
 	@ExpectPlatform

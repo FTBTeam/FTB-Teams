@@ -23,15 +23,11 @@ import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class FTBTeams {
 	public static final String MOD_ID = "ftbteams";
 	public static final String MOD_NAME = "FTB Teams";
 	public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
 	public static FTBTeamsCommon PROXY;
-	private static final List<String> teamArgumentSuggestions = new ArrayList<>();
 
 	public FTBTeams() {
 		LifecycleEvent.SERVER_BEFORE_START.register(this::serverAboutToStart);
@@ -45,7 +41,7 @@ public class FTBTeams {
 	}
 
 	public void setup() {
-		ArgumentTypes.register("ftbteams_team", TeamArgument.class, new EmptyArgumentSerializer<>(() -> new TeamArgument(() -> teamArgumentSuggestions)));
+		ArgumentTypes.register("ftbteams_team", TeamArgument.class, new EmptyArgumentSerializer<>(TeamArgument::new));
 		ArgumentTypes.register("ftbteams_team_property", TeamPropertyArgument.class, new EmptyArgumentSerializer<>(TeamPropertyArgument::new));
 	}
 

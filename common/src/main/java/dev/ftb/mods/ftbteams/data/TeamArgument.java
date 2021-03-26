@@ -17,8 +17,8 @@ import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 import net.minecraft.network.chat.TranslatableComponent;
 
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 
 /**
  * @author LatvianModder
@@ -30,6 +30,10 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final DynamicCommandExceptionType NOT_OWNER = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.not_owner", object));
 	public static final Dynamic2CommandExceptionType NOT_MEMBER = new Dynamic2CommandExceptionType((a, b) -> new TranslatableComponent("ftbteams.not_member", a, b));
 	public static final DynamicCommandExceptionType NOT_INVITED = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.not_invited", object));
+
+	public static TeamArgument create() {
+		return new TeamArgument();
+	}
 
 	public static Team get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return context.getArgument(name, TeamArgumentProvider.class).getTeam(context.getSource());
@@ -97,12 +101,6 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 		}
 	}
 
-	public final Supplier<Iterable<String>> suggestions;
-
-	public TeamArgument(Supplier<Iterable<String>> s) {
-		suggestions = s;
-	}
-
 	@Override
 	public TeamArgumentProvider parse(StringReader reader) throws CommandSyntaxException {
 		if (reader.canRead() && reader.peek() == '@') {
@@ -126,6 +124,6 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		return SharedSuggestionProvider.suggest(suggestions.get(), builder);
+		return SharedSuggestionProvider.suggest(TeamManager.INSTANCE == null ? Collections.emptyList() : TeamManager.INSTANCE.getTeamNameMap().keySet(), builder);
 	}
 }

@@ -1,5 +1,7 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import com.mojang.util.UUIDTypeAdapter;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
 import net.minecraft.Util;
@@ -10,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -28,9 +31,12 @@ import java.util.stream.Collectors;
  */
 public class TeamManager {
 	public static final LevelResource FOLDER_NAME = LevelResourceHooks.create("ftbteams");
+	private static final LevelResource OLD_ID_FILE = LevelResourceHooks.create("data/ftbchunks/info.json");
+
 	public static TeamManager INSTANCE;
 
 	public final MinecraftServer server;
+	private UUID id;
 	private boolean shouldSave;
 	final Map<UUID, PlayerTeam> knownPlayers;
 	final Map<UUID, Team> teamMap;
@@ -46,6 +52,14 @@ public class TeamManager {
 
 	public MinecraftServer getServer() {
 		return server;
+	}
+
+	public UUID getId() {
+		if (id == null) {
+			id = UUID.randomUUID();
+		}
+
+		return id;
 	}
 
 	public Map<UUID, PlayerTeam> getKnownPlayers() {
@@ -100,6 +114,7 @@ public class TeamManager {
 	}
 
 	public void load() {
+		id = null;
 		Path directory = server.getWorldPath(FOLDER_NAME);
 
 		if (Files.notExists(directory) || !Files.isDirectory(directory)) {
@@ -111,10 +126,27 @@ public class TeamManager {
 		if (Files.exists(dataFile)) {
 			try (InputStream stream = Files.newInputStream(dataFile)) {
 				CompoundTag tag = Objects.requireNonNull(NbtIo.readCompressed(stream));
+
+				if (tag.contains("id")) {
+					id = UUIDTypeAdapter.fromString(tag.getString("id"));
+				}
+
 				// read some data, I guess?
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+		} else {
+			Path oldFile = server.getWorldPath(OLD_ID_FILE);
+
+			if (Files.exists(oldFile)) {
+				try (BufferedReader reader = Files.newBufferedReader(oldFile)) {
+					id = UUID.fromString(new GsonBuilder().create().fromJson(reader, JsonObject.class).get("id").getAsString());
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+
+			save();
 		}
 
 		for (TeamType type : TeamType.MAP.values()) {
@@ -204,7 +236,7 @@ public class TeamManager {
 
 	public CompoundTag serializeNBT() {
 		CompoundTag nbt = new CompoundTag();
-		// No data to save rn
+		nbt.putString("id", UUIDTypeAdapter.fromUUID(getId()));
 		return nbt;
 	}
 

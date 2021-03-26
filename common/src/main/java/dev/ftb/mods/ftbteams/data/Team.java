@@ -1,123 +1,37 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.feed_the_beast.mods.ftbguilibrary.icon.Color4I;
 import com.mojang.util.UUIDTypeAdapter;
-import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamLoadedEvent;
 import dev.ftb.mods.ftbteams.event.TeamSavedEvent;
-import dev.ftb.mods.ftbteams.property.BooleanProperty;
-import dev.ftb.mods.ftbteams.property.ColorProperty;
-import dev.ftb.mods.ftbteams.property.StringProperty;
-import dev.ftb.mods.ftbteams.property.TeamProperties;
-import dev.ftb.mods.ftbteams.property.TeamProperty;
-import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 /**
  * @author LatvianModder
  */
-public abstract class Team {
-	public static final StringProperty DISPLAY_NAME = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "display_name"), "Unknown", Pattern.compile(".{3,}"));
-	public static final StringProperty DESCRIPTION = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "description"), "");
-	public static final ColorProperty COLOR = new ColorProperty(new ResourceLocation(FTBTeams.MOD_ID, "color"), Color4I.WHITE);
-	public static final BooleanProperty FREE_TO_JOIN = new BooleanProperty(new ResourceLocation(FTBTeams.MOD_ID, "free_to_join"), false);
-
+public abstract class Team extends TeamBase {
 	public final TeamManager manager;
 	boolean shouldSave;
-	UUID id;
-	final Map<UUID, TeamRank> ranks;
-	public final TeamProperties properties;
-	private CompoundTag extraData;
 
 	public Team(TeamManager m) {
 		id = Util.NIL_UUID;
 		manager = m;
-		ranks = new HashMap<>();
-		properties = new TeamProperties();
 		properties.collect();
-		extraData = new CompoundTag();
 	}
 
 	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (o == this) {
-			return true;
-		} else if (o instanceof Team) {
-			return id.equals(((Team) o).getId());
-		}
-
-		return false;
-	}
-
-	@Override
-	public String toString() {
-		return getStringID();
-	}
-
-	public abstract TeamType getType();
-
 	public void save() {
 		shouldSave = true;
 		manager.nameMap = null;
-	}
-
-	public UUID getId() {
-		return id;
-	}
-
-	public CompoundTag getExtraData() {
-		return extraData;
-	}
-
-	public String getDisplayName() {
-		return getProperty(DISPLAY_NAME);
-	}
-
-	public int getColor() {
-		return getProperty(COLOR).rgb();
-	}
-
-	public String getStringID() {
-		String s = getDisplayName().replaceAll("\\W", "");
-		return (s.length() > 50 ? s.substring(0, 50) : s) + "#" + getId();
-	}
-
-	public Component getName() {
-		TextComponent text = new TextComponent(getDisplayName());
-		text.withStyle(ChatFormatting.AQUA);
-		text.setStyle(text.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getStringID())));
-		return text;
-	}
-
-	public <T> T getProperty(TeamProperty<T> property) {
-		return properties.get(property);
-	}
-
-	public <T> void setProperty(TeamProperty<T> property, T value) {
-		properties.set(property, value);
-		save();
 	}
 
 	/*
@@ -166,44 +80,6 @@ public abstract class Team {
 	}
 	 */
 
-	public TeamRank getHighestRank(UUID playerId) {
-		TeamRank rank = ranks.get(playerId);
-
-		if (rank != null) {
-			return rank;
-		}
-
-		if (getProperty(FREE_TO_JOIN)) {
-			return TeamRank.INVITED;
-		}
-
-		return TeamRank.NONE;
-	}
-
-	public boolean isMember(UUID uuid) {
-		return getHighestRank(uuid).isMember();
-	}
-
-	public boolean isMember(ServerPlayer player) {
-		return isMember(player.getUUID());
-	}
-
-	public Map<UUID, TeamRank> getRanked(TeamRank rank) {
-		Map<UUID, TeamRank> map = new HashMap<>();
-
-		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
-			if (entry.getValue().is(rank)) {
-				map.put(entry.getKey(), entry.getValue());
-			}
-		}
-
-		return map;
-	}
-
-	public Set<UUID> getMembers() {
-		return getRanked(TeamRank.MEMBER).keySet();
-	}
-
 	public List<ServerPlayer> getOnlineRanked(TeamRank rank) {
 		List<ServerPlayer> list = new ArrayList<>();
 
@@ -234,10 +110,6 @@ public abstract class Team {
 
 	public boolean isAlly(UUID profile) {
 		return getHighestRank(profile).isAlly();
-	}
-
-	public boolean isAlly(ServerPlayer player) {
-		return isAlly(player.getUUID());
 	}
 
 	// Data IO //

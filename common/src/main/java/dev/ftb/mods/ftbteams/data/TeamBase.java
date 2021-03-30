@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.feed_the_beast.mods.ftbguilibrary.icon.Color4I;
-import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.property.BooleanProperty;
 import dev.ftb.mods.ftbteams.property.ColorProperty;
@@ -97,7 +96,7 @@ public abstract class TeamBase {
 
 	public String getStringID() {
 		String s = getDisplayName().replaceAll("\\W", "");
-		return (s.length() > 50 ? s.substring(0, 50) : s) + "#" + UUIDTypeAdapter.fromUUID(getId());
+		return (s.length() > 50 ? s.substring(0, 50) : s) + "#" + getId().toString().substring(0, 8);
 	}
 
 	public Component getName() {
@@ -146,5 +145,9 @@ public abstract class TeamBase {
 
 	public boolean isAlly(UUID profile) {
 		return getHighestRank(profile).isAlly();
+	}
+
+	public boolean isOfficer(UUID profile) {
+		return getHighestRank(profile).isOfficer();
 	}
 }

@@ -2,17 +2,25 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
+import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.event.TeamDeletedEvent;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
+import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -160,12 +168,7 @@ public class TeamManager {
 							Team team = type.factory.apply(this);
 							team.id = UUIDTypeAdapter.fromString(nbt.getString("id"));
 							teamMap.put(team.id, team);
-
 							team.deserializeNBT(nbt);
-
-							for (UUID member : team.getMembers()) {
-								playerTeamMap.put(member, team);
-							}
 						} catch (Exception ex) {
 							ex.printStackTrace();
 						}
@@ -181,6 +184,18 @@ public class TeamManager {
 				knownPlayers.put(team.id, (PlayerTeam) team);
 			}
 		}
+
+		playerTeamMap.putAll(knownPlayers);
+
+		for (Team team : teamMap.values()) {
+			if (team instanceof PartyTeam) {
+				for (UUID member : team.getMembers()) {
+					playerTeamMap.put(member, team);
+				}
+			}
+		}
+
+		FTBTeams.LOGGER.info("Loaded FTB Teams - " + knownPlayers.size() + " known players");
 	}
 
 	public void save() {
@@ -290,5 +305,105 @@ public class TeamManager {
 			team.playerName = player.getGameProfile().getName();
 			team.save();
 		}
+	}
+
+	// Command Handlers //
+
+	public int createParty(ServerPlayer player, String name) throws CommandSyntaxException {
+		UUID id = player.getUUID();
+		Team oldTeam = getPlayerTeam(player);
+
+		if (!oldTeam.getType().isPlayer()) {
+			throw TeamArgument.ALREADY_IN_PARTY.create();
+		}
+
+		PartyTeam team = createPartyTeam(player, name);
+		playerTeamMap.put(id, team);
+
+		team.ranks.put(id, TeamRank.OWNER);
+		team.changedTeam(Optional.of(oldTeam), id);
+		team.sendMessage(FTBTUtils.NO_PROFILE, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
+		team.save();
+
+		oldTeam.ranks.remove(id);
+		oldTeam.save();
+		return Command.SINGLE_SUCCESS;
+	}
+
+	public int leaveParty(ServerPlayer player) throws CommandSyntaxException {
+		UUID id = player.getUUID();
+		Team oldTeam = getPlayerTeam(player);
+
+		if (oldTeam.getType().isPlayer()) {
+			throw TeamArgument.NOT_IN_PARTY.create();
+		}
+
+		PlayerTeam team = getInternalPlayerTeam(id);
+		playerTeamMap.put(id, team);
+
+		team.ranks.put(id, TeamRank.OWNER);
+		team.changedTeam(Optional.of(oldTeam), id);
+		oldTeam.sendMessage(FTBTUtils.NO_PROFILE, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
+		team.save();
+
+		oldTeam.ranks.remove(id);
+		oldTeam.save();
+
+		if (oldTeam.getMembers().isEmpty()) {
+			TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(oldTeam));
+			saveNow();
+			teamMap.remove(team.id);
+
+			try {
+				Path dir = server.getWorldPath(FOLDER_NAME).resolve("deleted");
+
+				if (Files.notExists(dir)) {
+					Files.createDirectories(dir);
+				}
+
+				String fn = UUIDTypeAdapter.fromUUID(oldTeam.id) + ".nbt";
+				Files.move(server.getWorldPath(FOLDER_NAME).resolve("party/" + fn), dir.resolve(fn));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			save();
+		}
+
+		return Command.SINGLE_SUCCESS;
+	}
+
+	public int createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
+		Team team = createServerTeam(source.getPlayerOrException(), name);
+		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
+		return Command.SINGLE_SUCCESS;
+	}
+
+	public int deleteServer(CommandSourceStack source, Team team) throws CommandSyntaxException {
+		if (!team.getType().isServer()) {
+			source.sendFailure(new TextComponent("Can only delete a server team!"));
+			return 0;
+		}
+
+		TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(team));
+		saveNow();
+		teamMap.remove(team.id);
+
+		try {
+			Path dir = server.getWorldPath(FOLDER_NAME).resolve("deleted");
+
+			if (Files.notExists(dir)) {
+				Files.createDirectories(dir);
+			}
+
+			String fn = UUIDTypeAdapter.fromUUID(team.id) + ".nbt";
+			Files.move(server.getWorldPath(FOLDER_NAME).resolve("server/" + fn), dir.resolve(fn));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		save();
+		source.sendSuccess(new TextComponent("Team deleted"), true);
+		return Command.SINGLE_SUCCESS;
 	}
 }

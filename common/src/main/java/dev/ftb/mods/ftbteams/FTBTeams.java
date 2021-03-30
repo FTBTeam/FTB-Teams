@@ -41,8 +41,8 @@ public class FTBTeams {
 	}
 
 	public void setup() {
-		ArgumentTypes.register("ftbteams_team", TeamArgument.class, new EmptyArgumentSerializer<>(TeamArgument::new));
-		ArgumentTypes.register("ftbteams_team_property", TeamPropertyArgument.class, new EmptyArgumentSerializer<>(TeamPropertyArgument::new));
+		ArgumentTypes.register("ftbteams_team", TeamArgument.class, new EmptyArgumentSerializer<>(TeamArgument::create));
+		ArgumentTypes.register("ftbteams_team_property", TeamPropertyArgument.class, new EmptyArgumentSerializer<>(TeamPropertyArgument::create));
 	}
 
 	private void serverAboutToStart(MinecraftServer server) {

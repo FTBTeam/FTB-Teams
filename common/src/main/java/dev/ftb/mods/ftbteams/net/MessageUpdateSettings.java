@@ -30,12 +30,11 @@ public class MessageUpdateSettings extends MessageBase {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		Team team = FTBTeamsAPI.getPlayerTeam(player.getUUID());
 
-		if (team == null) {
+		if (team == null || !team.isOfficer(player.getUUID())) {
 			return;
 		}
 
-		TeamProperties old = new TeamProperties();
-		old.copyFrom(team.properties);
+		TeamProperties old = team.properties.copy();
 		team.properties.updateFrom(properties);
 		TeamPropertiesChangedEvent.EVENT.invoker().accept(new TeamPropertiesChangedEvent(team, old));
 		team.save();

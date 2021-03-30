@@ -33,7 +33,7 @@ public class MessageOpenGUI extends MessageBase {
 			res.messages.addAll(((PartyTeam) team).messageHistory);
 		}
 
-		res.properties.copyFrom(team.properties);
+		res.properties = team.properties.copy();
 		res.sendTo(player);
 	}
 }

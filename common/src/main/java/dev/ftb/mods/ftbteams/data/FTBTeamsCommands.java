@@ -6,7 +6,9 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,10 +25,6 @@ public class FTBTeamsCommands {
 
 	private String string(CommandContext<?> context, String name) {
 		return StringArgumentType.getString(context, name);
-	}
-
-	private Team team(CommandContext<CommandSourceStack> context, String arg) throws CommandSyntaxException {
-		return TeamArgument.get(context, arg);
 	}
 
 	private Team team(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -46,20 +44,46 @@ public class FTBTeamsCommands {
 	}
 
 	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+		dispatcher.register(Commands.literal("ftbteams")
+				.then(Commands.literal("party")
+						.then(Commands.literal("create")
+								.then(Commands.argument("name", StringArgumentType.greedyString())
+										.executes(ctx -> TeamManager.INSTANCE.createParty(ctx.getSource().getPlayerOrException(), string(ctx, "name")))
+								)
+								.executes(ctx -> TeamManager.INSTANCE.createParty(ctx.getSource().getPlayerOrException(), ""))
+						)
+						.then(Commands.literal("leave")
+								.executes(ctx -> TeamManager.INSTANCE.leaveParty(ctx.getSource().getPlayerOrException()))
+						)
+				)
+				.then(Commands.literal("server")
+						.requires(requiresOPorSP())
+						.then(Commands.literal("create")
+								.then(Commands.argument("name", StringArgumentType.greedyString())
+										.executes(ctx -> TeamManager.INSTANCE.createServer(ctx.getSource(), string(ctx, "name")))
+								)
+								.executes(ctx -> TeamManager.INSTANCE.createServer(ctx.getSource(), ""))
+						)
+						.then(Commands.literal("delete")
+								.then(Commands.argument("id", TeamArgument.create())
+										.executes(ctx -> TeamManager.INSTANCE.deleteServer(ctx.getSource(), TeamArgument.get(ctx, "id")))
+								)
+						)
+						.then(Commands.literal("settings")
+								.then(Commands.argument("team", TeamArgument.create())
+										.then(Commands.argument("key", TeamPropertyArgument.create())
+												.then(Commands.argument("value", StringArgumentType.greedyString())
+														.executes(ctx -> TeamArgument.get(ctx, "team").settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), string(ctx, "value")))
+												)
+												.executes(ctx -> TeamArgument.get(ctx, "team").settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), ""))
+										)
+								)
+						)
+				)
+		);
+
 		/*
 		dispatcher.register(Commands.literal("ftbteams")
-				.then(Commands.literal("create")
-						.then(Commands.argument("name", StringArgumentType.greedyString())
-								.executes(ctx -> create(ctx.getSource(), string(ctx, "name")))
-						)
-						.executes(ctx -> create(ctx.getSource(), ""))
-				)
-				.then(Commands.literal("create_server_team")
-						.requires(requiresOPorSP())
-						.then(Commands.argument("name", StringArgumentType.greedyString())
-								.executes(ctx -> createServer(ctx.getSource(), string(ctx, "name")))
-						)
-				)
 				.then(Commands.literal("delete")
 						.then(Commands.argument("team", FTBTeamsAPI.argument())
 								.requires(requiresOPorSP())
@@ -131,22 +155,6 @@ public class FTBTeamsCommands {
 				.executes(ctx -> team(ctx).gui(ctx.getSource()))
 		);
 		 */
-	}
-
-	private static int create(CommandSourceStack source, String name) throws CommandSyntaxException {
-		if (!TeamManager.INSTANCE.getPlayerTeam(source.getPlayerOrException()).getType().isPlayer()) {
-			throw TeamArgument.ALREADY_IN_TEAM.create();
-		}
-
-		//Team team = TeamManager.INSTANCE.createPlayerTeam(TeamType.PARTY, source.getPlayerOrException(), name);
-		//source.sendSuccess(new TextComponent("Created new team ").append(team.getName()), true);
-		return Command.SINGLE_SUCCESS;
-	}
-
-	private int createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
-		Team team = TeamManager.INSTANCE.createServerTeam(source.getPlayerOrException(), name);
-		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
-		return Command.SINGLE_SUCCESS;
 	}
 
 	private int list(CommandSourceStack source) {

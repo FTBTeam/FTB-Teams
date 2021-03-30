@@ -27,10 +27,10 @@ import java.util.concurrent.CompletableFuture;
  * @author LatvianModder
  */
 public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
-	public static final SimpleCommandExceptionType ALREADY_IN_TEAM = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.already_in_team"));
+	public static final SimpleCommandExceptionType ALREADY_IN_PARTY = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.already_in_party"));
 	public static final SimpleCommandExceptionType NOT_IN_PARTY = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.not_in_party"));
 	public static final DynamicCommandExceptionType TEAM_NOT_FOUND = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.team_not_found", object));
-	public static final DynamicCommandExceptionType NOT_OWNER = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.not_owner", object));
+	public static final DynamicCommandExceptionType CANT_EDIT = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.cant_edit", object));
 	public static final Dynamic2CommandExceptionType NOT_MEMBER = new Dynamic2CommandExceptionType((a, b) -> new TranslatableComponent("ftbteams.not_member", a, b));
 	public static final DynamicCommandExceptionType NOT_INVITED = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.not_invited", object));
 
@@ -40,6 +40,9 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 
 	public static Team get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return context.getArgument(name, TeamArgumentProvider.class).getTeam(context.getSource());
+	}
+
+	private TeamArgument() {
 	}
 
 	private static class SelectorProvider implements TeamArgumentProvider {

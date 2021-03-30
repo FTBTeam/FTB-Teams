@@ -12,7 +12,7 @@ import java.util.List;
 
 public class MessageOpenGUIResponse extends MessageBase {
 	public final List<TeamMessage> messages;
-	public final TeamProperties properties;
+	public TeamProperties properties;
 
 	MessageOpenGUIResponse(FriendlyByteBuf buffer) {
 		long now = Instant.now().toEpochMilli();

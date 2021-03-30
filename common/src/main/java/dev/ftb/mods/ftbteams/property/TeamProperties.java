@@ -19,11 +19,11 @@ public class TeamProperties {
 		return this;
 	}
 
-	public TeamProperties copyFrom(TeamProperties properties) {
-		map.clear();
+	public TeamProperties copy() {
+		TeamProperties p = new TeamProperties();
 
-		for (Map.Entry<TeamProperty, TeamPropertyValue> entry : properties.map.entrySet()) {
-			map.put(entry.getKey(), entry.getValue().copy());
+		for (Map.Entry<TeamProperty, TeamPropertyValue> entry : map.entrySet()) {
+			p.map.put(entry.getKey(), entry.getValue().copy());
 		}
 
 		return this;

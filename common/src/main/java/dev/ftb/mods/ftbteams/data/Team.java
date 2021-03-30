@@ -1,12 +1,24 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.Command;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamLoadedEvent;
+import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.event.TeamSavedEvent;
+import dev.ftb.mods.ftbteams.property.TeamProperties;
+import dev.ftb.mods.ftbteams.property.TeamProperty;
+import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.BaseComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
@@ -98,7 +110,7 @@ public abstract class Team extends TeamBase {
 		return getOnlineRanked(TeamRank.MEMBER);
 	}
 
-	public void created(ServerPlayer p) {
+	void created(ServerPlayer p) {
 		TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(this, p));
 		save();
 		manager.save();
@@ -156,10 +168,11 @@ public abstract class Team extends TeamBase {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
+	*/
+
 	public int settings(CommandSourceStack source, TeamProperty key, String value) throws CommandSyntaxException {
 		if (value.isEmpty()) {
-			TextComponent keyc = new TextComponent(key.id.toString());
+			BaseComponent keyc = new TranslatableComponent("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
 			keyc.withStyle(ChatFormatting.YELLOW);
 			TextComponent valuec = new TextComponent(key.toString(getProperty(key)));
 			valuec.withStyle(ChatFormatting.AQUA);
@@ -173,16 +186,21 @@ public abstract class Team extends TeamBase {
 				return 0;
 			}
 
+			TeamProperties old = properties.copy();
+
 			setProperty(key, optional.get());
-			TextComponent keyc = new TextComponent(key.id.toString());
+			BaseComponent keyc = new TranslatableComponent("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
 			keyc.withStyle(ChatFormatting.YELLOW);
 			TextComponent valuec = new TextComponent(value);
 			valuec.withStyle(ChatFormatting.AQUA);
 			source.sendSuccess(new TextComponent("Set ").append(keyc).append(" to ").append(valuec), true);
+			TeamPropertiesChangedEvent.EVENT.invoker().accept(new TeamPropertiesChangedEvent(this, old));
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
+
+	/*
 
 	@Deprecated
 	public int join(CommandSourceStack source) throws CommandSyntaxException {
@@ -356,7 +374,16 @@ public abstract class Team extends TeamBase {
 
 	 */
 
-	public void openGUI(ServerPlayer player) {
-		// new MessageOpenGUI(messageHistory).sendTo(player);
+	public void sendMessage(GameProfile from, Component text) {
+		TextComponent component = new TextComponent("<");
+		component.append(from.equals(FTBTUtils.NO_PROFILE) ? new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE) : new TextComponent(from.getName()).withStyle(ChatFormatting.YELLOW));
+		component.append(" @");
+		component.append(getName());
+		component.append("> ");
+		component.append(text);
+
+		for (ServerPlayer p : getOnlineMembers()) {
+			p.displayClientMessage(component, false);
+		}
 	}
 }

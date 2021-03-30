@@ -43,6 +43,7 @@ public class PartyTeam extends Team {
 		owner = UUIDTypeAdapter.fromString(tag.getString("owner"));
 	}
 
+	@Override
 	public void sendMessage(GameProfile from, Component text) {
 		messageHistory.add(new TeamMessage(from, Instant.now(), text));
 
@@ -50,8 +51,10 @@ public class PartyTeam extends Team {
 			messageHistory.remove(0);
 		}
 
+		// Send packet here //
+
 		TextComponent component = new TextComponent("<");
-		component.append(new TextComponent(from.getName()).withStyle(ChatFormatting.YELLOW));
+		component.append(from.equals(FTBTUtils.NO_PROFILE) ? new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE) : new TextComponent(from.getName()).withStyle(ChatFormatting.YELLOW));
 		component.append(" @");
 		component.append(getName());
 		component.append("> ");
@@ -82,9 +85,5 @@ public class PartyTeam extends Team {
 	@Nullable
 	public ServerPlayer getOwnerPlayer() {
 		return FTBTUtils.getPlayerByUUID(manager.server, owner);
-	}
-
-	public boolean isOfficer(UUID profile) {
-		return getHighestRank(profile).isOfficer();
 	}
 }

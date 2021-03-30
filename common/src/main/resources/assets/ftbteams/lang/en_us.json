@@ -1,8 +1,8 @@
 {
-	"ftbteams.already_in_team": "You are already in a team!",
-	"ftbteams.not_in_team": "You haven't created or joined a team!",
+	"ftbteams.already_in_party": "You are already in a party!",
+	"ftbteams.not_in_party": "You haven't created or joined a party!",
 	"ftbteams.team_not_found": "Team '%s' not found!",
-	"ftbteams.not_owner": "You are not the owner of %s!",
+	"ftbteams.cant_edit": "You can't edit %s!",
 	"ftbteams.not_member": "%s is not a member of %s!",
 	"ftbteams.not_invited": "You are not invited to join %s!",
 	"ftbteams.info.id": "Team ID: %s",

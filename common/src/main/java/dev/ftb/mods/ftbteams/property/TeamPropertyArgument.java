@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -21,6 +22,17 @@ import java.util.concurrent.CompletableFuture;
  */
 public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
 	private static final SimpleCommandExceptionType PROPERTY_NOT_FOUND = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.property_not_found"));
+
+	public static TeamPropertyArgument create() {
+		return new TeamPropertyArgument();
+	}
+
+	public static TeamProperty get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+		return context.getArgument(name, TeamProperty.class);
+	}
+
+	private TeamPropertyArgument() {
+	}
 
 	@Override
 	public TeamProperty parse(StringReader reader) throws CommandSyntaxException {

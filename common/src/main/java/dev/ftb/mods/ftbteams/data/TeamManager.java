@@ -260,7 +260,7 @@ public class TeamManager {
 		team.id = UUID.randomUUID();
 		teamMap.put(team.id, team);
 
-		team.setProperty(Team.DISPLAY_NAME, name);
+		team.setProperty(Team.DISPLAY_NAME, name.isEmpty() ? team.id.toString().substring(0, 8) : name);
 		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
 		team.created(player);
@@ -273,7 +273,7 @@ public class TeamManager {
 		team.owner = player.getUUID();
 		teamMap.put(team.id, team);
 
-		team.setProperty(Team.DISPLAY_NAME, name);
+		team.setProperty(Team.DISPLAY_NAME, name.isEmpty() ? (player.getGameProfile().getName() + "'s Party") : name);
 		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
 		team.created(player);
@@ -287,11 +287,12 @@ public class TeamManager {
 		if (team == null) {
 			team = new PlayerTeam(this);
 			team.id = id;
+			team.playerName = player.getGameProfile().getName();
 			teamMap.put(id, team);
 			knownPlayers.put(id, team);
 			playerTeamMap.put(id, team);
 
-			team.setProperty(Team.DISPLAY_NAME, player.getGameProfile().getName());
+			team.setProperty(Team.DISPLAY_NAME, team.playerName);
 			team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
 			team.created(player);

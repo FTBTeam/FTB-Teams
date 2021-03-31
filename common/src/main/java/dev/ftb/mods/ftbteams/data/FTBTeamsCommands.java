@@ -62,7 +62,6 @@ public class FTBTeamsCommands {
 								.then(Commands.argument("name", StringArgumentType.greedyString())
 										.executes(ctx -> TeamManager.INSTANCE.createServer(ctx.getSource(), string(ctx, "name")))
 								)
-								.executes(ctx -> TeamManager.INSTANCE.createServer(ctx.getSource(), ""))
 						)
 						.then(Commands.literal("delete")
 								.then(Commands.argument("id", TeamArgument.create())

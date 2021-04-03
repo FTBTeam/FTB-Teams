@@ -1,15 +1,15 @@
 package dev.ftb.mods.ftbteams.client;
 
-import com.feed_the_beast.mods.ftbguilibrary.config.ConfigGroup;
-import com.feed_the_beast.mods.ftbguilibrary.config.gui.GuiEditConfig;
-import com.feed_the_beast.mods.ftbguilibrary.icon.Color4I;
-import com.feed_the_beast.mods.ftbguilibrary.widget.Button;
-import com.feed_the_beast.mods.ftbguilibrary.widget.GuiBase;
-import com.feed_the_beast.mods.ftbguilibrary.widget.GuiHelper;
-import com.feed_the_beast.mods.ftbguilibrary.widget.GuiIcons;
-import com.feed_the_beast.mods.ftbguilibrary.widget.SimpleButton;
-import com.feed_the_beast.mods.ftbguilibrary.widget.Theme;
 import com.mojang.blaze3d.vertex.PoseStack;
+import dev.ftb.mods.ftbguilibrary.config.ConfigGroup;
+import dev.ftb.mods.ftbguilibrary.config.gui.EditConfigScreen;
+import dev.ftb.mods.ftbguilibrary.icon.Color4I;
+import dev.ftb.mods.ftbguilibrary.widget.BaseScreen;
+import dev.ftb.mods.ftbguilibrary.widget.Button;
+import dev.ftb.mods.ftbguilibrary.widget.GuiHelper;
+import dev.ftb.mods.ftbguilibrary.widget.GuiIcons;
+import dev.ftb.mods.ftbguilibrary.widget.SimpleButton;
+import dev.ftb.mods.ftbguilibrary.widget.Theme;
 import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.net.MessageOpenGUIResponse;
@@ -21,7 +21,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.Map;
 
-public class MyTeamScreen extends GuiBase {
+public class MyTeamScreen extends BaseScreen {
 	public final MessageOpenGUIResponse data;
 	public Button settingsButton;
 	public Button colorButton;
@@ -48,7 +48,7 @@ public class MyTeamScreen extends GuiBase {
 				openGui();
 			};
 
-			new GuiEditConfig(config).openGui();
+			new EditConfigScreen(config).openGui();
 		}));
 
 		add(colorButton = new SimpleButton(this, new TranslatableComponent("gui.color"), data.properties.get(Team.COLOR).withBorder(Color4I.BLACK, false), (simpleButton, mouseButton) -> {

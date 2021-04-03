@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.client;
 
-import com.feed_the_beast.mods.ftbguilibrary.widget.CustomClickEvent;
+import dev.ftb.mods.ftbguilibrary.widget.CustomClickEvent;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.FTBTeamsCommon;
 import dev.ftb.mods.ftbteams.net.MessageOpenGUI;

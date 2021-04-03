@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.property;
 
-import com.feed_the_beast.mods.ftbguilibrary.config.ConfigGroup;
+import dev.ftb.mods.ftbguilibrary.config.ConfigGroup;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;

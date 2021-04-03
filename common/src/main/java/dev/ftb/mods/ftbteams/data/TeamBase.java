@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.feed_the_beast.mods.ftbguilibrary.icon.Color4I;
+import dev.ftb.mods.ftbguilibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.property.BooleanProperty;
 import dev.ftb.mods.ftbteams.property.ColorProperty;

@@ -1,9 +1,9 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.feed_the_beast.mods.ftbguilibrary.icon.Color4I;
-import com.feed_the_beast.mods.ftbguilibrary.utils.MathUtils;
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
+import dev.ftb.mods.ftbguilibrary.icon.Color4I;
+import dev.ftb.mods.ftbguilibrary.utils.MathUtils;
 import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.Util;
 import net.minecraft.network.chat.Component;

@@ -1,97 +1,97 @@
 plugins {
-	id "com.github.johnrengelman.shadow" version "5.0.0"
-	id "com.matthewprenger.cursegradle"
+    id "com.github.johnrengelman.shadow" version "5.0.0"
+    id "com.matthewprenger.cursegradle"
 }
 
 def ENV = System.getenv()
 
 configurations {
-	shadow
+    shadow
 }
 
 architectury {
-	platformSetupLoomIde()
-	forge()
+    platformSetupLoomIde()
+    forge()
 }
 
 dependencies {
-	minecraft "com.mojang:minecraft:${rootProject.architectury.minecraft}"
-	mappings minecraft.officialMojangMappings()
+    minecraft "com.mojang:minecraft:${rootProject.architectury.minecraft}"
+    mappings minecraft.officialMojangMappings()
 
-	forge "net.minecraftforge:forge:${rootProject.forge_version}"
+    forge "net.minecraftforge:forge:${rootProject.forge_version}"
 
-	modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
-	modApi "com.feed_the_beast.mods:ftb-gui-library-forge:${rootProject.ftb_gui_library_version}"
+    modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
+    modApi "dev.ftb.mods:ftb-gui-library-forge:${rootProject.ftb_gui_library_version}"
 
-	modRuntime "curse.maven:ftb-quests-289412:3242959"
-	modRuntime "curse.maven:item-filters-309674:3231742"
+    modRuntime "curse.maven:ftb-quests-289412:3242959"
+    modRuntime "curse.maven:item-filters-309674:3231742"
 
-	implementation(project(path: ":common")) {
-		transitive = false
-	}
-	developmentForge(project(path: ":common")) {
-		transitive = false
-	}
-	shadow(project(path: ":common", configuration: "transformProductionForge")) {
-		transitive = false
-	}
+    implementation(project(path: ":common")) {
+        transitive = false
+    }
+    developmentForge(project(path: ":common")) {
+        transitive = false
+    }
+    shadow(project(path: ":common", configuration: "transformProductionForge")) {
+        transitive = false
+    }
 }
 
 processResources {
-	filesMatching("META-INF/mods.toml") {
-		expand "version": project.version
-	}
-	inputs.property "version", project.version
+    filesMatching("META-INF/mods.toml") {
+        expand "version": project.version
+    }
+    inputs.property "version", project.version
 }
 
 shadowJar {
-	configurations = [project.configurations.shadow]
-	classifier "shadow"
+    configurations = [project.configurations.shadow]
+    classifier "shadow"
 }
 
 remapJar {
-	dependsOn(shadowJar)
-	input.set(shadowJar.archivePath)
-	archiveClassifier = "forge"
+    dependsOn(shadowJar)
+    input.set(shadowJar.archivePath)
+    archiveClassifier = "forge"
 }
 
 if (ENV.CURSEFORGE_KEY) {
-	curseforge {
-		apiKey = ENV.CURSEFORGE_KEY
-		project {
-			id = project.curseforge_id_forge
-			releaseType = "release"
-			addGameVersion "Forge"
-			addGameVersion "1.16.5"
-			mainArtifact(remapJar.archivePath)
-			relations {
-				requiredDependency 'architectury-forge'
-			}
-			changelog = getGitChangelog
-			changelogType = 'markdown'
-		}
-	}
+    curseforge {
+        apiKey = ENV.CURSEFORGE_KEY
+        project {
+            id = project.curseforge_id_forge
+            releaseType = "release"
+            addGameVersion "Forge"
+            addGameVersion "1.16.5"
+            mainArtifact(remapJar.archivePath)
+            relations {
+                requiredDependency 'architectury-forge'
+            }
+            changelog = getGitChangelog
+            changelogType = 'markdown'
+        }
+    }
 }
 
 publishing {
-	publications {
-		mavenForge(MavenPublication) {
-			artifactId = rootProject.archivesBaseName + "-forge"
-			artifact(remapJar.archivePath) {
-				builtBy build
-				classifier null
-			}
-		}
-	}
+    publications {
+        mavenForge(MavenPublication) {
+            artifactId = rootProject.archivesBaseName + "-forge"
+            artifact(remapJar.archivePath) {
+                builtBy build
+                classifier null
+            }
+        }
+    }
 
-	repositories {
-		if (ENV.LOCAL_MAVEN) {
-			maven {
-				// upload to local maven repo
-				url = "file://${ENV.LOCAL_MAVEN}"
-			}
-		}
-	}
+    repositories {
+        if (ENV.LOCAL_MAVEN) {
+            maven {
+                // upload to local maven repo
+                url = "file://${ENV.LOCAL_MAVEN}"
+            }
+        }
+    }
 }
 
 rootProject.tasks.getByName("curseforgePublish").dependsOn tasks.getByName("curseforge")

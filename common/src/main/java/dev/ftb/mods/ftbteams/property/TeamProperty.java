@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.property;
 
-import com.feed_the_beast.mods.ftbguilibrary.config.ConfigGroup;
+import dev.ftb.mods.ftbguilibrary.config.ConfigGroup;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -53,7 +53,7 @@ public abstract class TeamProperty<T> {
 	}
 
 	public T readValue(FriendlyByteBuf buf) {
-		return fromString(buf.readUtf(Short.MAX_VALUE)).get();
+		return fromString(buf.readUtf(Short.MAX_VALUE)).orElse(defaultValue);
 	}
 
 	public void config(ConfigGroup config, TeamPropertyValue<T> value) {

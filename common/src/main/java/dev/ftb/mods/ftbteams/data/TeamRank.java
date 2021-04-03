@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.feed_the_beast.mods.ftbguilibrary.config.NameMap;
+import dev.ftb.mods.ftbguilibrary.config.NameMap;
 import net.minecraft.util.StringRepresentable;
 
 public enum TeamRank implements StringRepresentable {

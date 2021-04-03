@@ -17,6 +17,7 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
@@ -310,7 +311,7 @@ public class TeamManager {
 
 	// Command Handlers //
 
-	public int createParty(ServerPlayer player, String name) throws CommandSyntaxException {
+	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name) throws CommandSyntaxException {
 		UUID id = player.getUUID();
 		Team oldTeam = getPlayerTeam(player);
 
@@ -328,10 +329,10 @@ public class TeamManager {
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
-		return Command.SINGLE_SUCCESS;
+		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
-	public int leaveParty(ServerPlayer player) throws CommandSyntaxException {
+	public Pair<Integer, Team> leaveParty(ServerPlayer player) throws CommandSyntaxException {
 		UUID id = player.getUUID();
 		Team oldTeam = getPlayerTeam(player);
 
@@ -371,13 +372,13 @@ public class TeamManager {
 			save();
 		}
 
-		return Command.SINGLE_SUCCESS;
+		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
-	public int createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
-		Team team = createServerTeam(source.getPlayerOrException(), name);
+	public Pair<Integer, ServerTeam> createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
+		ServerTeam team = createServerTeam(source.getPlayerOrException(), name);
 		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
-		return Command.SINGLE_SUCCESS;
+		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
 	public int deleteServer(CommandSourceStack source, Team team) throws CommandSyntaxException {

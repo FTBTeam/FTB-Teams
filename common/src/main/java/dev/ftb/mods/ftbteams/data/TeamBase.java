@@ -15,7 +15,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -31,12 +33,14 @@ public abstract class TeamBase {
 	public final TeamProperties properties;
 	final Map<UUID, TeamRank> ranks;
 	CompoundTag extraData;
+	public final List<TeamMessage> messageHistory;
 
 	public TeamBase() {
 		id = Util.NIL_UUID;
 		ranks = new HashMap<>();
 		properties = new TeamProperties();
 		extraData = new CompoundTag();
+		messageHistory = new ArrayList<>();
 	}
 
 	public abstract TeamType getType();

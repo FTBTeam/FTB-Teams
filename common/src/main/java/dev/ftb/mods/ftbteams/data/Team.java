@@ -375,6 +375,12 @@ public abstract class Team extends TeamBase {
 	 */
 
 	public void sendMessage(GameProfile from, Component text) {
+		messageHistory.add(new TeamMessage(from, System.currentTimeMillis(), text));
+
+		if (messageHistory.size() > 1000) {
+			messageHistory.remove(0);
+		}
+
 		TextComponent component = new TextComponent("<");
 		component.append(from.equals(FTBTUtils.NO_PROFILE) ? new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE) : new TextComponent(from.getName()).withStyle(ChatFormatting.YELLOW));
 		component.append(" @");
@@ -385,5 +391,7 @@ public abstract class Team extends TeamBase {
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
 		}
+
+		save();
 	}
 }

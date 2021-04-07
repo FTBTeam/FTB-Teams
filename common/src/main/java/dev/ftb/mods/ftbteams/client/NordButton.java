@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ftb.mods.ftbguilibrary.icon.Icon;
+import dev.ftb.mods.ftbguilibrary.utils.TooltipList;
 import dev.ftb.mods.ftbguilibrary.widget.Panel;
 import dev.ftb.mods.ftbguilibrary.widget.SimpleTextButton;
 import dev.ftb.mods.ftbguilibrary.widget.Theme;
@@ -11,6 +12,11 @@ import net.minecraft.network.chat.FormattedText;
 public abstract class NordButton extends SimpleTextButton {
 	public NordButton(Panel panel, Component txt, Icon icon) {
 		super(panel, txt, icon);
+		setHeight(16);
+	}
+
+	@Override
+	public void addMouseOverText(TooltipList list) {
 	}
 
 	@Override
@@ -20,7 +26,7 @@ public abstract class NordButton extends SimpleTextButton {
 
 	public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
 		this.drawBackground(matrixStack, theme, x, y, w, h);
-		int s = h >= 16 ? 16 : 8;
+		int s = h >= 20 ? 16 : 8;
 		int off = (h - s) / 2;
 		FormattedText title = getTitle();
 		int textY = y + (h - theme.getFontHeight() + 1) / 2;
@@ -39,6 +45,6 @@ public abstract class NordButton extends SimpleTextButton {
 			textX += off + s;
 		}
 
-		theme.drawString(matrixStack, title, (float) textX, (float) textY, isMouseOver() ? NordColors.SNOW_STORM_3 : NordColors.SNOW_STORM_2, 0);
+		theme.drawString(matrixStack, title, (float) textX, (float) textY, isMouseOver() ? NordColors.SNOW_STORM_3 : NordColors.SNOW_STORM_1, 0);
 	}
 }

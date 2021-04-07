@@ -11,6 +11,7 @@ public enum TeamType implements StringRepresentable {
 	PARTY("party", PartyTeam::new),
 	SERVER("server", ServerTeam::new);
 
+	public static final TeamType[] VALUES = values();
 	public static final Map<String, TeamType> MAP = new HashMap<>();
 
 	static {

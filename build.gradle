@@ -43,10 +43,9 @@ allprojects {
 		}
 
 		maven {
-			url "https://maven.latvian.dev"
+			url "https://maven.saps.dev/minecraft"
 			content {
 				includeGroup "dev.latvian.mods"
-				includeGroup "com.feed_the_beast.mods"
 				includeGroup "dev.ftb.mods"
 			}
 		}

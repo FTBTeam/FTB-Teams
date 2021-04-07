@@ -14,6 +14,7 @@ public enum TeamRank implements StringRepresentable {
 
 	;
 
+	public static final TeamRank[] VALUES = values();
 	public static final NameMap<TeamRank> NAME_MAP = NameMap.of(NONE, values()).create();
 
 	private final String name;
@@ -34,7 +35,13 @@ public enum TeamRank implements StringRepresentable {
 	}
 
 	public boolean is(TeamRank rank) {
-		return power >= rank.power;
+		if (rank.power > 0) {
+			return power >= rank.power;
+		} else if (rank.power < 0) {
+			return power <= rank.power;
+		}
+
+		return true;
 	}
 
 	public boolean isEnemy() {

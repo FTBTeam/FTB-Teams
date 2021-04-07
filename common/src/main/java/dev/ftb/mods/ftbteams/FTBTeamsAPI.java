@@ -35,6 +35,10 @@ public class FTBTeamsAPI {
 		return isManagerLoaded() ? getManager().getPlayerTeam(profile) : null;
 	}
 
+	public static Team getPlayerTeam(ServerPlayer player) {
+		return getManager().getPlayerTeam(player);
+	}
+
 	public static UUID getPlayerTeamID(UUID profile) {
 		return isManagerLoaded() ? getManager().getPlayerTeamID(profile) : profile;
 	}

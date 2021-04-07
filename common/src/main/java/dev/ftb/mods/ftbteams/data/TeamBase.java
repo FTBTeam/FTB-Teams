@@ -129,6 +129,10 @@ public abstract class TeamBase {
 	}
 
 	public Map<UUID, TeamRank> getRanked(TeamRank rank) {
+		if (rank == TeamRank.NONE) {
+			return ranks;
+		}
+
 		Map<UUID, TeamRank> map = new HashMap<>();
 
 		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {

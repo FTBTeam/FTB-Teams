@@ -2,11 +2,13 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.TeamDeletedEvent;
+import dev.ftb.mods.ftbteams.net.MessageSyncTeams;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -307,6 +309,39 @@ public class TeamManager {
 			team.playerName = player.getGameProfile().getName();
 			team.save();
 		}
+
+		sync(player, team.getId());
+	}
+
+	public ClientTeamManager createClientTeamManager() {
+		ClientTeamManager clientManager = new ClientTeamManager(getId());
+
+		for (Team team : getTeams()) {
+			ClientTeam t = new ClientTeam(clientManager, team);
+			clientManager.teamMap.put(t.getId(), t);
+
+			if (team instanceof PlayerTeam) {
+				clientManager.profileMap.put(team.getId(), new GameProfile(team.getId(), ((PlayerTeam) team).playerName));
+			}
+		}
+
+		return clientManager;
+	}
+
+	public void sync(ServerPlayer player, UUID self) {
+		new MessageSyncTeams(createClientTeamManager(), self).sendTo(player);
+	}
+
+	public void sync(ServerPlayer player) {
+		sync(player, getPlayerTeam(player).getId());
+	}
+
+	public void syncAll() {
+		ClientTeamManager clientManager = createClientTeamManager();
+
+		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+			new MessageSyncTeams(clientManager, getPlayerTeam(player).getId()).sendTo(player);
+		}
 	}
 
 	// Command Handlers //
@@ -329,6 +364,7 @@ public class TeamManager {
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
+		syncAll();
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
@@ -372,12 +408,14 @@ public class TeamManager {
 			save();
 		}
 
+		syncAll();
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
 	public Pair<Integer, ServerTeam> createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
 		ServerTeam team = createServerTeam(source.getPlayerOrException(), name);
 		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
+		syncAll();
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
@@ -404,8 +442,9 @@ public class TeamManager {
 			e.printStackTrace();
 		}
 
-		save();
 		source.sendSuccess(new TextComponent("Team deleted"), true);
+		save();
+		syncAll();
 		return Command.SINGLE_SUCCESS;
 	}
 }

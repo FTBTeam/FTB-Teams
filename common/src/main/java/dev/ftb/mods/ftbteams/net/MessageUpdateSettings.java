@@ -28,9 +28,9 @@ public class MessageUpdateSettings extends MessageBase {
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
-		Team team = FTBTeamsAPI.getPlayerTeam(player.getUUID());
+		Team team = FTBTeamsAPI.getPlayerTeam(player);
 
-		if (team == null || !team.isOfficer(player.getUUID())) {
+		if (!team.isOfficer(player.getUUID())) {
 			return;
 		}
 

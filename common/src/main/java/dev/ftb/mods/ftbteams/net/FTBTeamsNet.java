@@ -17,8 +17,10 @@ public class FTBTeamsNet {
 	public static void init() {
 		MAIN = NetworkChannel.create(new ResourceLocation(FTBTeams.MOD_ID, "main"));
 
+		register(MessageSyncTeams.class, MessageSyncTeams::new);
 		register(MessageOpenGUI.class, MessageOpenGUI::new);
 		register(MessageOpenGUIResponse.class, MessageOpenGUIResponse::new);
 		register(MessageUpdateSettings.class, MessageUpdateSettings::new);
+		register(MessageUpdateSettingsResponse.class, MessageUpdateSettingsResponse::new);
 	}
 }

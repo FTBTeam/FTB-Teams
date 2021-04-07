@@ -6,7 +6,6 @@ import dev.ftb.mods.ftbteams.property.TeamProperties;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +14,7 @@ public class MessageOpenGUIResponse extends MessageBase {
 	public TeamProperties properties;
 
 	MessageOpenGUIResponse(FriendlyByteBuf buffer) {
-		long now = Instant.now().toEpochMilli();
+		long now = System.currentTimeMillis();
 
 		int m = buffer.readVarInt();
 		messages = new ArrayList<>(m);
@@ -35,7 +34,7 @@ public class MessageOpenGUIResponse extends MessageBase {
 
 	@Override
 	public void write(FriendlyByteBuf buffer) {
-		long now = Instant.now().toEpochMilli();
+		long now = System.currentTimeMillis();
 
 		buffer.writeVarInt(messages.size());
 

@@ -10,7 +10,6 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 
 import javax.annotation.Nullable;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -45,9 +44,9 @@ public class PartyTeam extends Team {
 
 	@Override
 	public void sendMessage(GameProfile from, Component text) {
-		messageHistory.add(new TeamMessage(from, Instant.now(), text));
+		messageHistory.add(new TeamMessage(from, System.currentTimeMillis(), text));
 
-		if (messageHistory.size() > 100) {
+		if (messageHistory.size() > 1000) {
 			messageHistory.remove(0);
 		}
 
@@ -63,6 +62,8 @@ public class PartyTeam extends Team {
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
 		}
+
+		save();
 	}
 
 	@Override

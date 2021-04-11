@@ -8,9 +8,11 @@ import dev.ftb.mods.ftbguilibrary.icon.Icon;
 import dev.ftb.mods.ftbguilibrary.utils.MouseButton;
 import dev.ftb.mods.ftbguilibrary.widget.BaseScreen;
 import dev.ftb.mods.ftbguilibrary.widget.Button;
+import dev.ftb.mods.ftbguilibrary.widget.ComponentTextField;
 import dev.ftb.mods.ftbguilibrary.widget.GuiHelper;
 import dev.ftb.mods.ftbguilibrary.widget.Panel;
 import dev.ftb.mods.ftbguilibrary.widget.SimpleButton;
+import dev.ftb.mods.ftbguilibrary.widget.TextBox;
 import dev.ftb.mods.ftbguilibrary.widget.Theme;
 import dev.ftb.mods.ftbguilibrary.widget.Widget;
 import dev.ftb.mods.ftbguilibrary.widget.WidgetLayout;
@@ -18,12 +20,17 @@ import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.Team;
+import dev.ftb.mods.ftbteams.data.TeamMessage;
 import dev.ftb.mods.ftbteams.data.TeamRank;
 import dev.ftb.mods.ftbteams.net.MessageOpenGUIResponse;
+import dev.ftb.mods.ftbteams.net.MessageSendMessage;
 import dev.ftb.mods.ftbteams.net.MessageUpdateSettings;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
 import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.Map;
@@ -35,6 +42,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	public Button colorButton;
 	public Panel memberPanel;
 	public Button inviteOrCreateParty;
+	public Panel chatPanel;
+	public TextBox chatBox;
 
 	public MyTeamScreen(MessageOpenGUIResponse res) {
 		data = res;
@@ -87,7 +96,13 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					add(new MemberButton(this, ClientTeamManager.INSTANCE.getProfile(entry.getKey()), entry.getValue()));
 				}
 
-				add(new NordButton(this, new TranslatableComponent("gui.add"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
+				add(new NordButton(this, new TextComponent("Add Ally"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
+					@Override
+					public void onClicked(MouseButton mouseButton) {
+					}
+				});
+
+				add(new NordButton(this, new TextComponent("Add Member"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
 					@Override
 					public void onClicked(MouseButton mouseButton) {
 					}
@@ -108,6 +123,53 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					widget.setX(1);
 					widget.setWidth(width - 2);
 				}
+
+				chatPanel.setPosAndSize(width + 3, 23, MyTeamScreen.this.width - memberPanel.width - 5, MyTeamScreen.this.height - 40);
+				chatBox.setPosAndSize(chatPanel.posX, MyTeamScreen.this.height - 15, chatPanel.width, 13);
+			}
+		});
+
+		add(chatPanel = new Panel(this) {
+			@Override
+			public void addWidgets() {
+				for (TeamMessage message : ClientTeamManager.INSTANCE.selfTeam.messageHistory) {
+					TextComponent name = new TextComponent("<");
+
+					if (message.sender.equals(Util.NIL_UUID)) {
+						name.append("System");
+						name.append("> ");
+						name.withStyle(ChatFormatting.LIGHT_PURPLE);
+					} else {
+						name.append(ClientTeamManager.INSTANCE.getProfile(message.sender).getName());
+						name.append("> ");
+						name.withStyle(ChatFormatting.YELLOW);
+					}
+
+					add(new ComponentTextField(this).setMaxWidth(width).setText(new TextComponent("").append(name).append(message.text)));
+				}
+			}
+
+			@Override
+			public void alignWidgets() {
+				align(WidgetLayout.VERTICAL);
+			}
+
+			@Override
+			public void drawBackground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
+				NordColors.POLAR_NIGHT_2.draw(matrixStack, x, y, w, h);
+			}
+		});
+
+		add(chatBox = new TextBox(this) {
+			@Override
+			public void drawTextBox(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
+				NordColors.POLAR_NIGHT_2.draw(matrixStack, x, y, w, h);
+			}
+
+			@Override
+			public void onEnterPressed() {
+				new MessageSendMessage(getText()).sendToServer();
+				setText("");
 			}
 		});
 

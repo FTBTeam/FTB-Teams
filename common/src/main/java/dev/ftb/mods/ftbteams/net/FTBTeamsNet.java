@@ -22,5 +22,7 @@ public class FTBTeamsNet {
 		register(MessageOpenGUIResponse.class, MessageOpenGUIResponse::new);
 		register(MessageUpdateSettings.class, MessageUpdateSettings::new);
 		register(MessageUpdateSettingsResponse.class, MessageUpdateSettingsResponse::new);
+		register(MessageSendMessage.class, MessageSendMessage::new);
+		register(MessageSendMessageResponse.class, MessageSendMessageResponse::new);
 	}
 }

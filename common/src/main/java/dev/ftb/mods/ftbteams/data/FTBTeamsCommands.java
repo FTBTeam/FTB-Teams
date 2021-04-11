@@ -33,8 +33,7 @@ public class FTBTeamsCommands {
 	}
 
 	private Team teamAsOwner(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-		ServerPlayer player = context.getSource().getPlayerOrException();
-		Team team = FTBTeamsAPI.getManager().getPlayerTeam(player);
+		Team team = team(context);
 
 		//if (!team.isOwner(player)) {
 		//	throw TeamArgument.NOT_OWNER.create(team.getName());
@@ -77,6 +76,11 @@ public class FTBTeamsCommands {
 												.executes(ctx -> TeamArgument.get(ctx, "team").settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), ""))
 										)
 								)
+						)
+				)
+				.then(Commands.literal("msg")
+						.then(Commands.argument("text", StringArgumentType.greedyString())
+								.executes(ctx -> team(ctx).msg(ctx.getSource().getPlayerOrException(), StringArgumentType.getString(ctx, "text")))
 						)
 				)
 		);

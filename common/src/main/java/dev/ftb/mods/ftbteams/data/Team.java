@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
@@ -9,6 +8,7 @@ import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamLoadedEvent;
 import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.event.TeamSavedEvent;
+import dev.ftb.mods.ftbteams.net.MessageSendMessageResponse;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
 import net.minecraft.ChatFormatting;
@@ -343,38 +343,14 @@ public abstract class Team extends TeamBase {
 
 		return Command.SINGLE_SUCCESS;
 	}
+	*/
 
-	@Deprecated
 	public int msg(ServerPlayer player, String message) throws CommandSyntaxException {
-		Component m = FTBTUtils.newChatWithLinks(message);
-		TextComponent component = new TextComponent("<");
-		component.append(player.getDisplayName().copy().withStyle(ChatFormatting.YELLOW));
-		component.append(" @");
-		component.append(getName());
-		component.append("> ");
-		component.append(m);
-		messageHistory.add(new TeamMessage(player.getGameProfile(), Instant.now(), m));
-
-		if (messageHistory.size() > 100) {
-			messageHistory.remove(0);
-		}
-
-		for (ServerPlayer p : getOnlineMembers()) {
-			p.displayClientMessage(component, false);
-		}
-
+		sendMessage(player.getUUID(), FTBTUtils.newChatWithLinks(message));
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
-	public int gui(CommandSourceStack source) throws CommandSyntaxException {
-		openGUI(source.getPlayerOrException());
-		return Command.SINGLE_SUCCESS;
-	}
-
-	 */
-
-	public void sendMessage(GameProfile from, Component text) {
+	public void sendMessage(UUID from, Component text) {
 		messageHistory.add(new TeamMessage(from, System.currentTimeMillis(), text));
 
 		if (messageHistory.size() > 1000) {
@@ -382,7 +358,7 @@ public abstract class Team extends TeamBase {
 		}
 
 		TextComponent component = new TextComponent("<");
-		component.append(from.equals(FTBTUtils.NO_PROFILE) ? new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE) : new TextComponent(from.getName()).withStyle(ChatFormatting.YELLOW));
+		component.append(manager.getName(from));
 		component.append(" @");
 		component.append(getName());
 		component.append("> ");
@@ -390,6 +366,7 @@ public abstract class Team extends TeamBase {
 
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
+			new MessageSendMessageResponse(from, text).sendTo(p);
 		}
 
 		save();

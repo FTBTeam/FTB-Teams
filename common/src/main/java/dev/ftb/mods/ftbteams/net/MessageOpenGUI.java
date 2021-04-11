@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.data.PartyTeam;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
@@ -22,13 +21,7 @@ public class MessageOpenGUI extends MessageBase {
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
-
 		MessageOpenGUIResponse res = new MessageOpenGUIResponse();
-
-		if (team instanceof PartyTeam) {
-			res.messages.addAll(((PartyTeam) team).messageHistory);
-		}
-
 		res.properties = team.properties.copy();
 		res.sendTo(player);
 	}

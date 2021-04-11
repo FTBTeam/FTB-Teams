@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
@@ -28,6 +27,6 @@ public class MessageSendMessage extends MessageBase {
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
-		team.sendMessage(FTBTUtils.normalize(player.getGameProfile()), new TextComponent(text));
+		team.sendMessage(player.getUUID(), new TextComponent(text));
 	}
 }

@@ -15,6 +15,7 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -310,7 +311,7 @@ public class TeamManager {
 			team.save();
 		}
 
-		sync(player, team.getId());
+		sync(player, team);
 	}
 
 	public ClientTeamManager createClientTeamManager() {
@@ -328,19 +329,19 @@ public class TeamManager {
 		return clientManager;
 	}
 
-	public void sync(ServerPlayer player, UUID self) {
+	public void sync(ServerPlayer player, Team self) {
 		new MessageSyncTeams(createClientTeamManager(), self).sendTo(player);
 	}
 
 	public void sync(ServerPlayer player) {
-		sync(player, getPlayerTeam(player).getId());
+		sync(player, getPlayerTeam(player));
 	}
 
 	public void syncAll() {
 		ClientTeamManager clientManager = createClientTeamManager();
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			new MessageSyncTeams(clientManager, getPlayerTeam(player).getId()).sendTo(player);
+			new MessageSyncTeams(clientManager, getPlayerTeam(player)).sendTo(player);
 		}
 	}
 
@@ -359,7 +360,7 @@ public class TeamManager {
 
 		team.ranks.put(id, TeamRank.OWNER);
 		team.changedTeam(Optional.of(oldTeam), id);
-		team.sendMessage(FTBTUtils.NO_PROFILE, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
+		team.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
 		oldTeam.ranks.remove(id);
@@ -381,7 +382,7 @@ public class TeamManager {
 
 		team.ranks.put(id, TeamRank.OWNER);
 		team.changedTeam(Optional.of(oldTeam), id);
-		oldTeam.sendMessage(FTBTUtils.NO_PROFILE, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
+		oldTeam.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
 		oldTeam.ranks.remove(id);
@@ -446,5 +447,14 @@ public class TeamManager {
 		save();
 		syncAll();
 		return Command.SINGLE_SUCCESS;
+	}
+
+	public Component getName(@Nullable UUID id) {
+		if (id == null || id.equals(Util.NIL_UUID)) {
+			return new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE);
+		}
+
+		PlayerTeam team = knownPlayers.get(id);
+		return new TextComponent(team == null ? "Unknown" : team.playerName).withStyle(ChatFormatting.YELLOW);
 	}
 }

@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -301,7 +300,7 @@ public class TeamManager {
 
 			team.created(player);
 			team.ranks.put(id, TeamRank.OWNER);
-			team.changedTeam(Optional.empty(), id);
+			team.changedTeam(null, id);
 			team.save();
 			save();
 		}
@@ -338,6 +337,8 @@ public class TeamManager {
 	}
 
 	public void syncAll() {
+		save();
+
 		ClientTeamManager clientManager = createClientTeamManager();
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
@@ -359,7 +360,7 @@ public class TeamManager {
 		playerTeamMap.put(id, team);
 
 		team.ranks.put(id, TeamRank.OWNER);
-		team.changedTeam(Optional.of(oldTeam), id);
+		team.changedTeam(oldTeam, id);
 		team.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
@@ -381,7 +382,7 @@ public class TeamManager {
 		playerTeamMap.put(id, team);
 
 		team.ranks.put(id, TeamRank.OWNER);
-		team.changedTeam(Optional.of(oldTeam), id);
+		team.changedTeam(oldTeam, id);
 		oldTeam.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 

@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbteams.event;
 
-import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.event.Event;
 import me.shedaniel.architectury.event.EventFactory;
@@ -19,11 +18,13 @@ public class PlayerChangedTeamEvent extends TeamEvent {
 
 	private final Optional<Team> previousTeam;
 	private final UUID playerId;
+	private final ServerPlayer player;
 
-	public PlayerChangedTeamEvent(Team t, Optional<Team> t0, UUID p) {
+	public PlayerChangedTeamEvent(Team t, @Nullable Team t0, UUID p, @Nullable ServerPlayer sp) {
 		super(t);
-		previousTeam = t0;
+		previousTeam = Optional.ofNullable(t0);
 		playerId = p;
+		player = sp;
 	}
 
 	public Optional<Team> getPreviousTeam() {
@@ -36,6 +37,6 @@ public class PlayerChangedTeamEvent extends TeamEvent {
 
 	@Nullable
 	public ServerPlayer getPlayer() {
-		return FTBTUtils.getPlayerByUUID(getTeam().manager.server, playerId);
+		return player;
 	}
 }

@@ -11,15 +11,18 @@ import dev.ftb.mods.ftbteams.event.TeamSavedEvent;
 import dev.ftb.mods.ftbteams.net.MessageSendMessageResponse;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
+import me.shedaniel.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,8 +119,17 @@ public abstract class Team extends TeamBase {
 		manager.save();
 	}
 
-	public void changedTeam(Optional<Team> prev, UUID player) {
-		PlayerChangedTeamEvent.EVENT.invoker().accept(new PlayerChangedTeamEvent(this, prev, player));
+	void updateCommands(ServerPlayer player) {
+		manager.server.getPlayerList().sendPlayerPermissionLevel(player);
+	}
+
+	public void changedTeam(@Nullable Team prev, UUID player) {
+		ServerPlayer p = FTBTUtils.getPlayerByUUID(manager.server, player);
+		PlayerChangedTeamEvent.EVENT.invoker().accept(new PlayerChangedTeamEvent(this, prev, player, p));
+
+		if (p != null) {
+			updateCommands(p);
+		}
 	}
 
 	// Data IO //
@@ -136,6 +148,18 @@ public abstract class Team extends TeamBase {
 		tag.put("ranks", ranksNBT);
 		tag.put("properties", properties.write(new CompoundTag()));
 
+		ListTag messageHistoryTag = new ListTag();
+
+		for (TeamMessage m : messageHistory) {
+			CompoundTag mt = new CompoundTag();
+			mt.putString("from", UUIDTypeAdapter.fromUUID(m.sender));
+			mt.putLong("date", m.date);
+			mt.putString("text", Component.Serializer.toJson(m.text));
+			messageHistoryTag.add(mt);
+		}
+
+		tag.put("message_history", messageHistoryTag);
+
 		TeamSavedEvent.EVENT.invoker().accept(new TeamSavedEvent(this));
 		tag.put("extra", extraData);
 
@@ -152,6 +176,15 @@ public abstract class Team extends TeamBase {
 
 		properties.read(tag.getCompound("properties"));
 		extraData = tag.getCompound("extra");
+		messageHistory.clear();
+
+		ListTag messageHistoryTag = tag.getList("message_history", NbtType.COMPOUND);
+
+		for (int i = 0; i < messageHistoryTag.size(); i++) {
+			CompoundTag mt = messageHistoryTag.getCompound(i);
+			messageHistory.add(new TeamMessage(UUIDTypeAdapter.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
+		}
+
 		TeamLoadedEvent.EVENT.invoker().accept(new TeamLoadedEvent(this));
 	}
 
@@ -200,119 +233,16 @@ public abstract class Team extends TeamBase {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	/*
-
-	@Deprecated
-	public int join(CommandSourceStack source) throws CommandSyntaxException {
-		ServerPlayer player = source.getPlayerOrException();
-		Optional<Team> oldTeam = manager.getTeam(player);
-
-		if (oldTeam.isPresent()) {
-			throw TeamArgument.ALREADY_IN_TEAM.create();
-		}
-
-		if (!isInvited(player)) {
-			throw TeamArgument.NOT_INVITED.create(getName());
-		}
-
-		getInvited().remove(player.getGameProfile());
-		addMember(player);
-
-		for (ServerPlayer member : getOnlineMembers()) {
-			member.displayClientMessage(new TextComponent("").append(player.getDisplayName()).append(" joined ").append(getName()), false);
-		}
-
-		return Command.SINGLE_SUCCESS;
-	}
-
-	@Deprecated
-	public int leave(CommandSourceStack source) throws CommandSyntaxException {
-		ServerPlayer player = source.getPlayerOrException();
-
-		List<ServerPlayer> onlineMembers = getOnlineMembers();
-
-		if (removeMember(player.getGameProfile(), true)) {
-			for (ServerPlayer member : onlineMembers) {
-				member.displayClientMessage(new TextComponent("").append(player.getDisplayName()).append(" left ").append(getName()), false);
-			}
-		}
-
-		return Command.SINGLE_SUCCESS;
-	}
-
-	@Deprecated
-	public int invite(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
-		if (!getProperty(FREE_TO_JOIN) && invited.addAll(players)) {
-			save();
-		}
-
-		for (GameProfile player : players) {
-			ServerPlayer playerEntity = ProfileUtils.getPlayerByProfile(manager.getServer(), player);
-
-			if (playerEntity != null) {
-				source.sendSuccess(new TextComponent("Invited ").append(playerEntity.getDisplayName()).append(" to ").append(getName()), true);
-				MutableComponent component = new TextComponent("You have been invited to ").append(getName()).append("!");
-				playerEntity.displayClientMessage(component, false);
-
-				TextComponent accept = new TextComponent("[Click here to accept the invite]");
-				accept.setStyle(accept.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams join " + getStringID())));
-				accept.withStyle(ChatFormatting.GREEN);
-				playerEntity.displayClientMessage(accept, false);
-
-				TextComponent deny = new TextComponent("[Click here to deny the invite]");
-				deny.withStyle(ChatFormatting.RED);
-				deny.setStyle(deny.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams deny_invite " + getStringID())));
-				playerEntity.displayClientMessage(deny, false);
-			} else {
-				source.sendSuccess(new TextComponent("Invited " + player.getName() + " to ").append(getName()), true);
-			}
-		}
-
-		return Command.SINGLE_SUCCESS;
-	}
-
 	@Deprecated
 	public int denyInvite(CommandSourceStack source) throws CommandSyntaxException {
-		if (invited.remove(source.getPlayerOrException().getGameProfile())) {
+		ServerPlayer player = source.getPlayerOrException();
+
+		if (getHighestRank(player.getUUID()).is(TeamRank.INVITED) && !getHighestRank(player.getUUID()).is(TeamRank.MEMBER)) {
+			ranks.put(player.getUUID(), TeamRank.ALLY);
 			source.sendSuccess(new TextComponent("Invite denied"), true);
 			save();
 		}
 
-		return Command.SINGLE_SUCCESS;
-	}
-
-	@Deprecated
-	public int kick(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
-		invited.removeAll(players);
-
-		for (GameProfile player : players) {
-			ServerPlayer playerEntity = ProfileUtils.getPlayerByProfile(manager.getServer(), player);
-
-			if (playerEntity != null) {
-				source.sendSuccess(new TextComponent("Kicked ").append(playerEntity.getDisplayName()).append(" from ").append(getName()), true);
-				playerEntity.displayClientMessage(new TextComponent("You have been kicked from ").append(getName()).append("!"), false);
-			} else {
-				source.sendSuccess(new TextComponent("Kicked " + player.getName() + " from ").append(getName()), true);
-			}
-
-			removeMember(player, true);
-		}
-
-		return Command.SINGLE_SUCCESS;
-	}
-
-	@Deprecated
-	public int transferOwnership(CommandSourceStack source, ServerPlayer to) throws CommandSyntaxException {
-		ServerPlayer from = source.getPlayerOrException();
-
-		if (!isMember(to)) {
-			throw TeamArgument.NOT_MEMBER.create(to.getDisplayName(), getName());
-		}
-
-		owner = to.getGameProfile();
-		save();
-		PlayerTransferredTeamOwnershipEvent.EVENT.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
-		source.sendSuccess(new TextComponent("Transferred ownership to ").append(to.getDisplayName()), true);
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -328,22 +258,19 @@ public abstract class Team extends TeamBase {
 		TextComponent idComponent = new TextComponent(String.valueOf(id));
 		idComponent.withStyle(ChatFormatting.YELLOW);
 		source.sendSuccess(new TranslatableComponent("ftbteams.info.id", idComponent), true);
-
-		TextComponent ownerComponent = new TextComponent(getOwner().getName());
-		ownerComponent.withStyle(ChatFormatting.YELLOW);
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", ownerComponent), true);
-
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", manager.getName(getOwner())), true);
 		source.sendSuccess(new TranslatableComponent("ftbteams.info.members"), true);
 
-		for (GameProfile member : getMembers()) {
-			TextComponent memberComponent = new TextComponent("- " + member.getName());
-			memberComponent.withStyle(ChatFormatting.YELLOW);
-			source.sendSuccess(memberComponent, true);
+		for (UUID member : getMembers()) {
+			source.sendSuccess(new TextComponent("- ").append(manager.getName(member)), true);
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
-	*/
+
+	public UUID getOwner() {
+		return Util.NIL_UUID;
+	}
 
 	public int msg(ServerPlayer player, String message) throws CommandSyntaxException {
 		sendMessage(player.getUUID(), FTBTUtils.newChatWithLinks(message));

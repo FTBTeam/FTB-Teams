@@ -5,11 +5,13 @@ import dev.ftb.mods.ftbguilibrary.config.ConfigGroup;
 import dev.ftb.mods.ftbguilibrary.config.gui.EditConfigScreen;
 import dev.ftb.mods.ftbguilibrary.icon.Color4I;
 import dev.ftb.mods.ftbguilibrary.icon.Icon;
+import dev.ftb.mods.ftbguilibrary.misc.NordColors;
 import dev.ftb.mods.ftbguilibrary.utils.MouseButton;
 import dev.ftb.mods.ftbguilibrary.widget.BaseScreen;
 import dev.ftb.mods.ftbguilibrary.widget.Button;
 import dev.ftb.mods.ftbguilibrary.widget.ComponentTextField;
 import dev.ftb.mods.ftbguilibrary.widget.GuiHelper;
+import dev.ftb.mods.ftbguilibrary.widget.NordButton;
 import dev.ftb.mods.ftbguilibrary.widget.Panel;
 import dev.ftb.mods.ftbguilibrary.widget.SimpleButton;
 import dev.ftb.mods.ftbguilibrary.widget.TextBox;
@@ -132,20 +134,25 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		add(chatPanel = new Panel(this) {
 			@Override
 			public void addWidgets() {
-				for (TeamMessage message : ClientTeamManager.INSTANCE.selfTeam.messageHistory) {
-					TextComponent name = new TextComponent("<");
+				UUID prev = null;
 
-					if (message.sender.equals(Util.NIL_UUID)) {
-						name.append("System");
-						name.append("> ");
-						name.withStyle(ChatFormatting.LIGHT_PURPLE);
-					} else {
-						name.append(ClientTeamManager.INSTANCE.getProfile(message.sender).getName());
-						name.append("> ");
-						name.withStyle(ChatFormatting.YELLOW);
+				for (TeamMessage message : ClientTeamManager.INSTANCE.selfTeam.messageHistory) {
+					if (!message.sender.equals(prev)) {
+						TextComponent name = new TextComponent("");
+
+						if (message.sender.equals(Util.NIL_UUID)) {
+							name.append(new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE));
+						} else {
+							name.append(new TextComponent(ClientTeamManager.INSTANCE.getProfile(message.sender).getName()).withStyle(ChatFormatting.YELLOW));
+						}
+
+						name.append(":");
+
+						add(new ComponentTextField(this).setMaxWidth(width).setText(name));
+						prev = message.sender;
 					}
 
-					add(new ComponentTextField(this).setMaxWidth(width).setText(new TextComponent("").append(name).append(message.text)));
+					add(new ComponentTextField(this).setMaxWidth(width).setText(message.text));
 				}
 			}
 
@@ -170,6 +177,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			public void onEnterPressed() {
 				new MessageSendMessage(getText()).sendToServer();
 				setText("");
+				setFocused(true);
 			}
 		});
 

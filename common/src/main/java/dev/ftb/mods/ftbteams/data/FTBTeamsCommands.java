@@ -3,12 +3,15 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,36 +26,97 @@ public class FTBTeamsCommands {
 		return source -> source.getServer().isSingleplayer() || source.hasPermission(2);
 	}
 
+	private RequiredArgumentBuilder<CommandSourceStack, TeamArgumentProvider> teamArg() {
+		return Commands.argument("team", TeamArgument.create());
+	}
+
 	private String string(CommandContext<?> context, String name) {
 		return StringArgumentType.getString(context, name);
 	}
 
-	private Team team(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-		ServerPlayer player = context.getSource().getPlayerOrException();
-		return FTBTeamsAPI.getManager().getPlayerTeam(player);
+	private boolean hasNoParty(CommandSourceStack source) {
+		if (source.getEntity() instanceof ServerPlayer) {
+			Team team = FTBTeamsAPI.getPlayerTeam((ServerPlayer) source.getEntity());
+			return team.getType().isPlayer();
+		}
+
+		return false;
 	}
 
-	private Team teamAsOwner(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-		Team team = team(context);
+	private boolean hasParty(CommandSourceStack source, TeamRank rank) {
+		if (source.getEntity() instanceof ServerPlayer) {
+			Team team = FTBTeamsAPI.getPlayerTeam((ServerPlayer) source.getEntity());
+			return team.getType().isParty() && team.getHighestRank(source.getEntity().getUUID()).is(rank);
+		}
 
-		//if (!team.isOwner(player)) {
-		//	throw TeamArgument.NOT_OWNER.create(team.getName());
-		//}
+		return false;
+	}
+
+	private Team team(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+		ServerPlayer player = context.getSource().getPlayerOrException();
+		return FTBTeamsAPI.getPlayerTeam(player);
+	}
+
+	private Team teamArg(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+		return TeamArgument.get(context, "team");
+	}
+
+	private Team teamArg(CommandContext<CommandSourceStack> context, TeamType type) throws CommandSyntaxException {
+		Team team = teamArg(context);
+
+		if (team.getType() != type) {
+			throw TeamArgument.TEAM_NOT_FOUND.create(team.getName());
+		}
 
 		return team;
+	}
+
+	private PartyTeam team(CommandContext<CommandSourceStack> context, TeamRank rank) throws CommandSyntaxException {
+		ServerPlayer player = context.getSource().getPlayerOrException();
+		Team team = FTBTeamsAPI.getPlayerTeam(player);
+
+		if (!(team instanceof PartyTeam)) {
+			throw TeamArgument.NOT_IN_PARTY.create();
+		}
+
+		if (!team.getHighestRank(player.getUUID()).is(rank)) {
+			throw TeamArgument.CANT_EDIT.create(team.getName());
+		}
+
+		return (PartyTeam) team;
 	}
 
 	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal("ftbteams")
 				.then(Commands.literal("party")
 						.then(Commands.literal("create")
+								.requires(this::hasNoParty)
 								.then(Commands.argument("name", StringArgumentType.greedyString())
 										.executes(ctx -> TeamManager.INSTANCE.createParty(ctx.getSource().getPlayerOrException(), string(ctx, "name")).getLeft())
 								)
 								.executes(ctx -> TeamManager.INSTANCE.createParty(ctx.getSource().getPlayerOrException(), "").getLeft())
 						)
 						.then(Commands.literal("leave")
+								.requires(source -> hasParty(source, TeamRank.MEMBER))
 								.executes(ctx -> TeamManager.INSTANCE.leaveParty(ctx.getSource().getPlayerOrException()).getLeft())
+						)
+						.then(Commands.literal("invite")
+								.requires(source -> hasParty(source, TeamRank.OFFICER))
+								.then(Commands.argument("players", GameProfileArgument.gameProfile())
+										.executes(ctx -> team(ctx, TeamRank.OFFICER).invite(ctx.getSource().getPlayerOrException(), GameProfileArgument.getGameProfiles(ctx, "players")))
+								)
+						)
+						.then(Commands.literal("kick")
+								.requires(source -> hasParty(source, TeamRank.OFFICER))
+								.then(Commands.argument("players", GameProfileArgument.gameProfile())
+										.executes(ctx -> team(ctx, TeamRank.OFFICER).kick(ctx.getSource().getPlayerOrException(), GameProfileArgument.getGameProfiles(ctx, "players")))
+								)
+						)
+						.then(Commands.literal("transfer_ownership")
+								.requires(source -> hasParty(source, TeamRank.OWNER))
+								.then(Commands.argument("player", EntityArgument.player())
+										.executes(ctx -> team(ctx, TeamRank.OWNER).transferOwnership(ctx.getSource().getPlayerOrException(), EntityArgument.getPlayer(ctx, "player")))
+								)
 						)
 				)
 				.then(Commands.literal("server")
@@ -63,17 +127,17 @@ public class FTBTeamsCommands {
 								)
 						)
 						.then(Commands.literal("delete")
-								.then(Commands.argument("id", TeamArgument.create())
-										.executes(ctx -> TeamManager.INSTANCE.deleteServer(ctx.getSource(), TeamArgument.get(ctx, "id")))
+								.then(teamArg()
+										.executes(ctx -> TeamManager.INSTANCE.deleteServer(ctx.getSource(), teamArg(ctx, TeamType.SERVER)))
 								)
 						)
 						.then(Commands.literal("settings")
-								.then(Commands.argument("team", TeamArgument.create())
+								.then(teamArg()
 										.then(Commands.argument("key", TeamPropertyArgument.create())
 												.then(Commands.argument("value", StringArgumentType.greedyString())
-														.executes(ctx -> TeamArgument.get(ctx, "team").settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), string(ctx, "value")))
+														.executes(ctx -> teamArg(ctx, TeamType.SERVER).settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), string(ctx, "value")))
 												)
-												.executes(ctx -> TeamArgument.get(ctx, "team").settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), ""))
+												.executes(ctx -> teamArg(ctx, TeamType.SERVER).settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), ""))
 										)
 								)
 						)
@@ -83,81 +147,28 @@ public class FTBTeamsCommands {
 								.executes(ctx -> team(ctx).msg(ctx.getSource().getPlayerOrException(), StringArgumentType.getString(ctx, "text")))
 						)
 				)
-		);
-
-		/*
-		dispatcher.register(Commands.literal("ftbteams")
-				.then(Commands.literal("delete")
-						.then(Commands.argument("team", FTBTeamsAPI.argument())
-								.requires(requiresOPorSP())
-								.executes(ctx -> team(ctx, "team").delete(ctx.getSource()))
-						)
-						.executes(ctx -> teamAsOwner(ctx).delete(ctx.getSource()))
-				)
-				.then(Commands.literal("settings")
-						.then(Commands.argument("key", new TeamPropertyArgument())
-								.then(Commands.argument("value", StringArgumentType.greedyString())
-										.executes(ctx -> teamAsOwner(ctx).settings(ctx.getSource(), ctx.getArgument("key", TeamProperty.class), string(ctx, "value")))
-								)
-								.executes(ctx -> team(ctx).settings(ctx.getSource(), ctx.getArgument("key", TeamProperty.class), ""))
-						)
-				)
-				.then(Commands.literal("settings_for")
-						.requires(requiresOPorSP())
-						.then(Commands.argument("team", FTBTeamsAPI.argument())
-								.then(Commands.argument("key", new TeamPropertyArgument())
-										.then(Commands.argument("value", StringArgumentType.greedyString())
-												.executes(ctx -> team(ctx, "team").settings(ctx.getSource(), ctx.getArgument("key", TeamProperty.class), string(ctx, "value")))
-										)
-										.executes(ctx -> team(ctx, "team").settings(ctx.getSource(), ctx.getArgument("key", TeamProperty.class), ""))
-								)
-						)
-				)
 				.then(Commands.literal("join")
-						.then(Commands.argument("team", FTBTeamsAPI.argument())
-								.executes(ctx -> team(ctx, "team").join(ctx.getSource()))
-						)
-				)
-				.then(Commands.literal("leave")
-						.executes(ctx -> team(ctx).leave(ctx.getSource()))
-				)
-				.then(Commands.literal("invite")
-						.then(Commands.argument("players", GameProfileArgument.gameProfile())
-								.executes(ctx -> teamAsOwner(ctx).invite(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "players")))
+						.requires(this::hasNoParty)
+						.then(teamArg()
+								.executes(ctx -> team(ctx, TeamRank.INVITED).join(ctx.getSource()))
 						)
 				)
 				.then(Commands.literal("deny_invite")
-						.then(Commands.argument("team", FTBTeamsAPI.argument())
-								.executes(ctx -> team(ctx, "team").denyInvite(ctx.getSource()))
-						)
-				)
-				.then(Commands.literal("kick")
-						.then(Commands.argument("players", GameProfileArgument.gameProfile())
-								.executes(ctx -> teamAsOwner(ctx).kick(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "players")))
-						)
-				)
-				.then(Commands.literal("transfer_ownership")
-						.then(Commands.argument("player", EntityArgument.player())
-								.executes(ctx -> teamAsOwner(ctx).transferOwnership(ctx.getSource(), EntityArgument.getPlayer(ctx, "player")))
+						.requires(this::hasNoParty)
+						.then(teamArg()
+								.executes(ctx -> teamArg(ctx, TeamType.PARTY).denyInvite(ctx.getSource()))
 						)
 				)
 				.then(Commands.literal("info")
-						.then(Commands.argument("team", FTBTeamsAPI.argument())
-								.executes(ctx -> team(ctx, "team").info(ctx.getSource()))
+						.then(teamArg()
+								.executes(ctx -> teamArg(ctx).info(ctx.getSource()))
 						)
 						.executes(ctx -> team(ctx).info(ctx.getSource()))
 				)
 				.then(Commands.literal("list")
 						.executes(ctx -> list(ctx.getSource()))
 				)
-				.then(Commands.literal("msg")
-						.then(Commands.argument("message", StringArgumentType.greedyString())
-								.executes(ctx -> team(ctx).msg(ctx.getSource().getPlayerOrException(), string(ctx, "message")))
-						)
-				)
-				.executes(ctx -> team(ctx).gui(ctx.getSource()))
 		);
-		 */
 	}
 
 	private int list(CommandSourceStack source) {

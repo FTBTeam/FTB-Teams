@@ -76,6 +76,8 @@ public class PartyTeam extends Team {
 			throw TeamArgument.ALREADY_IN_PARTY.create();
 		}
 
+		UUID id = player.getUUID();
+
 		manager.playerTeamMap.put(id, this);
 		ranks.put(id, TeamRank.MEMBER);
 		changedTeam(oldTeam, id);
@@ -92,7 +94,7 @@ public class PartyTeam extends Team {
 	@Deprecated
 	public int invite(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
 		for (GameProfile player : players) {
-			if (getHighestRank(player.getId()).is(TeamRank.INVITED)) {
+			if (isMember(player.getId())) {
 				continue;
 			}
 
@@ -144,7 +146,6 @@ public class PartyTeam extends Team {
 
 			ranks.remove(id);
 			save();
-
 			manager.syncAll();
 
 			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
@@ -173,6 +174,7 @@ public class PartyTeam extends Team {
 		sendMessage(from.getUUID(), new TextComponent("Transferred ownership to ").append(to.getDisplayName()).withStyle(ChatFormatting.RED));
 		updateCommands(from);
 		updateCommands(to);
+		manager.syncAll();
 		return Command.SINGLE_SUCCESS;
 	}
 }

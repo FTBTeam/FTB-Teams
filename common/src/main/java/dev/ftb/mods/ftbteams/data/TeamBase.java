@@ -159,4 +159,8 @@ public abstract class TeamBase {
 	public boolean isOfficer(UUID profile) {
 		return getHighestRank(profile).isOfficer();
 	}
+
+	public boolean isInvited(UUID profile) {
+		return getHighestRank(profile).isInvited();
+	}
 }

@@ -237,10 +237,11 @@ public abstract class Team extends TeamBase {
 	public int denyInvite(CommandSourceStack source) throws CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
 
-		if (getHighestRank(player.getUUID()).is(TeamRank.INVITED) && !getHighestRank(player.getUUID()).is(TeamRank.MEMBER)) {
+		if (isInvited(player.getUUID()) && !isMember(player.getUUID())) {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
 			source.sendSuccess(new TextComponent("Invite denied"), true);
 			save();
+			manager.syncAll();
 		}
 
 		return Command.SINGLE_SUCCESS;

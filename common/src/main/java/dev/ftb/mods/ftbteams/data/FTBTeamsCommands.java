@@ -37,7 +37,7 @@ public class FTBTeamsCommands {
 	private boolean hasNoParty(CommandSourceStack source) {
 		if (source.getEntity() instanceof ServerPlayer) {
 			Team team = FTBTeamsAPI.getPlayerTeam(source.getEntity().getUUID());
-			return team != null && team.getType().isPlayer();
+			return team != null && !team.getType().isParty();
 		}
 
 		return false;
@@ -110,6 +110,18 @@ public class FTBTeamsCommands {
 								)
 								.executes(ctx -> TeamManager.INSTANCE.createParty(ctx.getSource().getPlayerOrException(), "").getLeft())
 						)
+						.then(Commands.literal("join")
+								.requires(this::hasNoParty)
+								.then(teamArg()
+										.executes(ctx -> partyTeamArg(ctx, TeamRank.INVITED).join(ctx.getSource()))
+								)
+						)
+						.then(Commands.literal("deny_invite")
+								.requires(this::hasNoParty)
+								.then(teamArg()
+										.executes(ctx -> partyTeamArg(ctx, TeamRank.INVITED).denyInvite(ctx.getSource()))
+								)
+						)
 						.then(Commands.literal("leave")
 								.requires(source -> hasParty(source, TeamRank.MEMBER))
 								.executes(ctx -> TeamManager.INSTANCE.leaveParty(ctx.getSource().getPlayerOrException()).getLeft())
@@ -159,18 +171,6 @@ public class FTBTeamsCommands {
 				.then(Commands.literal("msg")
 						.then(Commands.argument("text", StringArgumentType.greedyString())
 								.executes(ctx -> team(ctx).msg(ctx.getSource().getPlayerOrException(), StringArgumentType.getString(ctx, "text")))
-						)
-				)
-				.then(Commands.literal("join")
-						.requires(this::hasNoParty)
-						.then(teamArg()
-								.executes(ctx -> partyTeamArg(ctx, TeamRank.INVITED).join(ctx.getSource()))
-						)
-				)
-				.then(Commands.literal("deny_invite")
-						.requires(this::hasNoParty)
-						.then(teamArg()
-								.executes(ctx -> partyTeamArg(ctx, TeamRank.INVITED).denyInvite(ctx.getSource()))
 						)
 				)
 				.then(Commands.literal("info")

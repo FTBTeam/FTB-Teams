@@ -18,9 +18,7 @@ import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
 import net.minecraft.network.chat.TranslatableComponent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.LinkedHashSet;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -113,19 +111,30 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	}
 
 	@Override
-	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-		List<String> list = new ArrayList<>();
+	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> commandContext, SuggestionsBuilder builder) {
+		if (commandContext.getSource() instanceof SharedSuggestionProvider) {
+			LinkedHashSet<String> list = new LinkedHashSet<>();
 
-		if (FTBTeamsAPI.isManagerLoaded()) {
-			for (Map.Entry<String, Team> entry : FTBTeamsAPI.getManager().getTeamNameMap().entrySet()) {
-				if (entry.getValue().getType().isPlayer() && !((PlayerTeam) entry.getValue()).playerName.isEmpty()) {
-					list.add(((PlayerTeam) entry.getValue()).playerName);
-				} else {
-					list.add(entry.getKey());
+			if (commandContext.getSource() instanceof CommandSourceStack) {
+				if (FTBTeamsAPI.isManagerLoaded()) {
+					for (Team team : FTBTeamsAPI.getManager().getTeams()) {
+						if (!team.getType().isPlayer()) {
+							list.add(team.getStringID());
+						}
+					}
+				}
+			} else if (ClientTeamManager.INSTANCE != null && !ClientTeamManager.INSTANCE.invalid) {
+				for (ClientTeam team : ClientTeamManager.INSTANCE.teamMap.values()) {
+					if (!team.getType().isPlayer()) {
+						list.add(team.getStringID());
+					}
 				}
 			}
+
+			list.addAll(((SharedSuggestionProvider) commandContext.getSource()).getOnlinePlayerNames());
+			return SharedSuggestionProvider.suggest(list, builder);
 		}
 
-		return SharedSuggestionProvider.suggest(list, builder);
+		return Suggestions.empty();
 	}
 }

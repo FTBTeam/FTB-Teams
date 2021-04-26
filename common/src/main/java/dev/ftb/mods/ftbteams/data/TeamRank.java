@@ -56,6 +56,10 @@ public enum TeamRank implements StringRepresentable {
 		return is(ALLY);
 	}
 
+	public boolean isInvited() {
+		return is(INVITED);
+	}
+
 	public boolean isMember() {
 		return is(MEMBER);
 	}

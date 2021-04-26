@@ -330,6 +330,7 @@ public class TeamManager {
 
 	public void sync(ServerPlayer player, Team self) {
 		new MessageSyncTeams(createClientTeamManager(), self).sendTo(player);
+		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
 	public void sync(ServerPlayer player) {

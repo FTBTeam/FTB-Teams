@@ -36,8 +36,8 @@ public class FTBTeamsCommands {
 
 	private boolean hasNoParty(CommandSourceStack source) {
 		if (source.getEntity() instanceof ServerPlayer) {
-			Team team = FTBTeamsAPI.getPlayerTeam((ServerPlayer) source.getEntity());
-			return team.getType().isPlayer();
+			Team team = FTBTeamsAPI.getPlayerTeam(source.getEntity().getUUID());
+			return team != null && team.getType().isPlayer();
 		}
 
 		return false;
@@ -45,8 +45,8 @@ public class FTBTeamsCommands {
 
 	private boolean hasParty(CommandSourceStack source, TeamRank rank) {
 		if (source.getEntity() instanceof ServerPlayer) {
-			Team team = FTBTeamsAPI.getPlayerTeam((ServerPlayer) source.getEntity());
-			return team.getType().isParty() && team.getHighestRank(source.getEntity().getUUID()).is(rank);
+			Team team = FTBTeamsAPI.getPlayerTeam(source.getEntity().getUUID());
+			return team != null && team.getType().isParty() && team.getHighestRank(source.getEntity().getUUID()).is(rank);
 		}
 
 		return false;

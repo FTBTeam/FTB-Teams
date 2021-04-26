@@ -258,7 +258,7 @@ public abstract class Team extends TeamBase {
 		source.sendSuccess(infoComponent, false);
 
 		source.sendSuccess(new TranslatableComponent("ftbteams.info.id", new TextComponent(getId().toString()).withStyle(ChatFormatting.YELLOW)), false);
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.short_id", new TextComponent(getStringID() + " [" + getType().getSerializedName() + "]").withStyle(ChatFormatting.YELLOW)), false);
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.short_id", new TextComponent(getStringID()).withStyle(ChatFormatting.YELLOW)).append(" [" + getType().getSerializedName() + "]"), false);
 
 		if (getOwner().equals(Util.NIL_UUID)) {
 			source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", new TranslatableComponent("ftbteams.info.owner.none")), false);

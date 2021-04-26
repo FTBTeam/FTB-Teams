@@ -106,7 +106,15 @@ public abstract class TeamBase {
 
 	public Component getName() {
 		TextComponent text = new TextComponent(getDisplayName());
-		text.withStyle(ChatFormatting.AQUA);
+
+		if (getType().isPlayer()) {
+			text.withStyle(ChatFormatting.GRAY);
+		} else if (getType().isServer()) {
+			text.withStyle(ChatFormatting.RED);
+		} else {
+			text.withStyle(ChatFormatting.AQUA);
+		}
+
 		text.setStyle(text.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getStringID())));
 		return text;
 	}

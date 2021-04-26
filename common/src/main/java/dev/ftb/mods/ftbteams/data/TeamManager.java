@@ -344,6 +344,7 @@ public class TeamManager {
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			new MessageSyncTeams(clientManager, getPlayerTeam(player)).sendTo(player);
+			server.getPlayerList().sendPlayerPermissionLevel(player);
 		}
 	}
 

@@ -422,35 +422,6 @@ public class TeamManager {
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
-	public int deleteServer(CommandSourceStack source, Team team) throws CommandSyntaxException {
-		if (!team.getType().isServer()) {
-			source.sendFailure(new TextComponent("Can only delete a server team!"));
-			return 0;
-		}
-
-		TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(team));
-		saveNow();
-		teamMap.remove(team.id);
-
-		try {
-			Path dir = server.getWorldPath(FOLDER_NAME).resolve("deleted");
-
-			if (Files.notExists(dir)) {
-				Files.createDirectories(dir);
-			}
-
-			String fn = UUIDTypeAdapter.fromUUID(team.id) + ".nbt";
-			Files.move(server.getWorldPath(FOLDER_NAME).resolve("server/" + fn), dir.resolve(fn));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		source.sendSuccess(new TextComponent("Team deleted"), true);
-		save();
-		syncAll();
-		return Command.SINGLE_SUCCESS;
-	}
-
 	public Component getName(@Nullable UUID id) {
 		if (id == null || id.equals(Util.NIL_UUID)) {
 			return new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE);

@@ -71,6 +71,20 @@ public class FTBTeamsCommands {
 		return team;
 	}
 
+	private ServerTeam serverTeamArg(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+		return (ServerTeam) teamArg(context, TeamType.SERVER);
+	}
+
+	private PartyTeam partyTeamArg(CommandContext<CommandSourceStack> context, TeamRank rank) throws CommandSyntaxException {
+		PartyTeam team = (PartyTeam) teamArg(context, TeamType.PARTY);
+
+		if (rank != TeamRank.NONE && !team.getHighestRank(context.getSource().getPlayerOrException().getUUID()).is(rank)) {
+			throw TeamArgument.NOT_INVITED.create(team.getName());
+		}
+
+		return team;
+	}
+
 	private PartyTeam team(CommandContext<CommandSourceStack> context, TeamRank rank) throws CommandSyntaxException {
 		ServerPlayer player = context.getSource().getPlayerOrException();
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
@@ -128,16 +142,16 @@ public class FTBTeamsCommands {
 						)
 						.then(Commands.literal("delete")
 								.then(teamArg()
-										.executes(ctx -> TeamManager.INSTANCE.deleteServer(ctx.getSource(), teamArg(ctx, TeamType.SERVER)))
+										.executes(ctx -> serverTeamArg(ctx).delete(ctx.getSource()))
 								)
 						)
 						.then(Commands.literal("settings")
 								.then(teamArg()
 										.then(Commands.argument("key", TeamPropertyArgument.create())
 												.then(Commands.argument("value", StringArgumentType.greedyString())
-														.executes(ctx -> teamArg(ctx, TeamType.SERVER).settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), string(ctx, "value")))
+														.executes(ctx -> serverTeamArg(ctx).settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), string(ctx, "value")))
 												)
-												.executes(ctx -> teamArg(ctx, TeamType.SERVER).settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), ""))
+												.executes(ctx -> serverTeamArg(ctx).settings(ctx.getSource(), TeamPropertyArgument.get(ctx, "key"), ""))
 										)
 								)
 						)
@@ -150,13 +164,13 @@ public class FTBTeamsCommands {
 				.then(Commands.literal("join")
 						.requires(this::hasNoParty)
 						.then(teamArg()
-								.executes(ctx -> team(ctx, TeamRank.INVITED).join(ctx.getSource()))
+								.executes(ctx -> partyTeamArg(ctx, TeamRank.INVITED).join(ctx.getSource()))
 						)
 				)
 				.then(Commands.literal("deny_invite")
 						.requires(this::hasNoParty)
 						.then(teamArg()
-								.executes(ctx -> teamArg(ctx, TeamType.PARTY).denyInvite(ctx.getSource()))
+								.executes(ctx -> partyTeamArg(ctx, TeamRank.INVITED).denyInvite(ctx.getSource()))
 						)
 				)
 				.then(Commands.literal("info")
@@ -186,7 +200,7 @@ public class FTBTeamsCommands {
 			list.append(team.getName());
 		}
 
-		source.sendSuccess(new TranslatableComponent("ftbteams.list", list), true);
+		source.sendSuccess(new TranslatableComponent("ftbteams.list", list), false);
 		return Command.SINGLE_SUCCESS;
 	}
 }

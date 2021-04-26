@@ -248,21 +248,32 @@ public abstract class Team extends TeamBase {
 
 	@Deprecated
 	public int info(CommandSourceStack source) throws CommandSyntaxException {
+		source.sendSuccess(TextComponent.EMPTY, false);
+
 		TextComponent infoComponent = new TextComponent("");
 		infoComponent.getStyle().withBold(true);
 		infoComponent.append("== ");
 		infoComponent.append(getName());
 		infoComponent.append(" ==");
-		source.sendSuccess(infoComponent, true);
+		source.sendSuccess(infoComponent, false);
 
-		TextComponent idComponent = new TextComponent(String.valueOf(id));
-		idComponent.withStyle(ChatFormatting.YELLOW);
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.id", idComponent), true);
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", manager.getName(getOwner())), true);
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.members"), true);
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.id", new TextComponent(getId().toString()).withStyle(ChatFormatting.YELLOW)), false);
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.short_id", new TextComponent(getStringID() + " [" + getType().getSerializedName() + "]").withStyle(ChatFormatting.YELLOW)), false);
 
-		for (UUID member : getMembers()) {
-			source.sendSuccess(new TextComponent("- ").append(manager.getName(member)), true);
+		if (getOwner().equals(Util.NIL_UUID)) {
+			source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", new TranslatableComponent("ftbteams.info.owner.none")), false);
+		} else {
+			source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", manager.getName(getOwner())), false);
+		}
+
+		source.sendSuccess(new TranslatableComponent("ftbteams.info.members"), false);
+
+		if (getMembers().isEmpty()) {
+			source.sendSuccess(new TextComponent("- ").append(new TranslatableComponent("ftbteams.info.members.none")), false);
+		} else {
+			for (UUID member : getMembers()) {
+				source.sendSuccess(new TextComponent("- ").append(manager.getName(member)), false);
+			}
 		}
 
 		return Command.SINGLE_SUCCESS;

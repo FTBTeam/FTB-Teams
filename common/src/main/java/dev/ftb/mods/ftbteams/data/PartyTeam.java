@@ -4,7 +4,6 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
-import dev.ftb.mods.ftbguilibrary.misc.NordColors;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -80,7 +79,7 @@ public class PartyTeam extends Team {
 		manager.playerTeamMap.put(id, this);
 		ranks.put(id, TeamRank.MEMBER);
 		changedTeam(oldTeam, id);
-		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(NordColors.GREEN.toStyle()));
+		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.GREEN));
 		save();
 
 		oldTeam.ranks.remove(id);
@@ -100,7 +99,7 @@ public class PartyTeam extends Team {
 			ranks.put(player.getId(), TeamRank.INVITED);
 			save();
 
-			sendMessage(from.getUUID(), new TextComponent("Invited " + player.getName() + " to ").append(getName()).withStyle(NordColors.GREEN.toStyle()));
+			sendMessage(from.getUUID(), new TextComponent("Invited " + player.getName() + " to ").append(getName()).withStyle(ChatFormatting.GREEN));
 
 			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), player.getId());
 
@@ -140,7 +139,7 @@ public class PartyTeam extends Team {
 
 			team.ranks.put(id, TeamRank.OWNER);
 			team.changedTeam(this, id);
-			sendMessage(from.getUUID(), new TextComponent("Kicked ").append(manager.getName(id)).append(" from ").append(getName()).withStyle(NordColors.RED.toStyle()));
+			sendMessage(from.getUUID(), new TextComponent("Kicked ").append(manager.getName(id)).append(" from ").append(getName()).withStyle(ChatFormatting.RED));
 			team.save();
 
 			ranks.remove(id);
@@ -171,7 +170,7 @@ public class PartyTeam extends Team {
 		save();
 		PlayerTransferredTeamOwnershipEvent.EVENT.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
 
-		sendMessage(from.getUUID(), new TextComponent("Transferred ownership to ").append(to.getDisplayName()).withStyle(NordColors.RED.toStyle()));
+		sendMessage(from.getUUID(), new TextComponent("Transferred ownership to ").append(to.getDisplayName()).withStyle(ChatFormatting.RED));
 		updateCommands(from);
 		updateCommands(to);
 		return Command.SINGLE_SUCCESS;

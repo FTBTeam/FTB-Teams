@@ -7,7 +7,6 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.event.TeamDeletedEvent;
 import dev.ftb.mods.ftbteams.net.MessageSyncTeams;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
 import net.minecraft.ChatFormatting;
@@ -24,7 +23,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -300,7 +298,7 @@ public class TeamManager {
 
 			team.created(player);
 			team.ranks.put(id, TeamRank.OWNER);
-			team.changedTeam(null, id);
+			team.changedTeam(null, id, player);
 			team.save();
 			save();
 		}
@@ -362,56 +360,12 @@ public class TeamManager {
 		playerTeamMap.put(id, team);
 
 		team.ranks.put(id, TeamRank.OWNER);
-		team.changedTeam(oldTeam, id);
+		team.changedTeam(oldTeam, id, player);
 		team.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
-		syncAll();
-		return Pair.of(Command.SINGLE_SUCCESS, team);
-	}
-
-	public Pair<Integer, Team> leaveParty(ServerPlayer player) throws CommandSyntaxException {
-		UUID id = player.getUUID();
-		Team oldTeam = getPlayerTeam(player);
-
-		if (oldTeam.getType().isPlayer()) {
-			throw TeamArgument.NOT_IN_PARTY.create();
-		}
-
-		PlayerTeam team = getInternalPlayerTeam(id);
-		playerTeamMap.put(id, team);
-
-		team.ranks.put(id, TeamRank.OWNER);
-		team.changedTeam(oldTeam, id);
-		oldTeam.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
-		team.save();
-
-		oldTeam.ranks.remove(id);
-		oldTeam.save();
-
-		if (oldTeam.getMembers().isEmpty()) {
-			TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(oldTeam));
-			saveNow();
-			teamMap.remove(team.id);
-
-			try {
-				Path dir = server.getWorldPath(FOLDER_NAME).resolve("deleted");
-
-				if (Files.notExists(dir)) {
-					Files.createDirectories(dir);
-				}
-
-				String fn = UUIDTypeAdapter.fromUUID(oldTeam.id) + ".nbt";
-				Files.move(server.getWorldPath(FOLDER_NAME).resolve("party/" + fn), dir.resolve(fn));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			save();
-		}
-
 		syncAll();
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}

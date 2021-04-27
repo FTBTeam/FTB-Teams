@@ -124,7 +124,7 @@ public class FTBTeamsCommands {
 						)
 						.then(Commands.literal("leave")
 								.requires(source -> hasParty(source, TeamRank.MEMBER))
-								.executes(ctx -> TeamManager.INSTANCE.leaveParty(ctx.getSource().getPlayerOrException()).getLeft())
+								.executes(ctx -> ((PartyTeam) team(ctx)).leave(ctx.getSource().getPlayerOrException()))
 						)
 						.then(Commands.literal("invite")
 								.requires(source -> hasParty(source, TeamRank.OFFICER))

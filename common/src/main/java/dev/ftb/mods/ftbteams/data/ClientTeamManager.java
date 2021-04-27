@@ -5,6 +5,7 @@ import com.mojang.util.UUIDTypeAdapter;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -65,8 +66,9 @@ public class ClientTeamManager {
 		}
 	}
 
-	public void init(UUID self) {
+	public void init(UUID self, List<TeamMessage> messages) {
 		selfTeam = teamMap.get(self);
+		selfTeam.messageHistory.addAll(messages);
 
 		for (ClientTeam team : teamMap.values()) {
 			for (UUID member : team.getMembers()) {

@@ -47,7 +47,7 @@ public class MessageSyncTeams extends MessageBase {
 
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
-		manager.init(self);
+		manager.init(self, messages);
 
 		if (ClientTeamManager.INSTANCE != null) {
 			ClientTeamManager.INSTANCE.invalid = true;

@@ -123,13 +123,16 @@ public abstract class Team extends TeamBase {
 		manager.server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
-	public void changedTeam(@Nullable Team prev, UUID player) {
-		ServerPlayer p = FTBTUtils.getPlayerByUUID(manager.server, player);
+	public void changedTeam(@Nullable Team prev, UUID player, @Nullable ServerPlayer p) {
 		PlayerChangedTeamEvent.EVENT.invoker().accept(new PlayerChangedTeamEvent(this, prev, player, p));
 
 		if (p != null) {
 			updateCommands(p);
 		}
+	}
+
+	public void changedTeam(@Nullable Team prev, UUID player) {
+		changedTeam(prev, player, FTBTUtils.getPlayerByUUID(manager.server, player));
 	}
 
 	// Data IO //

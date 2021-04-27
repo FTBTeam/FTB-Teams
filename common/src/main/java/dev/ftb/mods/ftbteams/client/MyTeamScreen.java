@@ -6,19 +6,16 @@ import dev.ftb.mods.ftbguilibrary.config.gui.EditConfigScreen;
 import dev.ftb.mods.ftbguilibrary.icon.Color4I;
 import dev.ftb.mods.ftbguilibrary.icon.Icon;
 import dev.ftb.mods.ftbguilibrary.misc.NordColors;
-import dev.ftb.mods.ftbguilibrary.utils.MouseButton;
 import dev.ftb.mods.ftbguilibrary.widget.BaseScreen;
 import dev.ftb.mods.ftbguilibrary.widget.Button;
 import dev.ftb.mods.ftbguilibrary.widget.ComponentTextField;
 import dev.ftb.mods.ftbguilibrary.widget.GuiHelper;
-import dev.ftb.mods.ftbguilibrary.widget.NordButton;
 import dev.ftb.mods.ftbguilibrary.widget.Panel;
 import dev.ftb.mods.ftbguilibrary.widget.SimpleButton;
 import dev.ftb.mods.ftbguilibrary.widget.TextBox;
 import dev.ftb.mods.ftbguilibrary.widget.Theme;
 import dev.ftb.mods.ftbguilibrary.widget.Widget;
 import dev.ftb.mods.ftbguilibrary.widget.WidgetLayout;
-import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.Team;
@@ -98,6 +95,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					add(new MemberButton(this, ClientTeamManager.INSTANCE.getProfile(entry.getKey()), entry.getValue()));
 				}
 
+				/*
 				add(new NordButton(this, new TextComponent("Add Ally"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
 					@Override
 					public void onClicked(MouseButton mouseButton) {
@@ -109,6 +107,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					public void onClicked(MouseButton mouseButton) {
 					}
 				});
+				 */
 			}
 
 			@Override
@@ -134,6 +133,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		add(chatPanel = new Panel(this) {
 			@Override
 			public void addWidgets() {
+				add(new ComponentTextField(this).setMaxWidth(width).setText(new TextComponent("This UI is WIP! Use /ftbteams for now!")));
+				add(new ComponentTextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
+
 				UUID prev = null;
 
 				for (TeamMessage message : ClientTeamManager.INSTANCE.selfTeam.messageHistory) {
@@ -152,13 +154,13 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 						prev = message.sender;
 					}
 
-					add(new ComponentTextField(this).setMaxWidth(width).setText(message.text));
+					add(new ComponentTextField(this).setMaxWidth(width).setText(new TextComponent("  ").append(message.text)));
 				}
 			}
 
 			@Override
 			public void alignWidgets() {
-				align(WidgetLayout.VERTICAL);
+				align(new WidgetLayout.Vertical(2, 1, 2));
 			}
 
 			@Override

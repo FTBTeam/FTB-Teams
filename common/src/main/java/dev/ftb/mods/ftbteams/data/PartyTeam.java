@@ -5,6 +5,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
+import dev.ftb.mods.ftbteams.event.TeamDeletedEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,6 +16,9 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.UUID;
 
@@ -80,7 +84,7 @@ public class PartyTeam extends Team {
 
 		manager.playerTeamMap.put(id, this);
 		ranks.put(id, TeamRank.MEMBER);
-		changedTeam(oldTeam, id);
+		changedTeam(oldTeam, id, player);
 		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.GREEN));
 		save();
 
@@ -110,13 +114,13 @@ public class PartyTeam extends Team {
 				playerEntity.displayClientMessage(component, false);
 
 				TextComponent accept = new TextComponent("[Click here to accept the invite]");
-				accept.setStyle(accept.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams join " + getStringID())));
+				accept.setStyle(accept.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams party join " + getStringID())));
 				accept.withStyle(ChatFormatting.GREEN);
 				playerEntity.displayClientMessage(accept, false);
 
 				TextComponent deny = new TextComponent("[Click here to deny the invite]");
 				deny.withStyle(ChatFormatting.RED);
-				deny.setStyle(deny.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams deny_invite " + getStringID())));
+				deny.setStyle(deny.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams party deny_invite " + getStringID())));
 				playerEntity.displayClientMessage(deny, false);
 			}
 		}
@@ -139,16 +143,16 @@ public class PartyTeam extends Team {
 			PlayerTeam team = manager.getInternalPlayerTeam(id);
 			manager.playerTeamMap.put(id, team);
 
+			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
+
 			team.ranks.put(id, TeamRank.OWNER);
-			team.changedTeam(this, id);
+			team.changedTeam(this, id, playerEntity);
 			sendMessage(from.getUUID(), new TextComponent("Kicked ").append(manager.getName(id)).append(" from ").append(getName()).withStyle(ChatFormatting.RED));
 			team.save();
 
 			ranks.remove(id);
 			save();
 			manager.syncAll();
-
-			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 
 			if (playerEntity != null) {
 				playerEntity.displayClientMessage(new TextComponent("You have been kicked from ").append(getName()).append("!"), false);
@@ -174,6 +178,43 @@ public class PartyTeam extends Team {
 		sendMessage(from.getUUID(), new TextComponent("Transferred ownership to ").append(to.getDisplayName()).withStyle(ChatFormatting.RED));
 		updateCommands(from);
 		updateCommands(to);
+		manager.syncAll();
+		return Command.SINGLE_SUCCESS;
+	}
+
+	@Deprecated
+	public int leave(ServerPlayer player) throws CommandSyntaxException {
+		UUID id = player.getUUID();
+		PlayerTeam team = manager.getInternalPlayerTeam(id);
+		manager.playerTeamMap.put(id, team);
+
+		team.ranks.put(id, TeamRank.OWNER);
+		team.changedTeam(this, id, player);
+		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
+		team.save();
+
+		ranks.remove(id);
+		manager.save();
+
+		if (getMembers().isEmpty()) {
+			TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(this));
+			manager.saveNow();
+			manager.teamMap.remove(getId());
+
+			try {
+				Path dir = manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("deleted");
+
+				if (Files.notExists(dir)) {
+					Files.createDirectories(dir);
+				}
+
+				String fn = UUIDTypeAdapter.fromUUID(getId()) + ".nbt";
+				Files.move(manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("party/" + fn), dir.resolve(fn));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 		manager.syncAll();
 		return Command.SINGLE_SUCCESS;
 	}

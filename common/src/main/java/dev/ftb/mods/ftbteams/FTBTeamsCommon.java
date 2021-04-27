@@ -10,7 +10,7 @@ public class FTBTeamsCommon {
 	public void openGui(MessageOpenGUIResponse res) {
 	}
 
-	public void updateSettings(TeamProperties properties) {
+	public void updateSettings(UUID id, TeamProperties properties) {
 	}
 
 	public void sendMessage(UUID from, Component text) {

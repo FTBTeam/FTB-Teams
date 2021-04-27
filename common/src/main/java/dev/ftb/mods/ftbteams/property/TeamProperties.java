@@ -26,7 +26,7 @@ public class TeamProperties {
 			p.map.put(entry.getKey(), entry.getValue().copy());
 		}
 
-		return this;
+		return p;
 	}
 
 	public TeamProperties updateFrom(TeamProperties properties) {

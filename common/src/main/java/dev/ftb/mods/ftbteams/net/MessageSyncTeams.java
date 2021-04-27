@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.net;
 
+import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
@@ -50,6 +51,10 @@ public class MessageSyncTeams extends MessageBase {
 		manager.init(self, messages);
 
 		if (ClientTeamManager.INSTANCE != null) {
+			for (ClientTeam team : ClientTeamManager.INSTANCE.teamMap.values()) {
+				team.invalid = true;
+			}
+
 			ClientTeamManager.INSTANCE.invalid = true;
 		}
 

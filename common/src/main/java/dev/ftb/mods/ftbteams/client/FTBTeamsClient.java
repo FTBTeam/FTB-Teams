@@ -4,8 +4,10 @@ import dev.ftb.mods.ftbguilibrary.utils.ClientUtils;
 import dev.ftb.mods.ftbguilibrary.widget.CustomClickEvent;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.FTBTeamsCommon;
+import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
+import dev.ftb.mods.ftbteams.event.ClientTeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.net.MessageOpenGUI;
 import dev.ftb.mods.ftbteams.net.MessageOpenGUIResponse;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
@@ -34,9 +36,15 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 	}
 
 	@Override
-	public void updateSettings(TeamProperties properties) {
+	public void updateSettings(UUID id, TeamProperties properties) {
 		if (ClientTeamManager.INSTANCE != null) {
-			ClientTeamManager.INSTANCE.selfTeam.properties.updateFrom(properties);
+			ClientTeam team = ClientTeamManager.INSTANCE.getTeam(id);
+
+			if (team != null) {
+				TeamProperties old = team.properties.copy();
+				team.properties.updateFrom(properties);
+				ClientTeamPropertiesChangedEvent.EVENT.invoker().accept(new ClientTeamPropertiesChangedEvent(team, old));
+			}
 		}
 	}
 

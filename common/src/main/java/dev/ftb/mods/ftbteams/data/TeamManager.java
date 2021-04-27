@@ -291,6 +291,7 @@ public class TeamManager {
 	public void playerLoggedIn(ServerPlayer player) {
 		UUID id = player.getUUID();
 		PlayerTeam team = knownPlayers.get(id);
+		boolean all = false;
 
 		if (team == null) {
 			team = new PlayerTeam(this);
@@ -308,14 +309,22 @@ public class TeamManager {
 			team.changedTeam(null, id, player);
 			team.save();
 			save();
+			all = true;
 		}
 
 		if (!team.playerName.equals(player.getGameProfile().getName())) {
 			team.playerName = player.getGameProfile().getName();
 			team.save();
+			save();
+			all = true;
 		}
 
-		sync(player, team);
+		if (all) {
+			syncAll();
+		} else {
+			sync(player, team);
+		}
+
 		PlayerLoggedInAfterTeamEvent.EVENT.invoker().accept(new PlayerLoggedInAfterTeamEvent(team, player));
 	}
 

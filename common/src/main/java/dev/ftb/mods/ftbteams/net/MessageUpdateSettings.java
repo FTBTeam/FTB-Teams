@@ -38,5 +38,6 @@ public class MessageUpdateSettings extends MessageBase {
 		team.properties.updateFrom(properties);
 		TeamPropertiesChangedEvent.EVENT.invoker().accept(new TeamPropertiesChangedEvent(team, old));
 		team.save();
+		new MessageUpdateSettingsResponse(team.getId(), team.properties).sendToAll();
 	}
 }

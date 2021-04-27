@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public class ClientTeam extends TeamBase {
 	public final ClientTeamManager manager;
+	public boolean invalid;
 	TeamType type;
 
 	public ClientTeam(ClientTeamManager m, FriendlyByteBuf buffer, long now) {
@@ -51,5 +52,9 @@ public class ClientTeam extends TeamBase {
 		}
 
 		buffer.writeNbt(extraData);
+	}
+
+	public boolean isSelf() {
+		return this == manager.selfTeam;
 	}
 }

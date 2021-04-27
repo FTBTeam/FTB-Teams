@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
 import net.minecraft.network.FriendlyByteBuf;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,5 +86,10 @@ public class ClientTeamManager {
 		}
 
 		return p;
+	}
+
+	@Nullable
+	public ClientTeam getTeam(UUID id) {
+		return teamMap.get(id);
 	}
 }

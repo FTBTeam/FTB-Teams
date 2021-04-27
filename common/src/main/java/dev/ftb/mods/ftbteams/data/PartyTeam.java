@@ -137,7 +137,7 @@ public class PartyTeam extends Team {
 			if (oldTeam != this) {
 				throw TeamArgument.NOT_IN_PARTY.create();
 			} else if (isOwner(id)) {
-				throw TeamArgument.CANT_EDIT.create(getName());
+				throw TeamArgument.CANT_KICK_OWNER.create();
 			}
 
 			PlayerTeam team = manager.getInternalPlayerTeam(id);
@@ -169,6 +169,11 @@ public class PartyTeam extends Team {
 			throw TeamArgument.NOT_MEMBER.create(to.getDisplayName(), getName());
 		}
 
+		if (from == to) {
+			from.sendMessage(new TextComponent("What."), Util.NIL_UUID);
+			return 0;
+		}
+
 		ranks.put(owner, TeamRank.OFFICER);
 		owner = to.getUUID();
 		ranks.put(owner, TeamRank.OWNER);
@@ -185,6 +190,11 @@ public class PartyTeam extends Team {
 	@Deprecated
 	public int leave(ServerPlayer player) throws CommandSyntaxException {
 		UUID id = player.getUUID();
+
+		if (isOwner(id) && getMembers().size() > 1) {
+			throw TeamArgument.OWNER_CANT_LEAVE.create();
+		}
+
 		PlayerTeam team = manager.getInternalPlayerTeam(id);
 		manager.playerTeamMap.put(id, team);
 
@@ -200,6 +210,7 @@ public class PartyTeam extends Team {
 			TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(this));
 			manager.saveNow();
 			manager.teamMap.remove(getId());
+			String fn = UUIDTypeAdapter.fromUUID(getId()) + ".nbt";
 
 			try {
 				Path dir = manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("deleted");
@@ -208,10 +219,15 @@ public class PartyTeam extends Team {
 					Files.createDirectories(dir);
 				}
 
-				String fn = UUIDTypeAdapter.fromUUID(getId()) + ".nbt";
 				Files.move(manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("party/" + fn), dir.resolve(fn));
 			} catch (IOException e) {
 				e.printStackTrace();
+
+				try {
+					Files.deleteIfExists(manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("party/" + fn));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
 		}
 

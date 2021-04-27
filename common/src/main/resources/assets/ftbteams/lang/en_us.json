@@ -13,6 +13,8 @@
 	"ftbteams.info.members.none": "No members",
 	"ftbteams.list": "All FTB Teams: %s",
 	"ftbteams.property_not_found": "Property ID not found!",
+	"ftbteams.owner_cant_leave": "You must transfer ownership of the team before you can leave!",
+	"ftbteams.cant_kick_owner": "Can't kick the owner!",
 	"sidebar_button.ftbteams.my_team": "My Team",
 	"ftbteamsconfig": "FTB Teams Config",
 	"ftbteamsconfig.ftbteams.display_name": "Display Name",

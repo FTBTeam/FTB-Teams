@@ -7,6 +7,8 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
+import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.MessageSyncTeams;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
 import net.minecraft.ChatFormatting;
@@ -51,12 +53,14 @@ public class TeamManager {
 	final Map<UUID, Team> teamMap;
 	final Map<UUID, Team> playerTeamMap;
 	Map<String, Team> nameMap;
+	private CompoundTag extraData;
 
 	public TeamManager(MinecraftServer s) {
 		server = s;
 		knownPlayers = new LinkedHashMap<>();
 		teamMap = new LinkedHashMap<>();
 		playerTeamMap = new LinkedHashMap<>();
+		extraData = new CompoundTag();
 	}
 
 	public MinecraftServer getServer() {
@@ -140,7 +144,8 @@ public class TeamManager {
 					id = UUIDTypeAdapter.fromString(tag.getString("id"));
 				}
 
-				// read some data, I guess?
+				extraData = tag.getCompound("extra");
+				TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -217,6 +222,7 @@ public class TeamManager {
 
 		if (shouldSave) {
 			try (OutputStream stream = Files.newOutputStream(directory.resolve("ftbteams.nbt"))) {
+				TeamManagerEvent.SAVED.invoker().accept(new TeamManagerEvent(this));
 				NbtIo.writeCompressed(serializeNBT(), stream);
 				shouldSave = false;
 			} catch (Exception ex) {
@@ -253,6 +259,7 @@ public class TeamManager {
 	public CompoundTag serializeNBT() {
 		CompoundTag nbt = new CompoundTag();
 		nbt.putString("id", UUIDTypeAdapter.fromUUID(getId()));
+		nbt.put("extra", extraData);
 		return nbt;
 	}
 
@@ -309,6 +316,7 @@ public class TeamManager {
 		}
 
 		sync(player, team);
+		PlayerLoggedInAfterTeamEvent.EVENT.invoker().accept(new PlayerLoggedInAfterTeamEvent(team, player));
 	}
 
 	public ClientTeamManager createClientTeamManager() {
@@ -384,5 +392,9 @@ public class TeamManager {
 
 		PlayerTeam team = knownPlayers.get(id);
 		return new TextComponent(team == null ? "Unknown" : team.playerName).withStyle(ChatFormatting.YELLOW);
+	}
+
+	public CompoundTag getExtraData() {
+		return extraData;
 	}
 }

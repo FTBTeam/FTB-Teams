@@ -15,6 +15,7 @@ import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Predicate;
 
@@ -180,17 +181,30 @@ public class FTBTeamsCommands {
 						.executes(ctx -> team(ctx).info(ctx.getSource()))
 				)
 				.then(Commands.literal("list")
-						.executes(ctx -> list(ctx.getSource()))
+						.executes(ctx -> list(ctx.getSource(), null))
+						.then(Commands.literal("parties")
+								.executes(ctx -> list(ctx.getSource(), TeamType.PARTY))
+						)
+						.then(Commands.literal("server_teams")
+								.executes(ctx -> list(ctx.getSource(), TeamType.SERVER))
+						)
+						.then(Commands.literal("players")
+								.executes(ctx -> list(ctx.getSource(), TeamType.PLAYER))
+						)
 				)
 		);
 	}
 
-	private int list(CommandSourceStack source) {
+	private int list(CommandSourceStack source, @Nullable TeamType type) {
 		TextComponent list = new TextComponent("");
 
 		boolean first = true;
 
 		for (Team team : FTBTeamsAPI.getManager().getTeams()) {
+			if (type != null && team.getType() != type) {
+				continue;
+			}
+
 			if (first) {
 				first = false;
 			} else {
@@ -200,7 +214,7 @@ public class FTBTeamsCommands {
 			list.append(team.getName());
 		}
 
-		source.sendSuccess(new TranslatableComponent("ftbteams.list", list), false);
+		source.sendSuccess(new TranslatableComponent("ftbteams.list", first ? new TranslatableComponent("ftbteams.info.owner.none") : list), false);
 		return Command.SINGLE_SUCCESS;
 	}
 }

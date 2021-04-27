@@ -26,7 +26,8 @@ public class ServerTeam extends Team {
 		TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(this));
 		save();
 		manager.saveNow();
-		manager.teamMap.remove(id);
+		manager.teamMap.remove(getId());
+		String fn = UUIDTypeAdapter.fromUUID(getId()) + ".nbt";
 
 		try {
 			Path dir = manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("deleted");
@@ -35,10 +36,15 @@ public class ServerTeam extends Team {
 				Files.createDirectories(dir);
 			}
 
-			String fn = UUIDTypeAdapter.fromUUID(id) + ".nbt";
 			Files.move(manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("server/" + fn), dir.resolve(fn));
 		} catch (IOException e) {
 			e.printStackTrace();
+
+			try {
+				Files.deleteIfExists(manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("server/" + fn));
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 		}
 
 		source.sendSuccess(new TextComponent("Team deleted"), true);

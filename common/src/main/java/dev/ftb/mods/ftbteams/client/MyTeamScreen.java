@@ -160,7 +160,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 			@Override
 			public void alignWidgets() {
-				align(new WidgetLayout.Vertical(2, 1, 2));
+				align(new WidgetLayout.Vertical(2, 1, 10));
 			}
 
 			@Override

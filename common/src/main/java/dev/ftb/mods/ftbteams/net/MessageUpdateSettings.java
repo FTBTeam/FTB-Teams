@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.net;
 
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import me.shedaniel.architectury.networking.NetworkManager;
@@ -36,7 +37,7 @@ public class MessageUpdateSettings extends MessageBase {
 
 		TeamProperties old = team.properties.copy();
 		team.properties.updateFrom(properties);
-		TeamPropertiesChangedEvent.EVENT.invoker().accept(new TeamPropertiesChangedEvent(team, old));
+		TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(team, old));
 		team.save();
 		new MessageUpdateSettingsResponse(team.getId(), team.properties).sendToAll();
 	}

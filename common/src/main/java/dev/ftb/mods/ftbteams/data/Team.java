@@ -5,9 +5,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
-import dev.ftb.mods.ftbteams.event.TeamLoadedEvent;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
+import dev.ftb.mods.ftbteams.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
-import dev.ftb.mods.ftbteams.event.TeamSavedEvent;
 import dev.ftb.mods.ftbteams.net.MessageSendMessageResponse;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
@@ -114,7 +114,7 @@ public abstract class Team extends TeamBase {
 	}
 
 	void created(ServerPlayer p) {
-		TeamCreatedEvent.EVENT.invoker().accept(new TeamCreatedEvent(this, p));
+		TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, p));
 		save();
 		manager.save();
 	}
@@ -124,7 +124,7 @@ public abstract class Team extends TeamBase {
 	}
 
 	public void changedTeam(@Nullable Team prev, UUID player, @Nullable ServerPlayer p) {
-		PlayerChangedTeamEvent.EVENT.invoker().accept(new PlayerChangedTeamEvent(this, prev, player, p));
+		TeamEvent.PLAYER_CHANGED.invoker().accept(new PlayerChangedTeamEvent(this, prev, player, p));
 
 		if (p != null) {
 			updateCommands(p);
@@ -163,7 +163,7 @@ public abstract class Team extends TeamBase {
 
 		tag.put("message_history", messageHistoryTag);
 
-		TeamSavedEvent.EVENT.invoker().accept(new TeamSavedEvent(this));
+		TeamEvent.SAVED.invoker().accept(new TeamEvent(this));
 		tag.put("extra", extraData);
 
 		return tag;
@@ -188,7 +188,7 @@ public abstract class Team extends TeamBase {
 			messageHistory.add(new TeamMessage(UUIDTypeAdapter.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
 		}
 
-		TeamLoadedEvent.EVENT.invoker().accept(new TeamLoadedEvent(this));
+		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
 	}
 
 	// Commands //
@@ -230,7 +230,7 @@ public abstract class Team extends TeamBase {
 			TextComponent valuec = new TextComponent(value);
 			valuec.withStyle(ChatFormatting.AQUA);
 			source.sendSuccess(new TextComponent("Set ").append(keyc).append(" to ").append(valuec), true);
-			TeamPropertiesChangedEvent.EVENT.invoker().accept(new TeamPropertiesChangedEvent(this, old));
+			TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
 		}
 
 		return Command.SINGLE_SUCCESS;
@@ -280,6 +280,7 @@ public abstract class Team extends TeamBase {
 			}
 		}
 
+		TeamEvent.INFO.invoker().accept(new TeamInfoEvent(this, source));
 		return Command.SINGLE_SUCCESS;
 	}
 

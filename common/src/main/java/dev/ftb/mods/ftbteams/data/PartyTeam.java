@@ -5,7 +5,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
-import dev.ftb.mods.ftbteams.event.TeamDeletedEvent;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -178,7 +178,7 @@ public class PartyTeam extends Team {
 		owner = to.getUUID();
 		ranks.put(owner, TeamRank.OWNER);
 		save();
-		PlayerTransferredTeamOwnershipEvent.EVENT.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
+		TeamEvent.OWNERSHIP_TRANSFERRED.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
 
 		sendMessage(from.getUUID(), new TextComponent("Transferred ownership to ").append(to.getDisplayName()).withStyle(ChatFormatting.RED));
 		updateCommands(from);
@@ -207,7 +207,7 @@ public class PartyTeam extends Team {
 		manager.save();
 
 		if (getMembers().isEmpty()) {
-			TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(this));
+			TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 			manager.saveNow();
 			manager.teamMap.remove(getId());
 			String fn = UUIDTypeAdapter.fromUUID(getId()) + ".nbt";

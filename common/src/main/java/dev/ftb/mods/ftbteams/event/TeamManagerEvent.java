@@ -11,8 +11,10 @@ import java.util.function.Consumer;
  * @author LatvianModder
  */
 public class TeamManagerEvent {
+	public static final Event<Consumer<TeamManagerEvent>> CREATED = EventFactory.createConsumerLoop(TeamManagerEvent.class);
 	public static final Event<Consumer<TeamManagerEvent>> LOADED = EventFactory.createConsumerLoop(TeamManagerEvent.class);
 	public static final Event<Consumer<TeamManagerEvent>> SAVED = EventFactory.createConsumerLoop(TeamManagerEvent.class);
+	public static final Event<Consumer<TeamManagerEvent>> DESTROYED = EventFactory.createConsumerLoop(TeamManagerEvent.class);
 
 	private final TeamManager manager;
 

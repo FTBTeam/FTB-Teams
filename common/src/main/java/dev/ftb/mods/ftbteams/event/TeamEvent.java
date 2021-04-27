@@ -1,11 +1,28 @@
 package dev.ftb.mods.ftbteams.event;
 
 import dev.ftb.mods.ftbteams.data.Team;
+import me.shedaniel.architectury.event.Event;
+import me.shedaniel.architectury.event.EventFactory;
+
+import java.util.function.Consumer;
 
 /**
  * @author LatvianModder
  */
 public class TeamEvent {
+	public static final Event<Consumer<TeamCreatedEvent>> CREATED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<TeamEvent>> LOADED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<TeamEvent>> SAVED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<TeamEvent>> DELETED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<PlayerLoggedInAfterTeamEvent>> PLAYER_LOGGED_IN = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<PlayerTransferredTeamOwnershipEvent>> OWNERSHIP_TRANSFERRED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<TeamCollectPropertiesEvent>> COLLECT_PROPERTIES = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<TeamPropertiesChangedEvent>> PROPERTIES_CHANGED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<PlayerChangedTeamEvent>> PLAYER_CHANGED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<TeamInfoEvent>> INFO = EventFactory.createConsumerLoop();
+
+	public static final Event<Consumer<ClientTeamPropertiesChangedEvent>> CLIENT_PROPERTIES_CHANGED = EventFactory.createConsumerLoop(ClientTeamPropertiesChangedEvent.class);
+
 	private final Team team;
 
 	public TeamEvent(Team t) {

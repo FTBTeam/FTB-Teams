@@ -8,6 +8,7 @@ import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
 import dev.ftb.mods.ftbteams.event.ClientTeamPropertiesChangedEvent;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.net.MessageOpenGUI;
 import dev.ftb.mods.ftbteams.net.MessageOpenGUIResponse;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
@@ -43,7 +44,7 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 			if (team != null) {
 				TeamProperties old = team.properties.copy();
 				team.properties.updateFrom(properties);
-				ClientTeamPropertiesChangedEvent.EVENT.invoker().accept(new ClientTeamPropertiesChangedEvent(team, old));
+				TeamEvent.CLIENT_PROPERTIES_CHANGED.invoker().accept(new ClientTeamPropertiesChangedEvent(team, old));
 			}
 		}
 	}

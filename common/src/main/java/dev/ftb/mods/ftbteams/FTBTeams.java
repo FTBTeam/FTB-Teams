@@ -7,6 +7,8 @@ import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamArgument;
 import dev.ftb.mods.ftbteams.data.TeamManager;
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
+import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
 import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
 import me.shedaniel.architectury.event.events.CommandRegistrationEvent;
@@ -34,7 +36,7 @@ public class FTBTeams {
 		CommandRegistrationEvent.EVENT.register(this::registerCommands);
 		LifecycleEvent.SERVER_STOPPED.register(this::serverStopped);
 		LifecycleEvent.SERVER_WORLD_SAVE.register(this::worldSaved);
-		TeamCollectPropertiesEvent.EVENT.register(this::teamConfig);
+		TeamEvent.COLLECT_PROPERTIES.register(this::teamConfig);
 		PlayerEvent.PLAYER_JOIN.register(this::playerLoggedIn);
 		FTBTeamsNet.init();
 		PROXY = EnvExecutor.getEnvSpecific(() -> FTBTeamsClient::new, () -> FTBTeamsCommon::new);
@@ -47,6 +49,7 @@ public class FTBTeams {
 
 	private void serverAboutToStart(MinecraftServer server) {
 		TeamManager.INSTANCE = new TeamManager(server);
+		TeamManagerEvent.CREATED.invoker().accept(new TeamManagerEvent(TeamManager.INSTANCE));
 		TeamManager.INSTANCE.load();
 	}
 
@@ -55,6 +58,7 @@ public class FTBTeams {
 	}
 
 	private void serverStopped(MinecraftServer server) {
+		TeamManagerEvent.DESTROYED.invoker().accept(new TeamManagerEvent(TeamManager.INSTANCE));
 		TeamManager.INSTANCE = null;
 	}
 

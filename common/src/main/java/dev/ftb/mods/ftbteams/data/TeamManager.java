@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.MessageSyncTeams;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
@@ -325,7 +326,7 @@ public class TeamManager {
 			sync(player, team);
 		}
 
-		PlayerLoggedInAfterTeamEvent.EVENT.invoker().accept(new PlayerLoggedInAfterTeamEvent(team, player));
+		TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(team, player));
 	}
 
 	public ClientTeamManager createClientTeamManager() {

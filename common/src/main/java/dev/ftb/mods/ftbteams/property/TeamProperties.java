@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.property;
 
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -15,7 +16,7 @@ public class TeamProperties {
 
 	public TeamProperties collect() {
 		map.clear();
-		TeamCollectPropertiesEvent.EVENT.invoker().accept(new TeamCollectPropertiesEvent(prop -> map.put(prop, new TeamPropertyValue(prop, prop.defaultValue))));
+		TeamEvent.COLLECT_PROPERTIES.invoker().accept(new TeamCollectPropertiesEvent(prop -> map.put(prop, new TeamPropertyValue(prop, prop.defaultValue))));
 		return this;
 	}
 

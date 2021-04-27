@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
+import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.TranslatableComponent;
@@ -38,7 +39,7 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
 	public TeamProperty parse(StringReader reader) throws CommandSyntaxException {
 		ResourceLocation id = ResourceLocation.read(reader);
 		Map<ResourceLocation, TeamProperty> map = new LinkedHashMap<>();
-		TeamCollectPropertiesEvent.EVENT.invoker().accept(new TeamCollectPropertiesEvent(property -> map.put(property.id, property)));
+		TeamEvent.COLLECT_PROPERTIES.invoker().accept(new TeamCollectPropertiesEvent(property -> map.put(property.id, property)));
 		TeamProperty property = map.get(id);
 
 		if (property != null) {
@@ -52,7 +53,7 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
 		try {
 			Map<String, TeamProperty> map = new LinkedHashMap<>();
-			TeamCollectPropertiesEvent.EVENT.invoker().accept(new TeamCollectPropertiesEvent(property -> map.put(property.id.toString(), property)));
+			TeamEvent.COLLECT_PROPERTIES.invoker().accept(new TeamCollectPropertiesEvent(property -> map.put(property.id.toString(), property)));
 			return SharedSuggestionProvider.suggest(map.keySet(), builder);
 		} catch (Exception ex) {
 			return Suggestions.empty();

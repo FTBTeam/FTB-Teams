@@ -3,8 +3,8 @@ package dev.ftb.mods.ftbteams;
 import com.mojang.brigadier.CommandDispatcher;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.FTBTeamsCommands;
-import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamArgument;
+import dev.ftb.mods.ftbteams.data.TeamBase;
 import dev.ftb.mods.ftbteams.data.TeamManager;
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -69,10 +69,10 @@ public class FTBTeams {
 	}
 
 	private void teamConfig(TeamCollectPropertiesEvent event) {
-		event.add(Team.DISPLAY_NAME);
-		event.add(Team.DESCRIPTION);
-		event.add(Team.COLOR);
-		event.add(Team.FREE_TO_JOIN);
+		event.add(TeamBase.DISPLAY_NAME);
+		event.add(TeamBase.DESCRIPTION);
+		event.add(TeamBase.COLOR);
+		event.add(TeamBase.FREE_TO_JOIN);
 	}
 
 	private void playerLoggedIn(ServerPlayer player) {

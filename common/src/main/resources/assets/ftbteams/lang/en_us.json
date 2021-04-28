@@ -20,5 +20,8 @@
 	"ftbteamsconfig.ftbteams.display_name": "Display Name",
 	"ftbteamsconfig.ftbteams.description": "Description",
 	"ftbteamsconfig.ftbteams.color": "Color",
-	"ftbteamsconfig.ftbteams.free_to_join": "Free to Join"
+	"ftbteamsconfig.ftbteams.free_to_join": "Free to Join",
+	"ftbteams.privacy_mode.allies": "Allies",
+	"ftbteams.privacy_mode.private": "Private",
+	"ftbteams.privacy_mode.public": "Public"
 }

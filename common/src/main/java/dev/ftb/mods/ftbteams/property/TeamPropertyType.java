@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.property;
 
 import dev.ftb.mods.ftbguilibrary.icon.Color4I;
+import dev.ftb.mods.ftbteams.data.PrivacyMode;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
@@ -25,6 +26,8 @@ public class TeamPropertyType<T> {
 	public static final TeamPropertyType<Integer> INT = TeamPropertyType.register("int", IntProperty::new);
 	public static final TeamPropertyType<Double> DOUBLE = TeamPropertyType.register("double", DoubleProperty::new);
 	public static final TeamPropertyType<Color4I> COLOR = TeamPropertyType.register("color", ColorProperty::new);
+	public static final TeamPropertyType<String> ENUM = TeamPropertyType.register("enum", EnumProperty::new);
+	public static final TeamPropertyType<PrivacyMode> PRIVACY_MODE = TeamPropertyType.register("privacy_mode", PrivacyProperty::new);
 
 	public static TeamProperty<?> read(FriendlyByteBuf buf) {
 		return MAP.get(buf.readUtf(Short.MAX_VALUE)).deserializer.apply(buf.readResourceLocation(), buf);

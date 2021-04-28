@@ -119,6 +119,12 @@ public abstract class TeamBase {
 		return text;
 	}
 
+	public Component getColoredName() {
+		TextComponent text = new TextComponent(getDisplayName());
+		text.withStyle(getProperty(COLOR).toStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getStringID())));
+		return text;
+	}
+
 	public void save() {
 	}
 

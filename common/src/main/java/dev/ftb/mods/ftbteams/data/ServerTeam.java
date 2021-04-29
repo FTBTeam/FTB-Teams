@@ -26,7 +26,7 @@ public class ServerTeam extends Team {
 		save();
 		manager.saveNow();
 		manager.teamMap.remove(getId());
-		String fn = getId() + ".nbt";
+		String fn = getId() + ".snbt";
 
 		try {
 			Path dir = manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("deleted");

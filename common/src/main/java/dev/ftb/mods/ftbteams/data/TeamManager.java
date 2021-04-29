@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.ftb.mods.ftblibrary.snbt.OrderedCompoundTag;
+import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -15,7 +17,6 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.MinecraftServer;
@@ -25,8 +26,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -134,21 +133,15 @@ public class TeamManager {
 			return;
 		}
 
-		Path dataFile = directory.resolve("ftbteams.nbt");
+		CompoundTag dataFileTag = SNBT.read(directory.resolve("ftbteams.snbt"));
 
-		if (Files.exists(dataFile)) {
-			try (InputStream stream = Files.newInputStream(dataFile)) {
-				CompoundTag tag = Objects.requireNonNull(NbtIo.readCompressed(stream));
-
-				if (tag.contains("id")) {
-					id = UUID.fromString(tag.getString("id"));
-				}
-
-				extraData = tag.getCompound("extra");
-				TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
-			} catch (Exception ex) {
-				ex.printStackTrace();
+		if (dataFileTag != null) {
+			if (dataFileTag.contains("id")) {
+				id = UUID.fromString(dataFileTag.getString("id"));
 			}
+
+			extraData = dataFileTag.getCompound("extra");
+			TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
 		} else {
 			Path oldFile = server.getWorldPath(OLD_ID_FILE);
 
@@ -168,15 +161,14 @@ public class TeamManager {
 
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
 				try {
-					for (Path file : Files.list(dir).filter(path -> path.getFileName().toString().endsWith(".nbt")).collect(Collectors.toList())) {
-						try (InputStream stream = Files.newInputStream(file)) {
-							CompoundTag nbt = Objects.requireNonNull(NbtIo.readCompressed(stream));
+					for (Path file : Files.list(dir).filter(path -> path.getFileName().toString().endsWith(".snbt")).collect(Collectors.toList())) {
+						CompoundTag nbt = SNBT.read(file);
+
+						if (nbt != null) {
 							Team team = type.factory.apply(this);
 							team.id = UUID.fromString(nbt.getString("id"));
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt);
-						} catch (Exception ex) {
-							ex.printStackTrace();
 						}
 					}
 				} catch (Exception ex) {
@@ -221,13 +213,9 @@ public class TeamManager {
 		}
 
 		if (shouldSave) {
-			try (OutputStream stream = Files.newOutputStream(directory.resolve("ftbteams.nbt"))) {
-				TeamManagerEvent.SAVED.invoker().accept(new TeamManagerEvent(this));
-				NbtIo.writeCompressed(serializeNBT(), stream);
-				shouldSave = false;
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
+			TeamManagerEvent.SAVED.invoker().accept(new TeamManagerEvent(this));
+			SNBT.write(directory.resolve("ftbteams.snbt"), serializeNBT());
+			shouldSave = false;
 		}
 
 		for (TeamType type : TeamType.MAP.values()) {
@@ -244,20 +232,14 @@ public class TeamManager {
 
 		for (Team team : getTeams()) {
 			if (team.shouldSave) {
-				Path path = directory.resolve(team.getType().getSerializedName() + "/" + team.getId() + ".nbt");
-
-				try (OutputStream stream = Files.newOutputStream(path)) {
-					NbtIo.writeCompressed(team.serializeNBT(), stream);
-					team.shouldSave = false;
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+				SNBT.write(directory.resolve(team.getType().getSerializedName() + "/" + team.getId() + ".snbt"), team.serializeNBT());
+				team.shouldSave = false;
 			}
 		}
 	}
 
-	public CompoundTag serializeNBT() {
-		CompoundTag nbt = new CompoundTag();
+	public OrderedCompoundTag serializeNBT() {
+		OrderedCompoundTag nbt = new OrderedCompoundTag();
 		nbt.putString("id", getId().toString());
 		nbt.put("extra", extraData);
 		return nbt;

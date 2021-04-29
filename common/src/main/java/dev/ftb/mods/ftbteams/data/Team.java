@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.ftb.mods.ftblibrary.snbt.OrderedCompoundTag;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -136,24 +137,25 @@ public abstract class Team extends TeamBase {
 
 	// Data IO //
 
-	public CompoundTag serializeNBT() {
-		CompoundTag tag = new CompoundTag();
+	public OrderedCompoundTag serializeNBT() {
+		OrderedCompoundTag tag = new OrderedCompoundTag();
 		tag.putString("id", getId().toString());
 		tag.putString("type", getType().getSerializedName());
+		serializeExtraNBT(tag);
 
-		CompoundTag ranksNBT = new CompoundTag();
+		OrderedCompoundTag ranksNBT = new OrderedCompoundTag();
 
 		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
 			ranksNBT.putString(entry.getKey().toString(), entry.getValue().getSerializedName());
 		}
 
 		tag.put("ranks", ranksNBT);
-		tag.put("properties", properties.write(new CompoundTag()));
+		tag.put("properties", properties.write(new OrderedCompoundTag()));
 
 		ListTag messageHistoryTag = new ListTag();
 
 		for (TeamMessage m : messageHistory) {
-			CompoundTag mt = new CompoundTag();
+			OrderedCompoundTag mt = new OrderedCompoundTag();
 			mt.putString("from", m.sender.toString());
 			mt.putLong("date", m.date);
 			mt.putString("text", Component.Serializer.toJson(m.text));
@@ -166,6 +168,9 @@ public abstract class Team extends TeamBase {
 		tag.put("extra", extraData);
 
 		return tag;
+	}
+
+	protected void serializeExtraNBT(CompoundTag tag) {
 	}
 
 	public void deserializeNBT(CompoundTag tag) {

@@ -35,10 +35,8 @@ public class PartyTeam extends Team {
 	}
 
 	@Override
-	public CompoundTag serializeNBT() {
-		CompoundTag tag = super.serializeNBT();
+	protected void serializeExtraNBT(CompoundTag tag) {
 		tag.putString("owner", owner.toString());
-		return tag;
 	}
 
 	@Override
@@ -209,7 +207,7 @@ public class PartyTeam extends Team {
 			TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 			manager.saveNow();
 			manager.teamMap.remove(getId());
-			String fn = getId() + ".nbt";
+			String fn = getId() + ".snbt";
 
 			try {
 				Path dir = manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("deleted");

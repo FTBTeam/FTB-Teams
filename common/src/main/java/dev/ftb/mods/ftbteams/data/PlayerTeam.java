@@ -22,10 +22,8 @@ public class PlayerTeam extends Team {
 	}
 
 	@Override
-	public CompoundTag serializeNBT() {
-		CompoundTag tag = super.serializeNBT();
+	protected void serializeExtraNBT(CompoundTag tag) {
 		tag.putString("player_name", playerName);
-		return tag;
 	}
 
 	@Override

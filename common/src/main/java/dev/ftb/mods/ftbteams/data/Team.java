@@ -156,6 +156,7 @@ public abstract class Team extends TeamBase {
 
 		for (TeamMessage m : messageHistory) {
 			OrderedCompoundTag mt = new OrderedCompoundTag();
+			mt.singleLine = true;
 			mt.putString("from", m.sender.toString());
 			mt.putLong("date", m.date);
 			mt.putString("text", Component.Serializer.toJson(m.text));

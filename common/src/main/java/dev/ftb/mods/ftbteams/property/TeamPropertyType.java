@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.property;
 
-import dev.ftb.mods.ftbguilibrary.icon.Color4I;
+import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.data.PrivacyMode;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;

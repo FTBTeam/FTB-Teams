@@ -3,7 +3,6 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.ChatFormatting;
@@ -38,14 +37,14 @@ public class PartyTeam extends Team {
 	@Override
 	public CompoundTag serializeNBT() {
 		CompoundTag tag = super.serializeNBT();
-		tag.putString("owner", UUIDTypeAdapter.fromUUID(owner));
+		tag.putString("owner", owner.toString());
 		return tag;
 	}
 
 	@Override
 	public void deserializeNBT(CompoundTag tag) {
 		super.deserializeNBT(tag);
-		owner = UUIDTypeAdapter.fromString(tag.getString("owner"));
+		owner = UUID.fromString(tag.getString("owner"));
 	}
 
 	@Override
@@ -210,7 +209,7 @@ public class PartyTeam extends Team {
 			TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 			manager.saveNow();
 			manager.teamMap.remove(getId());
-			String fn = UUIDTypeAdapter.fromUUID(getId()) + ".nbt";
+			String fn = getId() + ".nbt";
 
 			try {
 				Path dir = manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("deleted");

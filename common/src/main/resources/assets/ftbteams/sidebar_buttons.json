@@ -1,6 +1,6 @@
 {
 	"my_team": {
-		"group": "ftbguilibrary:info",
+		"group": "ftblibrary:info",
 		"icon": "ftbteams:textures/teams.png",
 		"x": 0,
 		"click": "ftbteams:open_gui",

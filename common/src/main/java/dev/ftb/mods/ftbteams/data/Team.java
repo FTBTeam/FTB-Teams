@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -139,13 +138,13 @@ public abstract class Team extends TeamBase {
 
 	public CompoundTag serializeNBT() {
 		CompoundTag tag = new CompoundTag();
-		tag.putString("id", UUIDTypeAdapter.fromUUID(getId()));
+		tag.putString("id", getId().toString());
 		tag.putString("type", getType().getSerializedName());
 
 		CompoundTag ranksNBT = new CompoundTag();
 
 		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
-			ranksNBT.putString(UUIDTypeAdapter.fromUUID(entry.getKey()), entry.getValue().getSerializedName());
+			ranksNBT.putString(entry.getKey().toString(), entry.getValue().getSerializedName());
 		}
 
 		tag.put("ranks", ranksNBT);
@@ -155,7 +154,7 @@ public abstract class Team extends TeamBase {
 
 		for (TeamMessage m : messageHistory) {
 			CompoundTag mt = new CompoundTag();
-			mt.putString("from", UUIDTypeAdapter.fromUUID(m.sender));
+			mt.putString("from", m.sender.toString());
 			mt.putLong("date", m.date);
 			mt.putString("text", Component.Serializer.toJson(m.text));
 			messageHistoryTag.add(mt);
@@ -174,7 +173,7 @@ public abstract class Team extends TeamBase {
 		CompoundTag ranksNBT = tag.getCompound("ranks");
 
 		for (String s : ranksNBT.getAllKeys()) {
-			ranks.put(UUIDTypeAdapter.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s)));
+			ranks.put(UUID.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s)));
 		}
 
 		properties.read(tag.getCompound("properties"));
@@ -185,7 +184,7 @@ public abstract class Team extends TeamBase {
 
 		for (int i = 0; i < messageHistoryTag.size(); i++) {
 			CompoundTag mt = messageHistoryTag.getCompound(i);
-			messageHistory.add(new TeamMessage(UUIDTypeAdapter.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
+			messageHistory.add(new TeamMessage(UUID.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
 		}
 
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));

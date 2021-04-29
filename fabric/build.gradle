@@ -22,7 +22,7 @@ dependencies {
 
     modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
     modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
-    modApi "dev.ftb.mods:ftb-gui-library-fabric:${rootProject.ftb_gui_library_version}"
+    modApi "dev.ftb.mods:ftb-library-fabric:${rootProject.ftb_library_version}"
 
     implementation(project(path: ":common")) {
         transitive = false

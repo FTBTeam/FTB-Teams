@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.TextComponent;
@@ -27,7 +26,7 @@ public class ServerTeam extends Team {
 		save();
 		manager.saveNow();
 		manager.teamMap.remove(getId());
-		String fn = UUIDTypeAdapter.fromUUID(getId()) + ".nbt";
+		String fn = getId() + ".nbt";
 
 		try {
 			Path dir = manager.server.getWorldPath(TeamManager.FOLDER_NAME).resolve("deleted");

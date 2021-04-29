@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -142,7 +141,7 @@ public class TeamManager {
 				CompoundTag tag = Objects.requireNonNull(NbtIo.readCompressed(stream));
 
 				if (tag.contains("id")) {
-					id = UUIDTypeAdapter.fromString(tag.getString("id"));
+					id = UUID.fromString(tag.getString("id"));
 				}
 
 				extraData = tag.getCompound("extra");
@@ -173,7 +172,7 @@ public class TeamManager {
 						try (InputStream stream = Files.newInputStream(file)) {
 							CompoundTag nbt = Objects.requireNonNull(NbtIo.readCompressed(stream));
 							Team team = type.factory.apply(this);
-							team.id = UUIDTypeAdapter.fromString(nbt.getString("id"));
+							team.id = UUID.fromString(nbt.getString("id"));
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt);
 						} catch (Exception ex) {
@@ -245,7 +244,7 @@ public class TeamManager {
 
 		for (Team team : getTeams()) {
 			if (team.shouldSave) {
-				Path path = directory.resolve(team.getType().getSerializedName() + "/" + UUIDTypeAdapter.fromUUID(team.getId()) + ".nbt");
+				Path path = directory.resolve(team.getType().getSerializedName() + "/" + team.getId() + ".nbt");
 
 				try (OutputStream stream = Files.newOutputStream(path)) {
 					NbtIo.writeCompressed(team.serializeNBT(), stream);
@@ -259,7 +258,7 @@ public class TeamManager {
 
 	public CompoundTag serializeNBT() {
 		CompoundTag nbt = new CompoundTag();
-		nbt.putString("id", UUIDTypeAdapter.fromUUID(getId()));
+		nbt.putString("id", getId().toString());
 		nbt.put("extra", extraData);
 		return nbt;
 	}

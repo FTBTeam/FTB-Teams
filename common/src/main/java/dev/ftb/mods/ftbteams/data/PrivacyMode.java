@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
-import dev.ftb.mods.ftbguilibrary.config.NameMap;
+import dev.ftb.mods.ftblibrary.config.NameMap;
 import net.minecraft.util.StringRepresentable;
 
 /**

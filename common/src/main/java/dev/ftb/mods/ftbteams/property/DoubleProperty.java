@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.property;
 
-import dev.ftb.mods.ftbguilibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;

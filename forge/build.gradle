@@ -21,7 +21,7 @@ dependencies {
     forge "net.minecraftforge:forge:${rootProject.forge_version}"
 
     modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
-    modApi "dev.ftb.mods:ftb-gui-library-forge:${rootProject.ftb_gui_library_version}"
+    modApi "dev.ftb.mods:ftb-library-forge:${rootProject.ftb_library_version}"
 
     modRuntime "curse.maven:ftb-quests-289412:3242959"
     modRuntime "curse.maven:item-filters-309674:3231742"

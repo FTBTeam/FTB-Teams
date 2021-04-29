@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.client;
 
-import dev.ftb.mods.ftbguilibrary.utils.ClientUtils;
-import dev.ftb.mods.ftbguilibrary.widget.CustomClickEvent;
+import dev.ftb.mods.ftblibrary.ui.CustomClickEvent;
+import dev.ftb.mods.ftblibrary.util.ClientUtils;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.FTBTeamsCommon;
 import dev.ftb.mods.ftbteams.data.ClientTeam;

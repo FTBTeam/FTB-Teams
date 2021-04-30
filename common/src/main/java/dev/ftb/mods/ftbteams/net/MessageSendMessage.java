@@ -1,5 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
+import dev.ftb.mods.ftblibrary.net.BasePacket;
+import dev.ftb.mods.ftblibrary.net.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
@@ -7,7 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 
-public class MessageSendMessage extends MessageBase {
+public class MessageSendMessage extends BasePacket {
 	private final String text;
 
 	MessageSendMessage(FriendlyByteBuf buffer) {
@@ -16,6 +18,11 @@ public class MessageSendMessage extends MessageBase {
 
 	public MessageSendMessage(String s) {
 		text = s.length() > 5000 ? s.substring(0, 5000) : s;
+	}
+
+	@Override
+	public PacketID getId() {
+		return FTBTeamsNet.SEND_MESSAGE;
 	}
 
 	@Override

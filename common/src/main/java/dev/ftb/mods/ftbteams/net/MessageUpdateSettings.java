@@ -1,5 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
+import dev.ftb.mods.ftblibrary.net.BasePacket;
+import dev.ftb.mods.ftblibrary.net.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -9,7 +11,7 @@ import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
-public class MessageUpdateSettings extends MessageBase {
+public class MessageUpdateSettings extends BasePacket {
 	public final TeamProperties properties;
 
 	MessageUpdateSettings(FriendlyByteBuf buffer) {
@@ -19,6 +21,11 @@ public class MessageUpdateSettings extends MessageBase {
 
 	public MessageUpdateSettings(TeamProperties p) {
 		properties = p;
+	}
+
+	@Override
+	public PacketID getId() {
+		return FTBTeamsNet.UPDATE_SETTINGS;
 	}
 
 	@Override

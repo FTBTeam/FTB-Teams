@@ -1,11 +1,13 @@
 package dev.ftb.mods.ftbteams.net;
 
+import dev.ftb.mods.ftblibrary.net.BasePacket;
+import dev.ftb.mods.ftblibrary.net.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 
-public class MessageOpenGUIResponse extends MessageBase {
+public class MessageOpenGUIResponse extends BasePacket {
 	public TeamProperties properties;
 
 	MessageOpenGUIResponse(FriendlyByteBuf buffer) {
@@ -15,6 +17,11 @@ public class MessageOpenGUIResponse extends MessageBase {
 
 	public MessageOpenGUIResponse() {
 		properties = new TeamProperties();
+	}
+
+	@Override
+	public PacketID getId() {
+		return FTBTeamsNet.OPEN_GUI_RESPONSE;
 	}
 
 	@Override

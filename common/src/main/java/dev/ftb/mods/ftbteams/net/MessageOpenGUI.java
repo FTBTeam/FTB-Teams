@@ -1,16 +1,23 @@
 package dev.ftb.mods.ftbteams.net;
 
+import dev.ftb.mods.ftblibrary.net.BasePacket;
+import dev.ftb.mods.ftblibrary.net.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
-public class MessageOpenGUI extends MessageBase {
+public class MessageOpenGUI extends BasePacket {
 	MessageOpenGUI(FriendlyByteBuf buffer) {
 	}
 
 	public MessageOpenGUI() {
+	}
+
+	@Override
+	public PacketID getId() {
+		return FTBTeamsNet.OPEN_GUI;
 	}
 
 	@Override

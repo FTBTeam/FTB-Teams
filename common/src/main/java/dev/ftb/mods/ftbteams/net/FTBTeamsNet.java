@@ -1,28 +1,20 @@
 package dev.ftb.mods.ftbteams.net;
 
+import dev.ftb.mods.ftblibrary.net.FTBNetworkHandler;
+import dev.ftb.mods.ftblibrary.net.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeams;
-import me.shedaniel.architectury.networking.NetworkChannel;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 
-import java.util.function.Function;
+public interface FTBTeamsNet {
+	FTBNetworkHandler NET = FTBNetworkHandler.create(FTBTeams.MOD_ID);
 
-public class FTBTeamsNet {
-	public static NetworkChannel MAIN;
+	PacketID SYNC_TEAMS = NET.register("sync_teams", MessageSyncTeams::new);
+	PacketID OPEN_GUI = NET.register("open_gui", MessageOpenGUI::new);
+	PacketID OPEN_GUI_RESPONSE = NET.register("open_gui_response", MessageOpenGUIResponse::new);
+	PacketID UPDATE_SETTINGS = NET.register("update_settings", MessageUpdateSettings::new);
+	PacketID UPDATE_SETTINGS_RESPONSE = NET.register("update_settings_response", MessageUpdateSettingsResponse::new);
+	PacketID SEND_MESSAGE = NET.register("send_message", MessageSendMessage::new);
+	PacketID SEND_MESSAGE_RESPONSE = NET.register("send_message_response", MessageSendMessageResponse::new);
 
-	private static <T extends MessageBase> void register(Class<T> c, Function<FriendlyByteBuf, T> s) {
-		MAIN.register(c, MessageBase::write, s, MessageBase::handle);
-	}
-
-	public static void init() {
-		MAIN = NetworkChannel.create(new ResourceLocation(FTBTeams.MOD_ID, "main"));
-
-		register(MessageSyncTeams.class, MessageSyncTeams::new);
-		register(MessageOpenGUI.class, MessageOpenGUI::new);
-		register(MessageOpenGUIResponse.class, MessageOpenGUIResponse::new);
-		register(MessageUpdateSettings.class, MessageUpdateSettings::new);
-		register(MessageUpdateSettingsResponse.class, MessageUpdateSettingsResponse::new);
-		register(MessageSendMessage.class, MessageSendMessage::new);
-		register(MessageSendMessageResponse.class, MessageSendMessageResponse::new);
+	static void init() {
 	}
 }

@@ -22,7 +22,6 @@ public class ServerTeam extends Team {
 
 	@Deprecated
 	public int delete(CommandSourceStack source) throws CommandSyntaxException {
-		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 		save();
 		manager.saveNow();
 		manager.teamMap.remove(getId());
@@ -49,6 +48,7 @@ public class ServerTeam extends Team {
 		source.sendSuccess(new TextComponent("Team deleted"), true);
 		manager.save();
 		manager.syncAll();
+		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 		return Command.SINGLE_SUCCESS;
 	}
 }

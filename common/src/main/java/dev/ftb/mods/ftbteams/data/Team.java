@@ -139,8 +139,8 @@ public abstract class Team extends TeamBase {
 			TeamEvent.PLAYER_JOINED_PARTY.invoker().accept(new PlayerJoinedPartyTeamEvent(this, (PlayerTeam) prev, p));
 		}
 
-		if (deleted) {
-			TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
+		if (deleted && prev != null) {
+			TeamEvent.DELETED.invoker().accept(new TeamEvent(prev));
 		}
 
 		if (p != null) {

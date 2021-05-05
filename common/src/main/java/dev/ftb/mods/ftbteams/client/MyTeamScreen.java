@@ -27,8 +27,6 @@ import dev.ftb.mods.ftbteams.net.UpdateSettingsPacket;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
 import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
-import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 
@@ -141,13 +139,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 				for (TeamMessage message : ClientTeamManager.INSTANCE.selfTeam.messageHistory) {
 					if (!message.sender.equals(prev)) {
 						TextComponent name = new TextComponent("");
-
-						if (message.sender.equals(Util.NIL_UUID)) {
-							name.append(new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE));
-						} else {
-							name.append(new TextComponent(ClientTeamManager.INSTANCE.getProfile(message.sender).getName()).withStyle(ChatFormatting.YELLOW));
-						}
-
+						name.append(ClientTeamManager.INSTANCE.getName(message.sender));
 						name.append(":");
 
 						add(new ComponentTextField(this).setMaxWidth(width).setText(name));

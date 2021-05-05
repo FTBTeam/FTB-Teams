@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 public class PartyTeam extends Team {
@@ -231,5 +232,69 @@ public class PartyTeam extends Team {
 		manager.syncAll();
 		team.changedTeam(this, id, player, deleted);
 		return Command.SINGLE_SUCCESS;
+	}
+
+	public int addAlly(CommandSourceStack source, Collection<GameProfile> players) {
+		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
+		boolean changed = false;
+
+		for (GameProfile player : players) {
+			UUID id = player.getId();
+
+			if (!isAlly(id)) {
+				ranks.put(id, TeamRank.ALLY);
+				sendMessage(from, new TextComponent("").append(player.getName()).append(" added as ally!").withStyle(ChatFormatting.YELLOW));
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			save();
+			manager.syncAll();
+			return 1;
+		}
+
+		return 0;
+	}
+
+	public int removeAlly(CommandSourceStack source, Collection<GameProfile> players) {
+		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
+		boolean changed = false;
+
+		for (GameProfile player : players) {
+			UUID id = player.getId();
+
+			if (isAlly(id) && !isMember(id)) {
+				ranks.remove(id);
+				sendMessage(from, new TextComponent("").append(player.getName()).append(" removed from allies!").withStyle(ChatFormatting.YELLOW));
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			save();
+			manager.syncAll();
+			return 1;
+		}
+
+		return 0;
+	}
+
+	public int listAllies(CommandSourceStack source) {
+		source.sendSuccess(new TextComponent("Allies:"), false);
+		boolean any = false;
+
+		for (Map.Entry<UUID, TeamRank> entry : getRanked(TeamRank.ALLY).entrySet()) {
+			if (!entry.getValue().is(TeamRank.MEMBER)) {
+				source.sendSuccess(manager.getName(entry.getKey()), false);
+				any = true;
+			}
+		}
+
+		if (!any) {
+			source.sendSuccess(new TextComponent("None"), false);
+		}
+
+		return 1;
 	}
 }

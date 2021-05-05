@@ -2,9 +2,13 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextComponent;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,5 +95,14 @@ public class ClientTeamManager {
 	@Nullable
 	public ClientTeam getTeam(UUID id) {
 		return teamMap.get(id);
+	}
+
+	public Component getName(@Nullable UUID id) {
+		if (id == null || id.equals(Util.NIL_UUID)) {
+			return new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE);
+		}
+
+		GameProfile profile = profileMap.get(id);
+		return new TextComponent(profile == null ? "Unknown" : profile.getName()).withStyle(ChatFormatting.YELLOW);
 	}
 }

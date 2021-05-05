@@ -45,6 +45,8 @@ public abstract class TeamBase {
 
 	public abstract TeamType getType();
 
+	public abstract boolean isValid();
+
 	@Override
 	public int hashCode() {
 		return id.hashCode();

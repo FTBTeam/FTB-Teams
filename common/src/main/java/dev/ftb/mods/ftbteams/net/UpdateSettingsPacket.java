@@ -11,15 +11,15 @@ import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
-public class MessageUpdateSettings extends BasePacket {
+public class UpdateSettingsPacket extends BasePacket {
 	public final TeamProperties properties;
 
-	MessageUpdateSettings(FriendlyByteBuf buffer) {
+	UpdateSettingsPacket(FriendlyByteBuf buffer) {
 		properties = new TeamProperties();
 		properties.read(buffer);
 	}
 
-	public MessageUpdateSettings(TeamProperties p) {
+	public UpdateSettingsPacket(TeamProperties p) {
 		properties = p;
 	}
 
@@ -46,6 +46,6 @@ public class MessageUpdateSettings extends BasePacket {
 		team.properties.updateFrom(properties);
 		TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(team, old));
 		team.save();
-		new MessageUpdateSettingsResponse(team.getId(), team.properties).sendToAll();
+		new UpdateSettingsResponsePacket(team.getId(), team.properties).sendToAll();
 	}
 }

@@ -7,30 +7,36 @@ import dev.ftb.mods.ftbteams.property.TeamProperties;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 
-public class MessageOpenGUIResponse extends BasePacket {
-	public TeamProperties properties;
+import java.util.UUID;
 
-	MessageOpenGUIResponse(FriendlyByteBuf buffer) {
+public class UpdateSettingsResponsePacket extends BasePacket {
+	private final UUID teamId;
+	private final TeamProperties properties;
+
+	UpdateSettingsResponsePacket(FriendlyByteBuf buffer) {
+		teamId = buffer.readUUID();
 		properties = new TeamProperties();
 		properties.read(buffer);
 	}
 
-	public MessageOpenGUIResponse() {
-		properties = new TeamProperties();
+	public UpdateSettingsResponsePacket(UUID id, TeamProperties p) {
+		teamId = id;
+		properties = p;
 	}
 
 	@Override
 	public PacketID getId() {
-		return FTBTeamsNet.OPEN_GUI_RESPONSE;
+		return FTBTeamsNet.UPDATE_SETTINGS_RESPONSE;
 	}
 
 	@Override
 	public void write(FriendlyByteBuf buffer) {
+		buffer.writeUUID(teamId);
 		properties.write(buffer);
 	}
 
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
-		FTBTeams.PROXY.openGui(this);
+		FTBTeams.PROXY.updateSettings(teamId, properties);
 	}
 }

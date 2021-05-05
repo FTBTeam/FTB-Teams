@@ -13,12 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class MessageSyncTeams extends BasePacket {
+public class SyncTeamsPacket extends BasePacket {
 	private final ClientTeamManager manager;
 	private final UUID self;
 	private final List<TeamMessage> messages;
 
-	MessageSyncTeams(FriendlyByteBuf buffer) {
+	SyncTeamsPacket(FriendlyByteBuf buffer) {
 		long now = System.currentTimeMillis();
 		manager = new ClientTeamManager(buffer, now);
 		self = buffer.readUUID();
@@ -30,7 +30,7 @@ public class MessageSyncTeams extends BasePacket {
 		}
 	}
 
-	public MessageSyncTeams(ClientTeamManager m, Team s) {
+	public SyncTeamsPacket(ClientTeamManager m, Team s) {
 		manager = m;
 		self = s.getId();
 		messages = new ArrayList<>(s.messageHistory);

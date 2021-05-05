@@ -81,14 +81,13 @@ public class PartyTeam extends Team {
 
 		manager.playerTeamMap.put(id, this);
 		ranks.put(id, TeamRank.MEMBER);
-		changedTeam(oldTeam, id, player);
 		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.GREEN));
 		save();
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
 		manager.syncAll();
-
+		changedTeam(oldTeam, id, player, false);
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -143,7 +142,6 @@ public class PartyTeam extends Team {
 			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 
 			team.ranks.put(id, TeamRank.OWNER);
-			team.changedTeam(this, id, playerEntity);
 			sendMessage(from.getUUID(), new TextComponent("Kicked ").append(manager.getName(id)).append(" from ").append(getName()).withStyle(ChatFormatting.RED));
 			team.save();
 
@@ -155,6 +153,8 @@ public class PartyTeam extends Team {
 				playerEntity.displayClientMessage(new TextComponent("You have been kicked from ").append(getName()).append("!"), false);
 				updateCommands(playerEntity);
 			}
+
+			team.changedTeam(this, id, playerEntity, false);
 		}
 
 		return Command.SINGLE_SUCCESS;
@@ -196,15 +196,15 @@ public class PartyTeam extends Team {
 		manager.playerTeamMap.put(id, team);
 
 		team.ranks.put(id, TeamRank.OWNER);
-		team.changedTeam(this, id, player);
 		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
 		ranks.remove(id);
 		manager.save();
+		boolean deleted = false;
 
 		if (getMembers().isEmpty()) {
-			TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
+			deleted = true;
 			manager.saveNow();
 			manager.teamMap.remove(getId());
 			String fn = getId() + ".snbt";
@@ -229,6 +229,7 @@ public class PartyTeam extends Team {
 		}
 
 		manager.syncAll();
+		team.changedTeam(this, id, player, deleted);
 		return Command.SINGLE_SUCCESS;
 	}
 }

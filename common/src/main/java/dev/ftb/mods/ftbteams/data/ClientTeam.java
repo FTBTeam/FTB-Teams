@@ -39,6 +39,11 @@ public class ClientTeam extends TeamBase {
 		return type;
 	}
 
+	@Override
+	public boolean isValid() {
+		return manager.teamMap.containsKey(id);
+	}
+
 	public void write(FriendlyByteBuf buffer, long now) {
 		buffer.writeUUID(id);
 		buffer.writeByte(type.ordinal());

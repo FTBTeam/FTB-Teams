@@ -21,9 +21,9 @@ import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
 import dev.ftb.mods.ftbteams.data.TeamRank;
-import dev.ftb.mods.ftbteams.net.MessageOpenGUIResponse;
-import dev.ftb.mods.ftbteams.net.MessageSendMessage;
-import dev.ftb.mods.ftbteams.net.MessageUpdateSettings;
+import dev.ftb.mods.ftbteams.net.OpenGUIResponsePacket;
+import dev.ftb.mods.ftbteams.net.SendMessagePacket;
+import dev.ftb.mods.ftbteams.net.UpdateSettingsPacket;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
 import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class MyTeamScreen extends BaseScreen implements NordColors {
-	public final MessageOpenGUIResponse data;
+	public final OpenGUIResponsePacket data;
 	public Button settingsButton;
 	public Button colorButton;
 	public Panel memberPanel;
@@ -44,7 +44,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	public Panel chatPanel;
 	public TextBox chatBox;
 
-	public MyTeamScreen(MessageOpenGUIResponse res) {
+	public MyTeamScreen(OpenGUIResponsePacket res) {
 		data = res;
 		setSize(300, 200);
 	}
@@ -60,7 +60,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 			config.savedCallback = b -> {
 				if (b) {
-					new MessageUpdateSettings(data.properties).sendToServer();
+					new UpdateSettingsPacket(data.properties).sendToServer();
 				}
 
 				openGui();
@@ -80,7 +80,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
 			TeamProperties properties = new TeamProperties();
 			properties.set(Team.COLOR, c);
-			new MessageUpdateSettings(properties).sendToServer();
+			new UpdateSettingsPacket(properties).sendToServer();
 		}) {
 			@Override
 			public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
@@ -177,7 +177,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 			@Override
 			public void onEnterPressed() {
-				new MessageSendMessage(getText()).sendToServer();
+				new SendMessagePacket(getText()).sendToServer();
 				setText("");
 				setFocused(true);
 			}

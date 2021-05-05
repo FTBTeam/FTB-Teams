@@ -9,16 +9,16 @@ import net.minecraft.network.chat.Component;
 
 import java.util.UUID;
 
-public class MessageSendMessageResponse extends BasePacket {
+public class SendMessageResponsePacket extends BasePacket {
 	private final UUID from;
 	private final Component text;
 
-	MessageSendMessageResponse(FriendlyByteBuf buffer) {
+	SendMessageResponsePacket(FriendlyByteBuf buffer) {
 		from = buffer.readUUID();
 		text = buffer.readComponent();
 	}
 
-	public MessageSendMessageResponse(UUID f, Component s) {
+	public SendMessageResponsePacket(UUID f, Component s) {
 		from = f;
 		text = s;
 	}

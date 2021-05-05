@@ -4,11 +4,13 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.snbt.OrderedCompoundTag;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
+import dev.ftb.mods.ftbteams.event.PlayerJoinedPartyTeamEvent;
+import dev.ftb.mods.ftbteams.event.PlayerLeftPartyTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
-import dev.ftb.mods.ftbteams.net.MessageSendMessageResponse;
+import dev.ftb.mods.ftbteams.net.SendMessageResponsePacket;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
 import me.shedaniel.architectury.utils.NbtType;
@@ -41,6 +43,11 @@ public abstract class Team extends TeamBase {
 		id = Util.NIL_UUID;
 		manager = m;
 		properties.collect();
+	}
+
+	@Override
+	public boolean isValid() {
+		return manager.teamMap.containsKey(id);
 	}
 
 	@Override
@@ -123,16 +130,22 @@ public abstract class Team extends TeamBase {
 		manager.server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
-	public void changedTeam(@Nullable Team prev, UUID player, @Nullable ServerPlayer p) {
+	void changedTeam(@Nullable Team prev, UUID player, @Nullable ServerPlayer p, boolean deleted) {
 		TeamEvent.PLAYER_CHANGED.invoker().accept(new PlayerChangedTeamEvent(this, prev, player, p));
+
+		if (prev instanceof PartyTeam) {
+			TeamEvent.PLAYER_LEFT_PARTY.invoker().accept(new PlayerLeftPartyTeamEvent(prev, (PlayerTeam) this, player, p, deleted));
+		} else if (prev instanceof PlayerTeam && p != null) {
+			TeamEvent.PLAYER_JOINED_PARTY.invoker().accept(new PlayerJoinedPartyTeamEvent(this, (PlayerTeam) prev, p));
+		}
+
+		if (deleted) {
+			TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
+		}
 
 		if (p != null) {
 			updateCommands(p);
 		}
-	}
-
-	public void changedTeam(@Nullable Team prev, UUID player) {
-		changedTeam(prev, player, FTBTUtils.getPlayerByUUID(manager.server, player));
 	}
 
 	// Data IO //
@@ -314,7 +327,7 @@ public abstract class Team extends TeamBase {
 
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
-			new MessageSendMessageResponse(from, text).sendTo(p);
+			new SendMessageResponsePacket(from, text).sendTo(p);
 		}
 
 		save();

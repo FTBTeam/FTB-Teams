@@ -19,6 +19,8 @@ public class TeamEvent {
 	public static final Event<Consumer<TeamCollectPropertiesEvent>> COLLECT_PROPERTIES = EventFactory.createConsumerLoop();
 	public static final Event<Consumer<TeamPropertiesChangedEvent>> PROPERTIES_CHANGED = EventFactory.createConsumerLoop();
 	public static final Event<Consumer<PlayerChangedTeamEvent>> PLAYER_CHANGED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<PlayerJoinedPartyTeamEvent>> PLAYER_JOINED_PARTY = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<PlayerLeftPartyTeamEvent>> PLAYER_LEFT_PARTY = EventFactory.createConsumerLoop();
 	public static final Event<Consumer<TeamInfoEvent>> INFO = EventFactory.createConsumerLoop();
 
 	public static final Event<Consumer<ClientTeamPropertiesChangedEvent>> CLIENT_PROPERTIES_CHANGED = EventFactory.createConsumerLoop(ClientTeamPropertiesChangedEvent.class);

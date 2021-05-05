@@ -11,7 +11,7 @@ import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
-import dev.ftb.mods.ftbteams.net.MessageSyncTeams;
+import dev.ftb.mods.ftbteams.net.SyncTeamsPacket;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -274,6 +274,7 @@ public class TeamManager {
 		UUID id = player.getUUID();
 		PlayerTeam team = knownPlayers.get(id);
 		boolean all = false;
+		boolean created = false;
 
 		if (team == null) {
 			team = new PlayerTeam(this);
@@ -286,9 +287,8 @@ public class TeamManager {
 			team.setProperty(Team.DISPLAY_NAME, team.playerName);
 			team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
-			team.created(player);
 			team.ranks.put(id, TeamRank.OWNER);
-			team.changedTeam(null, id, player);
+			created = true;
 			team.save();
 			save();
 			all = true;
@@ -305,6 +305,11 @@ public class TeamManager {
 			syncAll();
 		} else {
 			sync(player, team);
+		}
+
+		if (created) {
+			team.created(player);
+			team.changedTeam(null, id, player, false);
 		}
 
 		TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(team, player));
@@ -326,7 +331,7 @@ public class TeamManager {
 	}
 
 	public void sync(ServerPlayer player, Team self) {
-		new MessageSyncTeams(createClientTeamManager(), self).sendTo(player);
+		new SyncTeamsPacket(createClientTeamManager(), self).sendTo(player);
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
@@ -340,7 +345,7 @@ public class TeamManager {
 		ClientTeamManager clientManager = createClientTeamManager();
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			new MessageSyncTeams(clientManager, getPlayerTeam(player)).sendTo(player);
+			new SyncTeamsPacket(clientManager, getPlayerTeam(player)).sendTo(player);
 			server.getPlayerList().sendPlayerPermissionLevel(player);
 		}
 	}
@@ -359,13 +364,13 @@ public class TeamManager {
 		playerTeamMap.put(id, team);
 
 		team.ranks.put(id, TeamRank.OWNER);
-		team.changedTeam(oldTeam, id, player);
 		team.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
 		syncAll();
+		team.changedTeam(oldTeam, id, player, false);
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 

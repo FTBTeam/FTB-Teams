@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.BasePacket;
-import dev.ftb.mods.ftblibrary.net.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.BaseC2SPacket;
+import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
@@ -9,7 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 
-public class SendMessagePacket extends BasePacket {
+public class SendMessagePacket extends BaseC2SPacket {
 	private final String text;
 
 	SendMessagePacket(FriendlyByteBuf buffer) {

@@ -1,11 +1,11 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.FTBNetworkHandler;
-import dev.ftb.mods.ftblibrary.net.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.SimpleNetworkManager;
 import dev.ftb.mods.ftbteams.FTBTeams;
 
 public interface FTBTeamsNet {
-	FTBNetworkHandler NET = FTBNetworkHandler.create(FTBTeams.MOD_ID);
+	SimpleNetworkManager NET = SimpleNetworkManager.create(FTBTeams.MOD_ID);
 
 	PacketID SYNC_TEAMS = NET.registerS2C("sync_teams", SyncTeamsPacket::new);
 	PacketID OPEN_GUI = NET.registerC2S("open_gui", OpenGUIPacket::new);

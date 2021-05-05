@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.BasePacket;
-import dev.ftb.mods.ftblibrary.net.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.BaseC2SPacket;
+import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -11,7 +11,7 @@ import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
-public class UpdateSettingsPacket extends BasePacket {
+public class UpdateSettingsPacket extends BaseC2SPacket {
 	public final TeamProperties properties;
 
 	UpdateSettingsPacket(FriendlyByteBuf buffer) {
@@ -46,6 +46,6 @@ public class UpdateSettingsPacket extends BasePacket {
 		team.properties.updateFrom(properties);
 		TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(team, old));
 		team.save();
-		new UpdateSettingsResponsePacket(team.getId(), team.properties).sendToAll();
+		new UpdateSettingsResponsePacket(team.getId(), team.properties).sendToAll(player.server);
 	}
 }

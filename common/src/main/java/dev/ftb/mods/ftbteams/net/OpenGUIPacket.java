@@ -1,14 +1,14 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.BasePacket;
-import dev.ftb.mods.ftblibrary.net.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.BaseC2SPacket;
+import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
-public class OpenGUIPacket extends BasePacket {
+public class OpenGUIPacket extends BaseC2SPacket {
 	OpenGUIPacket(FriendlyByteBuf buffer) {
 	}
 

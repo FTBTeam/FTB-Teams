@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.BasePacket;
-import dev.ftb.mods.ftblibrary.net.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.BaseS2CPacket;
+import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.Team;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class SyncTeamsPacket extends BasePacket {
+public class SyncTeamsPacket extends BaseS2CPacket {
 	private final ClientTeamManager manager;
 	private final UUID self;
 	private final List<TeamMessage> messages;

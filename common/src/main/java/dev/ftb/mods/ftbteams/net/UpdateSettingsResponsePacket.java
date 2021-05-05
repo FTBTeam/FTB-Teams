@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.BasePacket;
-import dev.ftb.mods.ftblibrary.net.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.BaseS2CPacket;
+import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import me.shedaniel.architectury.networking.NetworkManager;
@@ -9,7 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.UUID;
 
-public class UpdateSettingsResponsePacket extends BasePacket {
+public class UpdateSettingsResponsePacket extends BaseS2CPacket {
 	private final UUID teamId;
 	private final TeamProperties properties;
 

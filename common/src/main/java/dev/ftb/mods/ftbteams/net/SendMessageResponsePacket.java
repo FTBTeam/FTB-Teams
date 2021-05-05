@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.BasePacket;
-import dev.ftb.mods.ftblibrary.net.PacketID;
+import dev.ftb.mods.ftblibrary.net.snm.BaseS2CPacket;
+import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import me.shedaniel.architectury.networking.NetworkManager;
 import net.minecraft.network.FriendlyByteBuf;
@@ -9,7 +9,7 @@ import net.minecraft.network.chat.Component;
 
 import java.util.UUID;
 
-public class SendMessageResponsePacket extends BasePacket {
+public class SendMessageResponsePacket extends BaseS2CPacket {
 	private final UUID from;
 	private final Component text;
 

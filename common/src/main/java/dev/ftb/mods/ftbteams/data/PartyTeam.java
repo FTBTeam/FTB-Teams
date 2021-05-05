@@ -260,27 +260,23 @@ public class PartyTeam extends Team {
 
 	@Deprecated
 	public int removeAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
-		try {
-			UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
-			boolean changed = false;
+		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
+		boolean changed = false;
 
-			for (GameProfile player : players) {
-				UUID id = player.getId();
+		for (GameProfile player : players) {
+			UUID id = player.getId();
 
-				if (isAlly(id) && !isMember(id)) {
-					ranks.remove(id);
-					sendMessage(from, new TextComponent("").append(player.getName()).append(" removed from allies!").withStyle(ChatFormatting.YELLOW));
-					changed = true;
-				}
+			if (isAlly(id) && !isMember(id)) {
+				ranks.remove(id);
+				sendMessage(from, new TextComponent("").append(player.getName()).append(" removed from allies!").withStyle(ChatFormatting.YELLOW));
+				changed = true;
 			}
+		}
 
-			if (changed) {
-				save();
-				manager.syncAll();
-				return 1;
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		if (changed) {
+			save();
+			manager.syncAll();
+			return 1;
 		}
 
 		return 0;

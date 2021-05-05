@@ -158,7 +158,7 @@ public class FTBTeamsCommands {
 								.then(Commands.literal("remove")
 										.requires(source -> hasParty(source, TeamRank.OFFICER))
 										.then(Commands.argument("player", GameProfileArgument.gameProfile())
-												.executes(ctx -> team(ctx, TeamRank.OFFICER).removeAlly(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "allies")))
+												.executes(ctx -> team(ctx, TeamRank.OFFICER).removeAlly(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player")))
 										)
 								)
 								.then(Commands.literal("list")

@@ -1,6 +1,6 @@
 plugins {
 	id "com.github.johnrengelman.shadow" version "5.0.0"
-	id "com.matthewprenger.cursegradle"
+	id "com.matthewprenger.cursegradle" version "1.4.0"
 }
 
 def ENV = System.getenv()
@@ -14,10 +14,11 @@ architectury {
 	forge()
 }
 
-dependencies {
-	minecraft "com.mojang:minecraft:${rootProject.architectury.minecraft}"
-	mappings minecraft.officialMojangMappings()
+loom {
+	mixinConfigs = []
+}
 
+dependencies {
 	forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
 
 	modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
@@ -38,10 +39,11 @@ dependencies {
 }
 
 processResources {
+	inputs.property "version", project.version
+
 	filesMatching("META-INF/mods.toml") {
 		expand "version": project.version
 	}
-	inputs.property "version", project.version
 }
 
 shadowJar {
@@ -72,10 +74,6 @@ jar {
 	}
 
 	classifier "dev"
-}
-
-java {
-	withSourcesJar()
 }
 
 if (ENV.CURSEFORGE_KEY) {

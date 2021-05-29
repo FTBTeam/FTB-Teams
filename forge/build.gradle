@@ -33,7 +33,7 @@ dependencies {
 	developmentForge(project(path: ":common")) {
 		transitive = false
 	}
-	shadow(project(path: ":common", configuration: "transformProductionForge")) {
+	shadowCommon(project(path: ":common", configuration: "transformProductionForge")) {
 		transitive = false
 	}
 }

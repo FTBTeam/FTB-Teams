@@ -312,7 +312,7 @@ public class TeamManager {
 			team.changedTeam(null, id, player, false);
 		}
 
-		TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(team, player));
+		TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(getPlayerTeam(player), player));
 	}
 
 	public ClientTeamManager createClientTeamManager() {

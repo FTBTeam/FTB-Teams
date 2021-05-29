@@ -30,7 +30,7 @@ dependencies {
 	developmentFabric(project(path: ":common")) {
 		transitive = false
 	}
-	shadow(project(path: ":common", configuration: "transformProductionFabric")) {
+	shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) {
 		transitive = false
 	}
 }

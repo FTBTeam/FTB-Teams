@@ -4,9 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
-import me.shedaniel.architectury.annotations.ExpectPlatform;
 import net.minecraft.Util;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -58,10 +56,5 @@ public class FTBTUtils {
 
 	public static Color4I randomColor() {
 		return Color4I.hsb(MathUtils.RAND.nextFloat(), 0.65F, 1F);
-	}
-
-	@ExpectPlatform
-	public static Component newChatWithLinks(String message) {
-		throw new AssertionError();
 	}
 }

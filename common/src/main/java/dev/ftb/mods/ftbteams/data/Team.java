@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.snbt.OrderedCompoundTag;
+import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
 import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
 import dev.ftb.mods.ftbteams.event.PlayerJoinedPartyTeamEvent;
 import dev.ftb.mods.ftbteams.event.PlayerLeftPartyTeamEvent;
@@ -169,7 +170,7 @@ public abstract class Team extends TeamBase {
 
 		for (TeamMessage m : messageHistory) {
 			OrderedCompoundTag mt = new OrderedCompoundTag();
-			mt.singleLine = true;
+			mt.singleLine();
 			mt.putString("from", m.sender.toString());
 			mt.putLong("date", m.date);
 			mt.putString("text", Component.Serializer.toJson(m.text));
@@ -307,7 +308,7 @@ public abstract class Team extends TeamBase {
 	}
 
 	public int msg(ServerPlayer player, String message) throws CommandSyntaxException {
-		sendMessage(player.getUUID(), FTBTUtils.newChatWithLinks(message));
+		sendMessage(player.getUUID(), TextComponentUtils.withLinks(message));
 		return Command.SINGLE_SUCCESS;
 	}
 

@@ -7,11 +7,11 @@ import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.ui.BaseScreen;
 import dev.ftb.mods.ftblibrary.ui.Button;
-import dev.ftb.mods.ftblibrary.ui.ComponentTextField;
 import dev.ftb.mods.ftblibrary.ui.GuiHelper;
 import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.ui.SimpleButton;
 import dev.ftb.mods.ftblibrary.ui.TextBox;
+import dev.ftb.mods.ftblibrary.ui.TextField;
 import dev.ftb.mods.ftblibrary.ui.Theme;
 import dev.ftb.mods.ftblibrary.ui.Widget;
 import dev.ftb.mods.ftblibrary.ui.WidgetLayout;
@@ -131,8 +131,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		add(chatPanel = new Panel(this) {
 			@Override
 			public void addWidgets() {
-				add(new ComponentTextField(this).setMaxWidth(width).setText(new TextComponent("This UI is WIP! Use /ftbteams for now!")));
-				add(new ComponentTextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
+				add(new TextField(this).setMaxWidth(width).setText(new TextComponent("This UI is WIP! Use /ftbteams for now!")));
+				add(new TextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
 
 				UUID prev = null;
 
@@ -142,11 +142,11 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 						name.append(ClientTeamManager.INSTANCE.getName(message.sender));
 						name.append(":");
 
-						add(new ComponentTextField(this).setMaxWidth(width).setText(name));
+						add(new TextField(this).setMaxWidth(width).setText(name));
 						prev = message.sender;
 					}
 
-					add(new ComponentTextField(this).setMaxWidth(width).setText(new TextComponent("  ").append(message.text)));
+					add(new TextField(this).setMaxWidth(width).setText(new TextComponent("  ").append(message.text)));
 				}
 			}
 

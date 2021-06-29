@@ -36,6 +36,6 @@ side = "BOTH"
 [[dependencies.ftbteams]]
 modId = "ftblibrary"
 mandatory = true
-versionRange = "[1.0.0,)"
+versionRange = "[1605.3.1-build.37,)"
 ordering = "AFTER"
 side = "CLIENT"

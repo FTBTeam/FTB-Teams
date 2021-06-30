@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.ftb.mods.ftblibrary.snbt.OrderedCompoundTag;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
+import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -238,8 +238,8 @@ public class TeamManager {
 		}
 	}
 
-	public OrderedCompoundTag serializeNBT() {
-		OrderedCompoundTag nbt = new OrderedCompoundTag();
+	public SNBTCompoundTag serializeNBT() {
+		SNBTCompoundTag nbt = new SNBTCompoundTag();
 		nbt.putString("id", getId().toString());
 		nbt.put("extra", extraData);
 		return nbt;

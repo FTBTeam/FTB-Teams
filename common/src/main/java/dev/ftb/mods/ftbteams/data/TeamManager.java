@@ -11,7 +11,7 @@ import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
-import dev.ftb.mods.ftbteams.net.SyncTeamsPacket;
+import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import me.shedaniel.architectury.hooks.LevelResourceHooks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -331,7 +331,7 @@ public class TeamManager {
 	}
 
 	public void sync(ServerPlayer player, Team self) {
-		new SyncTeamsPacket(createClientTeamManager(), self).sendTo(player);
+		new SyncTeamsMessage(createClientTeamManager(), self).sendTo(player);
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
@@ -345,7 +345,7 @@ public class TeamManager {
 		ClientTeamManager clientManager = createClientTeamManager();
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			new SyncTeamsPacket(clientManager, getPlayerTeam(player)).sendTo(player);
+			new SyncTeamsMessage(clientManager, getPlayerTeam(player)).sendTo(player);
 			server.getPlayerList().sendPlayerPermissionLevel(player);
 		}
 	}

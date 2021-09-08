@@ -1,31 +1,31 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.snm.BaseS2CPacket;
-import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import me.shedaniel.architectury.networking.NetworkManager;
+import me.shedaniel.architectury.networking.simple.BaseS2CMessage;
+import me.shedaniel.architectury.networking.simple.MessageType;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.UUID;
 
-public class UpdateSettingsResponsePacket extends BaseS2CPacket {
+public class UpdateSettingsResponseMessage extends BaseS2CMessage {
 	private final UUID teamId;
 	private final TeamProperties properties;
 
-	UpdateSettingsResponsePacket(FriendlyByteBuf buffer) {
+	UpdateSettingsResponseMessage(FriendlyByteBuf buffer) {
 		teamId = buffer.readUUID();
 		properties = new TeamProperties();
 		properties.read(buffer);
 	}
 
-	public UpdateSettingsResponsePacket(UUID id, TeamProperties p) {
+	public UpdateSettingsResponseMessage(UUID id, TeamProperties p) {
 		teamId = id;
 		properties = p;
 	}
 
 	@Override
-	public PacketID getId() {
+	public MessageType getType() {
 		return FTBTeamsNet.UPDATE_SETTINGS_RESPONSE;
 	}
 

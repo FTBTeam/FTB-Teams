@@ -9,8 +9,9 @@ import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
 import dev.ftb.mods.ftbteams.event.ClientTeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
-import dev.ftb.mods.ftbteams.net.OpenGUIPacket;
-import dev.ftb.mods.ftbteams.net.OpenGUIResponsePacket;
+import dev.ftb.mods.ftbteams.net.OpenCreatePartyGUIMessage;
+import dev.ftb.mods.ftbteams.net.OpenGUIMessage;
+import dev.ftb.mods.ftbteams.net.OpenMyTeamGUIMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -24,7 +25,7 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 	public FTBTeamsClient() {
 		CustomClickEvent.EVENT.register(event -> {
 			if (event.getId().equals(OPEN_GUI_ID)) {
-				new OpenGUIPacket().sendToServer();
+				new OpenGUIMessage().sendToServer();
 				return InteractionResult.SUCCESS;
 			}
 			return InteractionResult.PASS;
@@ -32,8 +33,13 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 	}
 
 	@Override
-	public void openGui(OpenGUIResponsePacket res) {
+	public void openMyTeamGui(OpenMyTeamGUIMessage res) {
 		new MyTeamScreen(res).openGui();
+	}
+
+	@Override
+	public void openCreatePartyGui(OpenCreatePartyGUIMessage res) {
+		new CreatePartyScreen(res).openGui();
 	}
 
 	@Override

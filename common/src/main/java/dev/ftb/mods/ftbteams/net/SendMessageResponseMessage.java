@@ -1,30 +1,30 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.snm.BaseS2CPacket;
-import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import me.shedaniel.architectury.networking.NetworkManager;
+import me.shedaniel.architectury.networking.simple.BaseS2CMessage;
+import me.shedaniel.architectury.networking.simple.MessageType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 
 import java.util.UUID;
 
-public class SendMessageResponsePacket extends BaseS2CPacket {
+public class SendMessageResponseMessage extends BaseS2CMessage {
 	private final UUID from;
 	private final Component text;
 
-	SendMessageResponsePacket(FriendlyByteBuf buffer) {
+	SendMessageResponseMessage(FriendlyByteBuf buffer) {
 		from = buffer.readUUID();
 		text = buffer.readComponent();
 	}
 
-	public SendMessageResponsePacket(UUID f, Component s) {
+	public SendMessageResponseMessage(UUID f, Component s) {
 		from = f;
 		text = s;
 	}
 
 	@Override
-	public PacketID getId() {
+	public MessageType getType() {
 		return FTBTeamsNet.SEND_MESSAGE_RESPONSE;
 	}
 

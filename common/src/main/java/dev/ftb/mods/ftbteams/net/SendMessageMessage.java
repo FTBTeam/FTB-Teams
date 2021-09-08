@@ -1,27 +1,27 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.snm.BaseC2SPacket;
-import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
+import me.shedaniel.architectury.networking.simple.BaseC2SMessage;
+import me.shedaniel.architectury.networking.simple.MessageType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
-public class SendMessagePacket extends BaseC2SPacket {
+public class SendMessageMessage extends BaseC2SMessage {
 	private final String text;
 
-	SendMessagePacket(FriendlyByteBuf buffer) {
+	SendMessageMessage(FriendlyByteBuf buffer) {
 		text = buffer.readUtf(Short.MAX_VALUE);
 	}
 
-	public SendMessagePacket(String s) {
+	public SendMessageMessage(String s) {
 		text = s.length() > 5000 ? s.substring(0, 5000) : s;
 	}
 
 	@Override
-	public PacketID getId() {
+	public MessageType getType() {
 		return FTBTeamsNet.SEND_MESSAGE;
 	}
 

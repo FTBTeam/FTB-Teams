@@ -19,6 +19,6 @@ public class MemberButton extends NordButton {
 	}
 
 	@Override
-	public void onClicked(MouseButton mouseButton) {
+	public void onClicked(MouseButton button) {
 	}
 }

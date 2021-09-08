@@ -1,22 +1,22 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.snm.BaseC2SPacket;
-import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import me.shedaniel.architectury.networking.NetworkManager;
+import me.shedaniel.architectury.networking.simple.BaseC2SMessage;
+import me.shedaniel.architectury.networking.simple.MessageType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
-public class OpenGUIPacket extends BaseC2SPacket {
-	OpenGUIPacket(FriendlyByteBuf buffer) {
+public class OpenGUIMessage extends BaseC2SMessage {
+	OpenGUIMessage(FriendlyByteBuf buffer) {
 	}
 
-	public OpenGUIPacket() {
+	public OpenGUIMessage() {
 	}
 
 	@Override
-	public PacketID getId() {
+	public MessageType getType() {
 		return FTBTeamsNet.OPEN_GUI;
 	}
 
@@ -28,7 +28,7 @@ public class OpenGUIPacket extends BaseC2SPacket {
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
-		OpenGUIResponsePacket res = new OpenGUIResponsePacket();
+		OpenMyTeamGUIMessage res = new OpenMyTeamGUIMessage();
 		res.properties = team.properties.copy();
 		res.sendTo(player);
 	}

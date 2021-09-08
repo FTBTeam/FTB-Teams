@@ -1,27 +1,27 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.snm.BaseS2CPacket;
-import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import me.shedaniel.architectury.networking.NetworkManager;
+import me.shedaniel.architectury.networking.simple.BaseS2CMessage;
+import me.shedaniel.architectury.networking.simple.MessageType;
 import net.minecraft.network.FriendlyByteBuf;
 
-public class OpenGUIResponsePacket extends BaseS2CPacket {
+public class OpenCreatePartyGUIMessage extends BaseS2CMessage {
 	public TeamProperties properties;
 
-	OpenGUIResponsePacket(FriendlyByteBuf buffer) {
+	OpenCreatePartyGUIMessage(FriendlyByteBuf buffer) {
 		properties = new TeamProperties();
 		properties.read(buffer);
 	}
 
-	public OpenGUIResponsePacket() {
+	public OpenCreatePartyGUIMessage() {
 		properties = new TeamProperties();
 	}
 
 	@Override
-	public PacketID getId() {
-		return FTBTeamsNet.OPEN_GUI_RESPONSE;
+	public MessageType getType() {
+		return FTBTeamsNet.OPEN_CREATE_PARTY_GUI;
 	}
 
 	@Override
@@ -31,6 +31,6 @@ public class OpenGUIResponsePacket extends BaseS2CPacket {
 
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
-		FTBTeams.PROXY.openGui(this);
+		FTBTeams.PROXY.openCreatePartyGui(this);
 	}
 }

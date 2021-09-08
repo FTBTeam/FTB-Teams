@@ -21,8 +21,7 @@ dependencies {
 	modApi "me.shedaniel:architectury-fabric:${rootProject.architectury_version}"
 	modApi "dev.ftb.mods:ftb-library-fabric:${rootProject.ftb_library_version}"
 
-	modRuntime "dev.ftb.mods:ftb-quests-fabric:1605.3.3-build.36"
-	modRuntime "dev.latvian.mods:item-filters-fabric:1605.2.5-build.9"
+	modRuntime "dev.ftb.mods:ftb-chunks-fabric:${rootProject.ftb_chunks_version}"
 
 	implementation(project(path: ":common")) {
 		transitive = false

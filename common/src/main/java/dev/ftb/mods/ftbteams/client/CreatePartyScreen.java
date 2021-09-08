@@ -21,8 +21,7 @@ import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
 import dev.ftb.mods.ftbteams.data.TeamRank;
-import dev.ftb.mods.ftbteams.data.TeamType;
-import dev.ftb.mods.ftbteams.net.OpenMyTeamGUIMessage;
+import dev.ftb.mods.ftbteams.net.OpenCreatePartyGUIMessage;
 import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.UpdateSettingsMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
@@ -34,8 +33,8 @@ import net.minecraft.network.chat.TranslatableComponent;
 import java.util.Map;
 import java.util.UUID;
 
-public class MyTeamScreen extends BaseScreen implements NordColors {
-	public final OpenMyTeamGUIMessage data;
+public class CreatePartyScreen extends BaseScreen implements NordColors {
+	public final OpenCreatePartyGUIMessage data;
 	public Button settingsButton;
 	public Button colorButton;
 	public Panel memberPanel;
@@ -43,7 +42,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	public Panel chatPanel;
 	public TextBox chatBox;
 
-	public MyTeamScreen(OpenMyTeamGUIMessage res) {
+	public CreatePartyScreen(OpenCreatePartyGUIMessage res) {
 		data = res;
 		setSize(300, 200);
 	}
@@ -94,10 +93,6 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					add(new MemberButton(this, ClientTeamManager.INSTANCE.getProfile(entry.getKey()), entry.getValue()));
 				}
 
-				if (ClientTeamManager.INSTANCE.selfTeam.getType() == TeamType.PLAYER) {
-					add(new CreatePartyButton(this));
-				}
-
 				/*
 				add(new NordButton(this, new TextComponent("Add Ally"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
 					@Override
@@ -128,8 +123,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					widget.setWidth(width - 2);
 				}
 
-				chatPanel.setPosAndSize(width + 3, 23, MyTeamScreen.this.width - memberPanel.width - 5, MyTeamScreen.this.height - 40);
-				chatBox.setPosAndSize(chatPanel.posX, MyTeamScreen.this.height - 15, chatPanel.width, 13);
+				chatPanel.setPosAndSize(width + 3, 23, CreatePartyScreen.this.width - memberPanel.width - 5, CreatePartyScreen.this.height - 40);
+				chatBox.setPosAndSize(chatPanel.posX, CreatePartyScreen.this.height - 15, chatPanel.width, 13);
 			}
 		});
 

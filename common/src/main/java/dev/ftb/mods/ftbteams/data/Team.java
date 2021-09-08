@@ -11,7 +11,7 @@ import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
-import dev.ftb.mods.ftbteams.net.SendMessageResponsePacket;
+import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
 import me.shedaniel.architectury.utils.NbtType;
@@ -328,7 +328,7 @@ public abstract class Team extends TeamBase {
 
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
-			new SendMessageResponsePacket(from, text).sendTo(p);
+			new SendMessageResponseMessage(from, text).sendTo(p);
 		}
 
 		save();

@@ -1,24 +1,24 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftblibrary.net.snm.BaseS2CPacket;
-import dev.ftb.mods.ftblibrary.net.snm.PacketID;
 import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
 import me.shedaniel.architectury.networking.NetworkManager;
+import me.shedaniel.architectury.networking.simple.BaseS2CMessage;
+import me.shedaniel.architectury.networking.simple.MessageType;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class SyncTeamsPacket extends BaseS2CPacket {
+public class SyncTeamsMessage extends BaseS2CMessage {
 	private final ClientTeamManager manager;
 	private final UUID self;
 	private final List<TeamMessage> messages;
 
-	SyncTeamsPacket(FriendlyByteBuf buffer) {
+	SyncTeamsMessage(FriendlyByteBuf buffer) {
 		long now = System.currentTimeMillis();
 		manager = new ClientTeamManager(buffer, now);
 		self = buffer.readUUID();
@@ -30,14 +30,14 @@ public class SyncTeamsPacket extends BaseS2CPacket {
 		}
 	}
 
-	public SyncTeamsPacket(ClientTeamManager m, Team s) {
+	public SyncTeamsMessage(ClientTeamManager m, Team s) {
 		manager = m;
 		self = s.getId();
 		messages = new ArrayList<>(s.messageHistory);
 	}
 
 	@Override
-	public PacketID getId() {
+	public MessageType getType() {
 		return FTBTeamsNet.SYNC_TEAMS;
 	}
 

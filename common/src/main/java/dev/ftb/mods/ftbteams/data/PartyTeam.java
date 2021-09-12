@@ -74,19 +74,20 @@ public class PartyTeam extends Team {
 		ServerPlayer player = source.getPlayerOrException();
 		Team oldTeam = manager.getPlayerTeam(player);
 
-		if (oldTeam.getType().isParty()) {
+		if (!oldTeam.getType().isPlayer()) {
 			throw TeamArgument.ALREADY_IN_PARTY.create();
 		}
 
 		UUID id = player.getUUID();
 
-		manager.playerTeamMap.put(id, this);
+		((PlayerTeam) oldTeam).actualTeam = this;
 		ranks.put(id, TeamRank.MEMBER);
 		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.GREEN));
 		save();
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
+		((PlayerTeam) oldTeam).updatePresence();
 		manager.syncAll();
 		changedTeam(oldTeam, id, player, false);
 		return Command.SINGLE_SUCCESS;
@@ -138,7 +139,7 @@ public class PartyTeam extends Team {
 			}
 
 			PlayerTeam team = manager.getInternalPlayerTeam(id);
-			manager.playerTeamMap.put(id, team);
+			team.actualTeam = team;
 
 			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 
@@ -148,6 +149,8 @@ public class PartyTeam extends Team {
 
 			ranks.remove(id);
 			save();
+
+			team.updatePresence();
 			manager.syncAll();
 
 			if (playerEntity != null) {
@@ -194,7 +197,7 @@ public class PartyTeam extends Team {
 		}
 
 		PlayerTeam team = manager.getInternalPlayerTeam(id);
-		manager.playerTeamMap.put(id, team);
+		team.actualTeam = team;
 
 		team.ranks.put(id, TeamRank.OWNER);
 		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
@@ -229,6 +232,7 @@ public class PartyTeam extends Team {
 			}
 		}
 
+		team.updatePresence();
 		manager.syncAll();
 		team.changedTeam(this, id, player, deleted);
 		return Command.SINGLE_SUCCESS;

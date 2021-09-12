@@ -21,5 +21,6 @@ public class CreatePartyButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
+		new CreatePartyScreen().openGui();
 	}
 }

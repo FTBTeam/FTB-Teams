@@ -38,6 +38,7 @@ public class FTBTeams {
 		LifecycleEvent.SERVER_WORLD_SAVE.register(this::worldSaved);
 		TeamEvent.COLLECT_PROPERTIES.register(this::teamConfig);
 		PlayerEvent.PLAYER_JOIN.register(this::playerLoggedIn);
+		PlayerEvent.PLAYER_QUIT.register(this::playerLoggedOut);
 		FTBTeamsNet.init();
 		PROXY = EnvExecutor.getEnvSpecific(() -> FTBTeamsClient::new, () -> FTBTeamsCommon::new);
 	}
@@ -76,6 +77,14 @@ public class FTBTeams {
 	}
 
 	private void playerLoggedIn(ServerPlayer player) {
-		TeamManager.INSTANCE.playerLoggedIn(player);
+		if (TeamManager.INSTANCE != null) {
+			TeamManager.INSTANCE.playerLoggedIn(player);
+		}
+	}
+
+	private void playerLoggedOut(ServerPlayer player) {
+		if (TeamManager.INSTANCE != null) {
+			TeamManager.INSTANCE.playerLoggedOut(player);
+		}
 	}
 }

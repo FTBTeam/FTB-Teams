@@ -22,9 +22,8 @@ dependencies {
 	forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
 
 	modApi "me.shedaniel:architectury-forge:${rootProject.architectury_version}"
-	modApi "dev.ftb.mods:ftb-library-forge:${rootProject.ftb_library_version}"
-
-	modRuntime "dev.ftb.mods:ftb-chunks-forge:${rootProject.ftb_chunks_version}"
+	modApi("dev.ftb.mods:ftb-library-forge:${rootProject.ftb_library_version}") { transitive false }
+	modRuntime("dev.ftb.mods:ftb-chunks-forge:${rootProject.ftb_chunks_version}") { transitive false }
 
 	implementation(project(path: ":common")) {
 		transitive = false

@@ -1,9 +1,8 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.util.UUIDTypeAdapter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -21,15 +20,16 @@ public class ClientTeamManager {
 	private final UUID id;
 	public final Map<UUID, ClientTeam> teamMap;
 	public final Map<UUID, ClientTeam> playerTeamMap;
-	public final Map<UUID, GameProfile> profileMap;
+	public final Map<UUID, KnownClientPlayer> knownPlayers;
 	public ClientTeam selfTeam;
+	public KnownClientPlayer selfKnownPlayer;
 
 	public ClientTeamManager(UUID i) {
 		invalid = false;
 		id = i;
 		teamMap = new HashMap<>();
 		playerTeamMap = new HashMap<>();
-		profileMap = new HashMap<>();
+		knownPlayers = new HashMap<>();
 	}
 
 	public ClientTeamManager(FriendlyByteBuf buffer, long now) {
@@ -45,8 +45,8 @@ public class ClientTeamManager {
 		int ps = buffer.readVarInt();
 
 		for (int i = 0; i < ps; i++) {
-			GameProfile profile = new GameProfile(buffer.readUUID(), buffer.readUtf(Short.MAX_VALUE));
-			profileMap.put(profile.getId(), profile);
+			KnownClientPlayer knownClientPlayer = new KnownClientPlayer(buffer);
+			knownPlayers.put(knownClientPlayer.uuid, knownClientPlayer);
 		}
 	}
 
@@ -63,11 +63,10 @@ public class ClientTeamManager {
 			t.write(buffer, now);
 		}
 
-		buffer.writeVarInt(profileMap.size());
+		buffer.writeVarInt(knownPlayers.size());
 
-		for (GameProfile profile : profileMap.values()) {
-			buffer.writeUUID(profile.getId());
-			buffer.writeUtf(profile.getName(), Short.MAX_VALUE);
+		for (KnownClientPlayer knownClientPlayer : knownPlayers.values()) {
+			knownClientPlayer.write(buffer);
 		}
 	}
 
@@ -80,16 +79,13 @@ public class ClientTeamManager {
 				playerTeamMap.put(member, team);
 			}
 		}
+
+		selfKnownPlayer = knownPlayers.get(Minecraft.getInstance().getUser().getGameProfile().getId());
 	}
 
-	public GameProfile getProfile(UUID id) {
-		GameProfile p = profileMap.get(id);
-
-		if (p == null) {
-			return new GameProfile(id, UUIDTypeAdapter.fromUUID(id));
-		}
-
-		return p;
+	@Nullable
+	public KnownClientPlayer getKnownPlayer(UUID id) {
+		return knownPlayers.get(id);
 	}
 
 	@Nullable
@@ -102,7 +98,7 @@ public class ClientTeamManager {
 			return new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE);
 		}
 
-		GameProfile profile = profileMap.get(id);
-		return new TextComponent(profile == null ? "Unknown" : profile.getName()).withStyle(ChatFormatting.YELLOW);
+		KnownClientPlayer p = knownPlayers.get(id);
+		return new TextComponent(p == null ? "Unknown" : p.name).withStyle(ChatFormatting.YELLOW);
 	}
 }

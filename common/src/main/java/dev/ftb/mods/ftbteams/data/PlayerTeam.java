@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -10,10 +11,14 @@ import java.util.UUID;
 
 public class PlayerTeam extends Team {
 	public String playerName;
+	public boolean online;
+	public Team actualTeam;
 
 	public PlayerTeam(TeamManager m) {
 		super(m);
 		playerName = "";
+		online = false;
+		actualTeam = this;
 	}
 
 	@Override
@@ -50,5 +55,9 @@ public class PlayerTeam extends Team {
 	public List<ServerPlayer> getOnlineMembers() {
 		ServerPlayer p = getPlayer();
 		return p == null ? Collections.emptyList() : Collections.singletonList(p);
+	}
+
+	public void updatePresence() {
+		new UpdatePresenceMessage(new KnownClientPlayer(this)).sendToAll(manager.server);
 	}
 }

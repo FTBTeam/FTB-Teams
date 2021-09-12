@@ -1,36 +1,35 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.property.TeamProperties;
+import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import me.shedaniel.architectury.networking.NetworkManager;
 import me.shedaniel.architectury.networking.simple.BaseS2CMessage;
 import me.shedaniel.architectury.networking.simple.MessageType;
 import net.minecraft.network.FriendlyByteBuf;
 
-public class OpenCreatePartyGUIMessage extends BaseS2CMessage {
-	public TeamProperties properties;
+public class UpdatePresenceMessage extends BaseS2CMessage {
+	private final KnownClientPlayer update;
 
-	OpenCreatePartyGUIMessage(FriendlyByteBuf buffer) {
-		properties = new TeamProperties();
-		properties.read(buffer);
+	UpdatePresenceMessage(FriendlyByteBuf buffer) {
+		update = new KnownClientPlayer(buffer);
 	}
 
-	public OpenCreatePartyGUIMessage() {
-		properties = new TeamProperties();
+	public UpdatePresenceMessage(KnownClientPlayer p) {
+		update = p;
 	}
 
 	@Override
 	public MessageType getType() {
-		return FTBTeamsNet.OPEN_CREATE_PARTY_GUI;
+		return FTBTeamsNet.UPDATE_PRESENCE;
 	}
 
 	@Override
 	public void write(FriendlyByteBuf buffer) {
-		properties.write(buffer);
+		update.write(buffer);
 	}
 
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
-		FTBTeams.PROXY.openCreatePartyGui(this);
+		FTBTeams.PROXY.updatePresence(update);
 	}
 }

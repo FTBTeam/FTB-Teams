@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
@@ -50,7 +49,6 @@ public class TeamManager {
 	private boolean shouldSave;
 	final Map<UUID, PlayerTeam> knownPlayers;
 	final Map<UUID, Team> teamMap;
-	final Map<UUID, Team> playerTeamMap;
 	Map<String, Team> nameMap;
 	private CompoundTag extraData;
 
@@ -58,7 +56,6 @@ public class TeamManager {
 		server = s;
 		knownPlayers = new LinkedHashMap<>();
 		teamMap = new LinkedHashMap<>();
-		playerTeamMap = new LinkedHashMap<>();
 		extraData = new CompoundTag();
 	}
 
@@ -109,7 +106,8 @@ public class TeamManager {
 
 	@Nullable
 	public Team getPlayerTeam(UUID uuid) {
-		return playerTeamMap.get(uuid);
+		PlayerTeam t = knownPlayers.get(uuid);
+		return t == null ? null : t.actualTeam;
 	}
 
 	public Team getPlayerTeam(ServerPlayer player) {
@@ -120,9 +118,9 @@ public class TeamManager {
 		return getPlayerTeam(player1).equals(getPlayerTeam(player2));
 	}
 
-	public UUID getPlayerTeamID(UUID profile) {
-		Team team = playerTeamMap.get(profile);
-		return team == null ? profile : team.getId();
+	public UUID getPlayerTeamID(UUID id) {
+		Team t = getPlayerTeam(id);
+		return t == null ? id : t.getId();
 	}
 
 	public void load() {
@@ -183,12 +181,14 @@ public class TeamManager {
 			}
 		}
 
-		playerTeamMap.putAll(knownPlayers);
-
 		for (Team team : teamMap.values()) {
 			if (team instanceof PartyTeam) {
 				for (UUID member : team.getMembers()) {
-					playerTeamMap.put(member, team);
+					PlayerTeam t = knownPlayers.get(member);
+
+					if (t != null) {
+						t.actualTeam = team;
+					}
 				}
 			}
 		}
@@ -282,7 +282,6 @@ public class TeamManager {
 			team.playerName = player.getGameProfile().getName();
 			teamMap.put(id, team);
 			knownPlayers.put(id, team);
-			playerTeamMap.put(id, team);
 
 			team.setProperty(Team.DISPLAY_NAME, team.playerName);
 			team.setProperty(Team.COLOR, FTBTUtils.randomColor());
@@ -312,7 +311,18 @@ public class TeamManager {
 			team.changedTeam(null, id, player, false);
 		}
 
+		team.online = true;
+		team.updatePresence();
 		TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(getPlayerTeam(player), player));
+	}
+
+	public void playerLoggedOut(ServerPlayer player) {
+		PlayerTeam team = knownPlayers.get(player.getUUID());
+
+		if (team != null) {
+			team.online = false;
+			team.updatePresence();
+		}
 	}
 
 	public ClientTeamManager createClientTeamManager() {
@@ -323,7 +333,7 @@ public class TeamManager {
 			clientManager.teamMap.put(t.getId(), t);
 
 			if (team instanceof PlayerTeam) {
-				clientManager.profileMap.put(team.getId(), new GameProfile(team.getId(), ((PlayerTeam) team).playerName));
+				clientManager.knownPlayers.put(team.getId(), new KnownClientPlayer((PlayerTeam) team));
 			}
 		}
 
@@ -361,7 +371,7 @@ public class TeamManager {
 		}
 
 		PartyTeam team = createPartyTeam(player, name);
-		playerTeamMap.put(id, team);
+		((PlayerTeam) oldTeam).actualTeam = team;
 
 		team.ranks.put(id, TeamRank.OWNER);
 		team.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
@@ -369,6 +379,8 @@ public class TeamManager {
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
+
+		((PlayerTeam) oldTeam).updatePresence();
 		syncAll();
 		team.changedTeam(oldTeam, id, player, false);
 		return Pair.of(Command.SINGLE_SUCCESS, team);

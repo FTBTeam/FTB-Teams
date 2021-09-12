@@ -18,6 +18,7 @@ import dev.ftb.mods.ftblibrary.ui.WidgetLayout;
 import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.FTBTUtils;
+import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamMessage;
 import dev.ftb.mods.ftbteams.data.TeamRank;
@@ -32,18 +33,20 @@ import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public class MyTeamScreen extends BaseScreen implements NordColors {
+	public final ClientTeamManager manager;
 	public final OpenMyTeamGUIMessage data;
 	public Button settingsButton;
 	public Button colorButton;
 	public Panel memberPanel;
-	public Button inviteOrCreateParty;
 	public Panel chatPanel;
 	public TextBox chatBox;
 
 	public MyTeamScreen(OpenMyTeamGUIMessage res) {
+		manager = Objects.requireNonNull(ClientTeamManager.INSTANCE);
 		data = res;
 		setSize(300, 200);
 	}
@@ -90,11 +93,15 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		add(memberPanel = new Panel(this) {
 			@Override
 			public void addWidgets() {
-				for (Map.Entry<UUID, TeamRank> entry : ClientTeamManager.INSTANCE.selfTeam.getRanked(TeamRank.NONE).entrySet()) {
-					add(new MemberButton(this, ClientTeamManager.INSTANCE.getProfile(entry.getKey()), entry.getValue()));
+				for (Map.Entry<UUID, TeamRank> entry : manager.selfTeam.getRanked(TeamRank.NONE).entrySet()) {
+					KnownClientPlayer p = manager.getKnownPlayer(entry.getKey());
+
+					if (p != null) {
+						add(new MemberButton(this, p, entry.getValue()));
+					}
 				}
 
-				if (ClientTeamManager.INSTANCE.selfTeam.getType() == TeamType.PLAYER) {
+				if (manager.selfTeam.getType() == TeamType.PLAYER) {
 					add(new CreatePartyButton(this));
 				}
 
@@ -136,15 +143,12 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		add(chatPanel = new Panel(this) {
 			@Override
 			public void addWidgets() {
-				add(new TextField(this).setMaxWidth(width).setText(new TextComponent("This UI is WIP! Use /ftbteams for now!")));
-				add(new TextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
-
 				UUID prev = null;
 
-				for (TeamMessage message : ClientTeamManager.INSTANCE.selfTeam.messageHistory) {
+				for (TeamMessage message : manager.selfTeam.messageHistory) {
 					if (!message.sender.equals(prev)) {
 						TextComponent name = new TextComponent("");
-						name.append(ClientTeamManager.INSTANCE.getName(message.sender));
+						name.append(manager.getName(message.sender));
 						name.append(":");
 
 						add(new TextField(this).setMaxWidth(width).setText(name));
@@ -153,11 +157,18 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 					add(new TextField(this).setMaxWidth(width).setText(new TextComponent("  ").append(message.text)));
 				}
+
+				if (!widgets.isEmpty()) {
+					add(new TextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
+				}
+
+				add(new TextField(this).setMaxWidth(width).setText(new TextComponent("This UI is WIP! Use /ftbteams for now!")));
 			}
 
 			@Override
 			public void alignWidgets() {
-				align(new WidgetLayout.Vertical(2, 1, 10));
+				align(new WidgetLayout.Vertical(2, 1, 1));
+				movePanelScroll(0, getContentHeight());
 			}
 
 			@Override

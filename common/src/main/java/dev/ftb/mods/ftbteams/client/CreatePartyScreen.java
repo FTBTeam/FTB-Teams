@@ -22,6 +22,7 @@ import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.FTBTUtils;
 import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.TeamBase;
+import dev.ftb.mods.ftbteams.net.CreatePartyMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
@@ -169,7 +170,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 			@Override
 			public void onClicked(MouseButton mouseButton) {
 				closeGui(false);
-				System.out.println("Done!");
+				new CreatePartyMessage(nameTextBox.getText(), descriptionTextBox.getText(), teamColor.rgb(), invitedMembers).sendToServer();
 			}
 		});
 

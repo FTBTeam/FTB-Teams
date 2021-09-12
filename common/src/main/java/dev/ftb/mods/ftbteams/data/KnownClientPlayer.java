@@ -42,9 +42,17 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 		buf.writeUUID(teamId);
 	}
 
+	public boolean isInternalTeam() {
+		return teamId.equals(uuid);
+	}
+
+	public boolean isValid() {
+		return online && isInternalTeam();
+	}
+
 	@Override
 	public int compareTo(KnownClientPlayer o) {
-		int i = Boolean.compare(o.online, online);
+		int i = Boolean.compare(o.isValid(), isValid());
 		return i == 0 ? name.compareToIgnoreCase(o.name) : i;
 	}
 }

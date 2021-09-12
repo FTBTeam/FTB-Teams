@@ -7,9 +7,12 @@ import dev.ftb.mods.ftblibrary.ui.NordButton;
 import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.ui.Theme;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
+import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
 
 public class InvitedButton extends NordButton {
@@ -29,8 +32,8 @@ public class InvitedButton extends NordButton {
 		screen = s;
 		player = p;
 
-		if (!player.teamId.equals(player.uuid)) {
-			title = title.copy().withStyle(ChatFormatting.DARK_GRAY);
+		if (!player.isValid()) {
+			title = title.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(NordColors.POLAR_NIGHT_0.rgb())));
 		}
 	}
 
@@ -48,7 +51,7 @@ public class InvitedButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
-		if (player.teamId.equals(player.uuid)) {
+		if (!player.isValid()) {
 			return;
 		}
 

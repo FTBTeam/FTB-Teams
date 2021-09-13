@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -8,6 +9,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
+import me.shedaniel.architectury.platform.Platform;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -19,6 +21,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.function.Predicate;
 
 /**
@@ -237,6 +240,15 @@ public class FTBTeamsCommands {
 						)
 				)
 		);
+
+		if (Platform.isDevelopmentEnvironment()) {
+			dispatcher.register(Commands.literal("ftbteams_add_fake_player")
+					.requires(source -> source.hasPermission(2))
+					.then(Commands.argument("profile", GameProfileArgument.gameProfile())
+							.executes(ctx -> addFakePlayer(GameProfileArgument.getGameProfiles(ctx, "profile")))
+					)
+			);
+		}
 	}
 
 	private int serverId(CommandSourceStack source) {
@@ -268,5 +280,13 @@ public class FTBTeamsCommands {
 
 		source.sendSuccess(new TranslatableComponent("ftbteams.list", first ? new TranslatableComponent("ftbteams.info.owner.none") : list), false);
 		return Command.SINGLE_SUCCESS;
+	}
+
+	private int addFakePlayer(Collection<GameProfile> profiles) {
+		for (GameProfile profile : profiles) {
+			TeamManager.INSTANCE.playerLoggedIn(null, profile.getId(), profile.getName());
+		}
+
+		return 1;
 	}
 }

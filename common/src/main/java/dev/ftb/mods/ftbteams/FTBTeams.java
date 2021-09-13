@@ -78,7 +78,7 @@ public class FTBTeams {
 
 	private void playerLoggedIn(ServerPlayer player) {
 		if (TeamManager.INSTANCE != null) {
-			TeamManager.INSTANCE.playerLoggedIn(player);
+			TeamManager.INSTANCE.playerLoggedIn(player, player.getUUID(), player.getScoreboardName());
 		}
 	}
 

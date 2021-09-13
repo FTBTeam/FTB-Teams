@@ -270,8 +270,7 @@ public class TeamManager {
 		return team;
 	}
 
-	public void playerLoggedIn(ServerPlayer player) {
-		UUID id = player.getUUID();
+	public void playerLoggedIn(@Nullable ServerPlayer player, UUID id, String name) {
 		PlayerTeam team = knownPlayers.get(id);
 		boolean all = false;
 		boolean created = false;
@@ -279,7 +278,7 @@ public class TeamManager {
 		if (team == null) {
 			team = new PlayerTeam(this);
 			team.id = id;
-			team.playerName = player.getGameProfile().getName();
+			team.playerName = name;
 			teamMap.put(id, team);
 			knownPlayers.put(id, team);
 
@@ -293,8 +292,8 @@ public class TeamManager {
 			all = true;
 		}
 
-		if (!team.playerName.equals(player.getGameProfile().getName())) {
-			team.playerName = player.getGameProfile().getName();
+		if (!team.playerName.equals(name)) {
+			team.playerName = name;
 			team.save();
 			save();
 			all = true;
@@ -302,18 +301,27 @@ public class TeamManager {
 
 		if (all) {
 			syncAll();
-		} else {
-			sync(player, team);
+		} else if (player != null) {
+			sync(player, team.actualTeam);
 		}
 
 		if (created) {
-			team.created(player);
+			if (player != null) {
+				team.created(player);
+			} else {
+				team.save();
+				save();
+			}
+
 			team.changedTeam(null, id, player, false);
 		}
 
 		team.online = true;
 		team.updatePresence();
-		TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(getPlayerTeam(player), player));
+
+		if (player != null) {
+			TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(team.actualTeam, player));
+		}
 	}
 
 	public void playerLoggedOut(ServerPlayer player) {

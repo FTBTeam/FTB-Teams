@@ -19,7 +19,6 @@ public class ClientTeamManager {
 	public boolean invalid;
 	private final UUID id;
 	public final Map<UUID, ClientTeam> teamMap;
-	public final Map<UUID, ClientTeam> playerTeamMap;
 	public final Map<UUID, KnownClientPlayer> knownPlayers;
 	public ClientTeam selfTeam;
 	public KnownClientPlayer selfKnownPlayer;
@@ -28,7 +27,6 @@ public class ClientTeamManager {
 		invalid = false;
 		id = i;
 		teamMap = new HashMap<>();
-		playerTeamMap = new HashMap<>();
 		knownPlayers = new HashMap<>();
 	}
 
@@ -73,13 +71,6 @@ public class ClientTeamManager {
 	public void init(UUID self, List<TeamMessage> messages) {
 		selfTeam = teamMap.get(self);
 		selfTeam.messageHistory.addAll(messages);
-
-		for (ClientTeam team : teamMap.values()) {
-			for (UUID member : team.getMembers()) {
-				playerTeamMap.put(member, team);
-			}
-		}
-
 		selfKnownPlayer = knownPlayers.get(Minecraft.getInstance().getUser().getGameProfile().getId());
 	}
 

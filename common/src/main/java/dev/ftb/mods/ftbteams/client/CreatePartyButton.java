@@ -16,7 +16,7 @@ public class CreatePartyButton extends NordButton {
 	@Override
 	public void addMouseOverText(TooltipList list) {
 		list.translate("ftbteams.create_party.info");
-		list.maxWidth = 100;
+		list.maxWidth = 130;
 	}
 
 	@Override

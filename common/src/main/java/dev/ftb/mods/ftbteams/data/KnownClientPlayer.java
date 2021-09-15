@@ -10,6 +10,7 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 	public String name;
 	public boolean online;
 	public UUID teamId;
+	private GameProfile profile;
 
 	public KnownClientPlayer(PlayerTeam pt) {
 		uuid = pt.getId();
@@ -29,10 +30,15 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 		name = p.name;
 		online = p.online;
 		teamId = p.teamId;
+		profile = null;
 	}
 
 	public GameProfile getProfile() {
-		return new GameProfile(uuid, name);
+		if (profile == null) {
+			profile = new GameProfile(uuid, name);
+		}
+
+		return profile;
 	}
 
 	public void write(FriendlyByteBuf buf) {

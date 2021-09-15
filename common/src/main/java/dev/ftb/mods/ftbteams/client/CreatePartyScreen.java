@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.client;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
@@ -34,7 +35,6 @@ import net.minecraft.network.chat.TranslatableComponent;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class CreatePartyScreen extends BaseScreen implements NordColors {
@@ -49,7 +49,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 	public Color4I teamColor;
 	public TextBox nameTextBox;
 	public TextBox descriptionTextBox;
-	public Set<UUID> invitedMembers;
+	public Set<GameProfile> invitedMembers;
 
 	public CreatePartyScreen() {
 		setSize(300, 200);

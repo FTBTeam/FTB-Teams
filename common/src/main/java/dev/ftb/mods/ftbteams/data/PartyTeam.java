@@ -10,7 +10,8 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -103,23 +104,15 @@ public class PartyTeam extends Team {
 			ranks.put(player.getId(), TeamRank.INVITED);
 			save();
 
-			sendMessage(from.getUUID(), new TextComponent("Invited " + player.getName() + " to ").append(getName()).withStyle(ChatFormatting.GREEN));
+			sendMessage(from.getUUID(), new TextComponent("Invited " + player.getName()).withStyle(ChatFormatting.GREEN));
 
-			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), player.getId());
+			ServerPlayer p = FTBTUtils.getPlayerByUUID(manager.getServer(), player.getId());
 
-			if (playerEntity != null) {
-				MutableComponent component = new TextComponent("You have been invited to ").append(getName()).append("!");
-				playerEntity.displayClientMessage(component, false);
-
-				TextComponent accept = new TextComponent("[Click here to accept the invite]");
-				accept.setStyle(accept.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams party join " + getStringID())));
-				accept.withStyle(ChatFormatting.GREEN);
-				playerEntity.displayClientMessage(accept, false);
-
-				TextComponent deny = new TextComponent("[Click here to deny the invite]");
-				deny.withStyle(ChatFormatting.RED);
-				deny.setStyle(deny.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/ftbteams party deny_invite " + getStringID())));
-				playerEntity.displayClientMessage(deny, false);
+			if (p != null) {
+				p.sendMessage(new TextComponent("").append(player.getName()).append(" has invited you to join their party!"), Util.NIL_UUID);
+				Component acceptButton = new TextComponent("Accept ✔").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party join " + getStringID())));
+				Component denyButton = new TextComponent("Deny ✘").withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party deny_invite " + getStringID())));
+				p.sendMessage(new TextComponent("[").append(acceptButton).append("] [").append(denyButton).append("]"), Util.NIL_UUID);
 			}
 		}
 

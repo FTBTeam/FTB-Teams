@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.net;
 
+import com.mojang.authlib.GameProfile;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.PlayerTeam;
 import dev.ftb.mods.ftbteams.data.Team;
@@ -11,13 +12,12 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 public class CreatePartyMessage extends BaseC2SMessage {
 	private final String name;
 	private final String description;
 	private final int color;
-	private final Set<UUID> invited;
+	private final Set<GameProfile> invited;
 
 	CreatePartyMessage(FriendlyByteBuf buffer) {
 		name = buffer.readUtf(Short.MAX_VALUE);
@@ -27,11 +27,11 @@ public class CreatePartyMessage extends BaseC2SMessage {
 		invited = new HashSet<>(s);
 
 		for (int i = 0; i < s; i++) {
-			invited.add(buffer.readUUID());
+			invited.add(new GameProfile(buffer.readUUID(), buffer.readUtf(Short.MAX_VALUE)));
 		}
 	}
 
-	public CreatePartyMessage(String n, String d, int c, Set<UUID> i) {
+	public CreatePartyMessage(String n, String d, int c, Set<GameProfile> i) {
 		name = n;
 		description = d;
 		color = c;
@@ -50,8 +50,9 @@ public class CreatePartyMessage extends BaseC2SMessage {
 		buffer.writeInt(color);
 		buffer.writeVarInt(invited.size());
 
-		for (UUID id : invited) {
-			buffer.writeUUID(id);
+		for (GameProfile p : invited) {
+			buffer.writeUUID(p.getId());
+			buffer.writeUtf(p.getName(), Short.MAX_VALUE);
 		}
 	}
 

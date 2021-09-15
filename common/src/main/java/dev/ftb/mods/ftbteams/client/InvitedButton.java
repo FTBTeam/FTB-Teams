@@ -55,11 +55,11 @@ public class InvitedButton extends NordButton {
 			return;
 		}
 
-		if (screen.invitedMembers.contains(player.uuid)) {
-			screen.invitedMembers.remove(player.uuid);
+		if (screen.invitedMembers.contains(player.getProfile())) {
+			screen.invitedMembers.remove(player.getProfile());
 			title = new TextComponent("").append(checkbox(false)).append(" " + player.name);
 		} else {
-			screen.invitedMembers.add(player.uuid);
+			screen.invitedMembers.add(player.getProfile());
 			title = new TextComponent("").append(checkbox(true)).append(" " + player.name);
 		}
 	}

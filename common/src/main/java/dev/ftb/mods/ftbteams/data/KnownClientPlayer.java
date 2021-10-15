@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.UUID;
@@ -11,12 +12,14 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 	public boolean online;
 	public UUID teamId;
 	private GameProfile profile;
+	private CompoundTag extraData;
 
 	public KnownClientPlayer(PlayerTeam pt) {
 		uuid = pt.getId();
 		name = pt.playerName;
 		online = pt.online;
 		teamId = pt.actualTeam.getId();
+		extraData = pt.getExtraData();
 	}
 
 	public KnownClientPlayer(FriendlyByteBuf buf) {
@@ -24,6 +27,7 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 		name = buf.readUtf(Short.MAX_VALUE);
 		online = buf.readBoolean();
 		teamId = buf.readUUID();
+		extraData = buf.readAnySizeNbt();
 	}
 
 	public void update(KnownClientPlayer p) {
@@ -31,6 +35,7 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 		online = p.online;
 		teamId = p.teamId;
 		profile = null;
+		extraData = p.extraData;
 	}
 
 	public GameProfile getProfile() {
@@ -46,6 +51,7 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 		buf.writeUtf(name, Short.MAX_VALUE);
 		buf.writeBoolean(online);
 		buf.writeUUID(teamId);
+		buf.writeNbt(extraData);
 	}
 
 	public boolean isInternalTeam() {

@@ -62,6 +62,10 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 		return online && isInternalTeam();
 	}
 
+	public CompoundTag getExtraData() {
+		return extraData;
+	}
+
 	@Override
 	public int compareTo(KnownClientPlayer o) {
 		int i = Boolean.compare(o.isValid(), isValid());

@@ -109,7 +109,7 @@ public class PartyTeam extends Team {
 			ServerPlayer p = FTBTUtils.getPlayerByUUID(manager.getServer(), player.getId());
 
 			if (p != null) {
-				p.sendMessage(new TextComponent("").append(player.getName()).append(" has invited you to join their party!"), Util.NIL_UUID);
+				p.sendMessage(new TextComponent("").append(from.getName()).append(" has invited you to join their party!"), Util.NIL_UUID);
 				Component acceptButton = new TextComponent("Accept ✔").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party join " + getStringID())));
 				Component denyButton = new TextComponent("Deny ✘").withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party deny_invite " + getStringID())));
 				p.sendMessage(new TextComponent("[").append(acceptButton).append("] [").append(denyButton).append("]"), Util.NIL_UUID);

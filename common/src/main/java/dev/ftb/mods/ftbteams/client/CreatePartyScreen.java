@@ -35,7 +35,6 @@ import net.minecraft.network.chat.TranslatableComponent;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class CreatePartyScreen extends BaseScreen implements NordColors {
 	public final ClientTeamManager manager;
@@ -91,7 +90,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 					}
 				});
 
-				for (KnownClientPlayer player : manager.knownPlayers.values().stream().sorted().collect(Collectors.toList())) {
+				for (KnownClientPlayer player : manager.knownPlayers.values().stream().sorted().toList()) {
 					if (player != manager.selfKnownPlayer) {
 						add(new InvitedButton(this, CreatePartyScreen.this, player));
 					}

@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.client;
 
 import dev.architectury.event.EventResult;
+import dev.architectury.platform.Platform;
 import dev.ftb.mods.ftblibrary.ui.CustomClickEvent;
 import dev.ftb.mods.ftblibrary.util.ClientUtils;
 import dev.ftb.mods.ftbteams.FTBTeams;
@@ -14,10 +15,8 @@ import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.net.OpenGUIMessage;
 import dev.ftb.mods.ftbteams.net.OpenMyTeamGUIMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
-import dev.architectury.platform.Platform;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.InteractionResult;
 
 import java.util.UUID;
 

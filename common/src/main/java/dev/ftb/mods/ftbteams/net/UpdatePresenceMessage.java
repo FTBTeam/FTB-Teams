@@ -1,10 +1,10 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseS2CMessage;
 import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class UpdatePresenceMessage extends BaseS2CMessage {

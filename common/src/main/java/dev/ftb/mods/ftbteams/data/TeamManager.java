@@ -11,7 +11,6 @@ import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
-import dev.architectury.hooks.LevelResourceHooks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -33,14 +32,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 /**
  * @author LatvianModder
  */
 public class TeamManager {
-	public static final LevelResource FOLDER_NAME = LevelResourceHooks.create("ftbteams");
-	private static final LevelResource OLD_ID_FILE = LevelResourceHooks.create("data/ftbchunks/info.json");
+	public static final LevelResource FOLDER_NAME = new LevelResource("ftbteams");
+	private static final LevelResource OLD_ID_FILE = new LevelResource("data/ftbchunks/info.json");
 
 	public static TeamManager INSTANCE;
 
@@ -159,7 +157,7 @@ public class TeamManager {
 
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
 				try {
-					for (Path file : Files.list(dir).filter(path -> path.getFileName().toString().endsWith(".snbt")).collect(Collectors.toList())) {
+					for (Path file : Files.list(dir).filter(path -> path.getFileName().toString().endsWith(".snbt")).toList()) {
 						CompoundTag nbt = SNBT.read(file);
 
 						if (nbt != null) {

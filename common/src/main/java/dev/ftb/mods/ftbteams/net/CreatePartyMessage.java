@@ -1,12 +1,12 @@
 package dev.ftb.mods.ftbteams.net;
 
 import com.mojang.authlib.GameProfile;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.data.PlayerTeam;
-import dev.ftb.mods.ftbteams.data.Team;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.data.PlayerTeam;
+import dev.ftb.mods.ftbteams.data.Team;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 

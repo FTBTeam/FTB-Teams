@@ -14,7 +14,6 @@ import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
-import dev.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -236,7 +235,7 @@ public abstract class Team extends TeamBase {
 		} else {
 			Optional optional = key.fromString(value);
 
-			if (!optional.isPresent()) {
+			if (optional.isEmpty()) {
 				//throw CommandSyntaxException
 				source.sendSuccess(new TextComponent("Failed to parse value!"), true);
 				return 0;

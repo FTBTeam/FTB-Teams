@@ -14,12 +14,13 @@ import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
-import me.shedaniel.architectury.utils.NbtType;
+import dev.architectury.utils.NbtType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
@@ -200,7 +201,7 @@ public abstract class Team extends TeamBase {
 		extraData = tag.getCompound("extra");
 		messageHistory.clear();
 
-		ListTag messageHistoryTag = tag.getList("message_history", NbtType.COMPOUND);
+		ListTag messageHistoryTag = tag.getList("message_history", Tag.TAG_COMPOUND);
 
 		for (int i = 0; i < messageHistoryTag.size(); i++) {
 			CompoundTag mt = messageHistoryTag.getCompound(i);

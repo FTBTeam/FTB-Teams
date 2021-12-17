@@ -14,13 +14,13 @@
 	"license": "All Rights Reserved",
 	"entrypoints": {
 		"main": [
-			"dev.ftb.mods.ftbteams.FTBTeamsFabric"
+			"dev.ftb.mods.ftbteams.fabric.FTBTeamsFabric"
 		]
 	},
 	"depends": {
 		"fabric": "*",
-		"minecraft": "~1.16.5",
-		"architectury": ">=1.3.84",
-		"ftblibrary": ">=1605.3.2-build.66"
+		"minecraft": "~1.18.1",
+		"architectury": ">=3.2.52",
+		"ftblibrary": ">=1801.3.5-build.98"
 	}
 }

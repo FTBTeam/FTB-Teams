@@ -1,8 +1,8 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.ftb.mods.ftbteams.FTBTeams;
-import me.shedaniel.architectury.networking.simple.MessageType;
-import me.shedaniel.architectury.networking.simple.SimpleNetworkManager;
+import dev.architectury.networking.simple.MessageType;
+import dev.architectury.networking.simple.SimpleNetworkManager;
 
 public interface FTBTeamsNet {
 	SimpleNetworkManager NET = SimpleNetworkManager.create(FTBTeams.MOD_ID);

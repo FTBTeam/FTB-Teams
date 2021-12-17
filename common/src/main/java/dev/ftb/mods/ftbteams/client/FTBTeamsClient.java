@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.client;
 
+import dev.architectury.event.EventResult;
 import dev.ftb.mods.ftblibrary.ui.CustomClickEvent;
 import dev.ftb.mods.ftblibrary.util.ClientUtils;
 import dev.ftb.mods.ftbteams.FTBTeams;
@@ -13,7 +14,7 @@ import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.net.OpenGUIMessage;
 import dev.ftb.mods.ftbteams.net.OpenMyTeamGUIMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
-import me.shedaniel.architectury.platform.Platform;
+import dev.architectury.platform.Platform;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
@@ -25,11 +26,11 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 
 	public FTBTeamsClient() {
 		CustomClickEvent.EVENT.register(event -> {
-			if (event.getId().equals(OPEN_GUI_ID)) {
+			if (event.id().equals(OPEN_GUI_ID)) {
 				new OpenGUIMessage().sendToServer();
-				return InteractionResult.SUCCESS;
+				return EventResult.interruptTrue();
 			}
-			return InteractionResult.PASS;
+			return EventResult.pass();
 		});
 	}
 

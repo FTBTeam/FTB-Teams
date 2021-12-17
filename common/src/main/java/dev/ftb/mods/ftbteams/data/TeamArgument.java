@@ -71,23 +71,17 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 
 		@Override
 		public Team getTeam(CommandSourceStack source) throws CommandSyntaxException {
+
 			Team team = FTBTeamsAPI.getManager().getTeamNameMap().get(id);
 
 			if (team != null) {
 				return team;
 			}
 
-			GameProfile profile = source.getServer().getProfileCache().get(id);
-
-			if (profile != null) {
-				Team t = FTBTeamsAPI.getManager().getPlayerTeam(profile.getId());
-
-				if (t != null) {
-					return t;
-				}
-			}
-
-			throw error();
+			return source.getServer().getProfileCache().get(id)
+					.map(GameProfile::getId)
+					.map(FTBTeamsAPI.getManager()::getPlayerTeam)
+					.orElseThrow(this::error);
 		}
 	}
 

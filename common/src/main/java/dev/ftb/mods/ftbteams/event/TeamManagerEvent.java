@@ -1,8 +1,8 @@
 package dev.ftb.mods.ftbteams.event;
 
 import dev.ftb.mods.ftbteams.data.TeamManager;
-import me.shedaniel.architectury.event.Event;
-import me.shedaniel.architectury.event.EventFactory;
+import dev.architectury.event.Event;
+import dev.architectury.event.EventFactory;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Consumer;

@@ -1,6 +1,10 @@
 package dev.ftb.mods.ftbteams;
 
 import com.mojang.brigadier.CommandDispatcher;
+import dev.architectury.event.events.common.CommandRegistrationEvent;
+import dev.architectury.event.events.common.LifecycleEvent;
+import dev.architectury.event.events.common.PlayerEvent;
+import dev.architectury.utils.EnvExecutor;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.FTBTeamsCommands;
 import dev.ftb.mods.ftbteams.data.TeamArgument;
@@ -11,10 +15,6 @@ import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
 import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
-import me.shedaniel.architectury.event.events.CommandRegistrationEvent;
-import me.shedaniel.architectury.event.events.LifecycleEvent;
-import me.shedaniel.architectury.event.events.PlayerEvent;
-import me.shedaniel.architectury.utils.EnvExecutor;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.synchronization.ArgumentTypes;
@@ -35,7 +35,7 @@ public class FTBTeams {
 		LifecycleEvent.SERVER_BEFORE_START.register(this::serverAboutToStart);
 		CommandRegistrationEvent.EVENT.register(this::registerCommands);
 		LifecycleEvent.SERVER_STOPPED.register(this::serverStopped);
-		LifecycleEvent.SERVER_WORLD_SAVE.register(this::worldSaved);
+		LifecycleEvent.SERVER_LEVEL_SAVE.register(this::worldSaved);
 		TeamEvent.COLLECT_PROPERTIES.register(this::teamConfig);
 		PlayerEvent.PLAYER_JOIN.register(this::playerLoggedIn);
 		PlayerEvent.PLAYER_QUIT.register(this::playerLoggedOut);

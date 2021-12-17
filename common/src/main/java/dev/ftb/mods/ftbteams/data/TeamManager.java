@@ -11,7 +11,7 @@ import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
-import me.shedaniel.architectury.hooks.LevelResourceHooks;
+import dev.architectury.hooks.LevelResourceHooks;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;

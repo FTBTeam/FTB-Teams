@@ -6,6 +6,7 @@ import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.util.TooltipList;
 import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import net.minecraft.network.chat.TranslatableComponent;
 
 public class CreatePartyButton extends NordButton {
@@ -21,6 +22,10 @@ public class CreatePartyButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
-		new CreatePartyScreen().openGui();
+		if (FTBTeamsAPI.partyCreationOverride != null) {
+			FTBTeamsAPI.partyCreationOverride.accept(button);
+		} else {
+			new CreatePartyScreen().openGui();
+		}
 	}
 }

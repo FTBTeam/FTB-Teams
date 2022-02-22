@@ -33,6 +33,7 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final DynamicCommandExceptionType NOT_INVITED = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.not_invited", object));
 	public static final SimpleCommandExceptionType OWNER_CANT_LEAVE = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.owner_cant_leave"));
 	public static final SimpleCommandExceptionType CANT_KICK_OWNER = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.cant_kick_owner"));
+	public static final SimpleCommandExceptionType API_OVERRIDE = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.api_override"));
 
 	public static TeamArgument create() {
 		return new TeamArgument();

@@ -7,6 +7,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
@@ -369,6 +370,10 @@ public class TeamManager {
 	// Command Handlers //
 
 	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name) throws CommandSyntaxException {
+		if (FTBTeamsAPI.partyCreationOverride != null) {
+			throw TeamArgument.API_OVERRIDE.create();
+		}
+
 		UUID id = player.getUUID();
 		Team oldTeam = getPlayerTeam(player);
 

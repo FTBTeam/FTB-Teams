@@ -29,8 +29,8 @@ import dev.ftb.mods.ftbteams.net.UpdateSettingsMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
 import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 import java.util.Map;
 import java.util.Objects;
@@ -53,7 +53,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public void addWidgets() {
-		add(settingsButton = new SimpleButton(this, new TranslatableComponent("gui.settings"), Icon.getIcon("ftbteams:textures/settings.png").withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> {
+		add(settingsButton = new SimpleButton(this, net.minecraft.network.chat.Component.translatable("gui.settings"), Icon.getIcon("ftbteams:textures/settings.png").withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> {
 			ConfigGroup config = new ConfigGroup("ftbteamsconfig");
 
 			for (Map.Entry<TeamProperty, TeamPropertyValue> entry : data.properties.map.entrySet()) {
@@ -76,7 +76,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 		});
 
-		add(colorButton = new SimpleButton(this, new TranslatableComponent("gui.color"), data.properties.get(Team.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
+		add(colorButton = new SimpleButton(this, net.minecraft.network.chat.Component.translatable("gui.color"), data.properties.get(Team.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
 			Color4I c = FTBTUtils.randomColor();
 			data.properties.set(Team.COLOR, c);
 			simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
@@ -106,13 +106,13 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 				}
 
 				/*
-				add(new NordButton(this, new TextComponent("Add Ally"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
+				add(new NordButton(this, Component.literal("Add Ally"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
 					@Override
 					public void onClicked(MouseButton mouseButton) {
 					}
 				});
 
-				add(new NordButton(this, new TextComponent("Add Member"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
+				add(new NordButton(this, Component.literal("Add Member"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
 					@Override
 					public void onClicked(MouseButton mouseButton) {
 					}
@@ -147,7 +147,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 				for (TeamMessage message : manager.selfTeam.messageHistory) {
 					if (!message.sender.equals(prev)) {
-						TextComponent name = new TextComponent("");
+						MutableComponent name = Component.literal("");
 						name.append(manager.getName(message.sender));
 						name.append(":");
 
@@ -155,14 +155,14 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 						prev = message.sender;
 					}
 
-					add(new TextField(this).setMaxWidth(width).setText(new TextComponent("  ").append(message.text)));
+					add(new TextField(this).setMaxWidth(width).setText(Component.literal("  ").append(message.text)));
 				}
 
 				if (!widgets.isEmpty()) {
-					add(new TextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
+					add(new TextField(this).setMaxWidth(width).setText(Component.empty()));
 				}
 
-				add(new TextField(this).setMaxWidth(width).setText(new TextComponent("This UI is WIP! Use /ftbteams for now!")));
+				add(new TextField(this).setMaxWidth(width).setText(Component.literal("This UI is WIP! Use /ftbteams for now!")));
 			}
 
 			@Override

@@ -27,10 +27,9 @@ import dev.ftb.mods.ftbteams.net.CreatePartyMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.User;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -59,14 +58,14 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public void addWidgets() {
-		add(closeButton = new SimpleButton(this, new TranslatableComponent("gui.cancel"), Icon.getIcon("ftbteams:textures/cancel.png").withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
+		add(closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icon.getIcon("ftbteams:textures/cancel.png").withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
 			@Override
 			public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
 				drawIcon(matrixStack, theme, x, y, w, h);
 			}
 		});
 
-		add(colorButton = new SimpleButton(this, new TranslatableComponent("gui.color"), teamColor.withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
+		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), teamColor.withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
 			teamColor = FTBTUtils.randomColor();
 			simpleButton.setIcon(teamColor.withBorder(POLAR_NIGHT_0, false));
 		}) {
@@ -79,12 +78,12 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 		add(invitePanel = new Panel(this) {
 			@Override
 			public void addWidgets() {
-				add(new TextField(this).addFlags(Theme.CENTERED).setText(new TextComponent("Add Members")));
+				add(new TextField(this).addFlags(Theme.CENTERED).setText(Component.literal("Add Members")));
 				add(new VerticalSpaceWidget(this, 2));
 
 				User self = Minecraft.getInstance().getUser();
 
-				add(new NordButton(this, new TextComponent("").append(new TextComponent("✦ ").withStyle(ChatFormatting.GOLD)).append(self.getName()), FaceIcon.getFace(self.getGameProfile())) {
+				add(new NordButton(this, Component.literal("").append(Component.literal("✦ ").withStyle(ChatFormatting.GOLD)).append(self.getName()), FaceIcon.getFace(self.getGameProfile())) {
 					@Override
 					public void onClicked(MouseButton mouseButton) {
 					}
@@ -120,7 +119,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 		add(settingsPanel = new Panel(this) {
 			@Override
 			public void addWidgets() {
-				add(new TextField(this).setMaxWidth(width - 6).setText(new TextComponent("Name")));
+				add(new TextField(this).setMaxWidth(width - 6).setText(Component.literal("Name")));
 				add(nameTextBox = new TextBox(this) {
 					@Override
 					public void drawTextBox(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
@@ -129,7 +128,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 				});
 				add(new VerticalSpaceWidget(this, 4));
 
-				add(new TextField(this).setMaxWidth(width - 6).setText(new TextComponent("Description")));
+				add(new TextField(this).setMaxWidth(width - 6).setText(Component.literal("Description")));
 				add(descriptionTextBox = new TextBox(this) {
 					@Override
 					public void drawTextBox(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
@@ -160,7 +159,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 			}
 		});
 
-		add(createTeamButton = new NordButton(this, new TextComponent("Done ✔").withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(NordColors.GREEN.rgb()))), Icon.EMPTY) {
+		add(createTeamButton = new NordButton(this, Component.literal("Done ✔").withStyle(Style.EMPTY.withBold(true).withColor(TextColor.fromRgb(NordColors.GREEN.rgb()))), Icon.EMPTY) {
 			@Override
 			public boolean renderTitleInCenter() {
 				return true;

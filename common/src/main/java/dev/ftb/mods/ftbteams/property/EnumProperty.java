@@ -6,7 +6,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
@@ -84,7 +84,7 @@ public class EnumProperty extends TeamProperty<String> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<String> value) {
-		config.addEnum(id.getNamespace() + "." + id.getPath(), value.value, value.consumer, NameMap.of(defaultValue, values).name(s -> names.getOrDefault(s, new TextComponent(s))).create());
+		config.addEnum(id.getNamespace() + "." + id.getPath(), value.value, value.consumer, NameMap.of(defaultValue, values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
 	}
 
 	@Override

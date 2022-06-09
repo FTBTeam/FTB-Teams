@@ -8,7 +8,7 @@ import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.ui.WidgetLayout;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+
 
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +34,7 @@ public class PlayerListScreen extends BaseScreen {
 			@Override
 			public void addWidgets() {
 				for (GameProfile profile : profiles) {
-					add(new NordButton(this, new TextComponent(profile.getName()), FaceIcon.getFace(profile)) {
+					add(new NordButton(this, Component.literal(profile.getName()), FaceIcon.getFace(profile)) {
 						@Override
 						public void onClicked(MouseButton mouseButton) {
 							if (selected.contains(profile)) {

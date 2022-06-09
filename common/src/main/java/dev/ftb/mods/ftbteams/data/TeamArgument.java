@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -11,12 +12,15 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.commands.arguments.selector.EntitySelectorParser;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 
 import java.util.LinkedHashSet;
 import java.util.concurrent.CompletableFuture;
@@ -25,15 +29,15 @@ import java.util.concurrent.CompletableFuture;
  * @author LatvianModder
  */
 public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
-	public static final SimpleCommandExceptionType ALREADY_IN_PARTY = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.already_in_party"));
-	public static final SimpleCommandExceptionType NOT_IN_PARTY = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.not_in_party"));
-	public static final DynamicCommandExceptionType TEAM_NOT_FOUND = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.team_not_found", object));
-	public static final DynamicCommandExceptionType CANT_EDIT = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.cant_edit", object));
-	public static final Dynamic2CommandExceptionType NOT_MEMBER = new Dynamic2CommandExceptionType((a, b) -> new TranslatableComponent("ftbteams.not_member", a, b));
-	public static final DynamicCommandExceptionType NOT_INVITED = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.not_invited", object));
-	public static final SimpleCommandExceptionType OWNER_CANT_LEAVE = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.owner_cant_leave"));
-	public static final SimpleCommandExceptionType CANT_KICK_OWNER = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.cant_kick_owner"));
-	public static final SimpleCommandExceptionType API_OVERRIDE = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.api_override"));
+	public static final SimpleCommandExceptionType ALREADY_IN_PARTY = new SimpleCommandExceptionType(Component.translatable("ftbteams.already_in_party"));
+	public static final SimpleCommandExceptionType NOT_IN_PARTY = new SimpleCommandExceptionType(Component.translatable("ftbteams.not_in_party"));
+	public static final DynamicCommandExceptionType TEAM_NOT_FOUND = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.team_not_found", object));
+	public static final DynamicCommandExceptionType CANT_EDIT = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.cant_edit", object));
+	public static final Dynamic2CommandExceptionType NOT_MEMBER = new Dynamic2CommandExceptionType((a, b) -> Component.translatable("ftbteams.not_member", a, b));
+	public static final DynamicCommandExceptionType NOT_INVITED = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.not_invited", object));
+	public static final SimpleCommandExceptionType OWNER_CANT_LEAVE = new SimpleCommandExceptionType(Component.translatable("ftbteams.owner_cant_leave"));
+	public static final SimpleCommandExceptionType CANT_KICK_OWNER = new SimpleCommandExceptionType(Component.translatable("ftbteams.cant_kick_owner"));
+	public static final SimpleCommandExceptionType API_OVERRIDE = new SimpleCommandExceptionType(Component.translatable("ftbteams.api_override"));
 
 	public static TeamArgument create() {
 		return new TeamArgument();
@@ -133,5 +137,39 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 		}
 
 		return Suggestions.empty();
+	}
+
+	public static class Info implements ArgumentTypeInfo<TeamArgument, Info.Template> {
+		@Override
+		public void serializeToNetwork(Template template, FriendlyByteBuf friendlyByteBuf) {
+
+		}
+
+		@Override
+		public Template deserializeFromNetwork(FriendlyByteBuf friendlyByteBuf) {
+			return new Template();
+		}
+
+		@Override
+		public void serializeToJson(Template template, JsonObject jsonObject) {
+
+		}
+
+		@Override
+		public Template unpack(TeamArgument argumentType) {
+			return new Template();
+		}
+
+		public final class Template implements ArgumentTypeInfo.Template<TeamArgument> {
+			@Override
+			public TeamArgument instantiate(CommandBuildContext commandBuildContext) {
+				return TeamArgument.create();
+			}
+
+			@Override
+			public ArgumentTypeInfo<TeamArgument, ?> type() {
+				return Info.this;
+			}
+		}
 	}
 }

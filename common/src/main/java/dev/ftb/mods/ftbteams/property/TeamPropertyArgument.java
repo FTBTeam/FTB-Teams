@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.property;
 
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -9,9 +10,12 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.commands.synchronization.ArgumentTypeInfo;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.LinkedHashMap;
@@ -22,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
  * @author LatvianModder
  */
 public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
-	private static final SimpleCommandExceptionType PROPERTY_NOT_FOUND = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.property_not_found"));
+	private static final SimpleCommandExceptionType PROPERTY_NOT_FOUND = new SimpleCommandExceptionType(Component.translatable("ftbteams.property_not_found"));
 
 	public static TeamPropertyArgument create() {
 		return new TeamPropertyArgument();
@@ -57,6 +61,40 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
 			return SharedSuggestionProvider.suggest(map.keySet(), builder);
 		} catch (Exception ex) {
 			return Suggestions.empty();
+		}
+	}
+
+	public static class Info implements ArgumentTypeInfo<TeamPropertyArgument, TeamPropertyArgument.Info.Template> {
+		@Override
+		public void serializeToNetwork(TeamPropertyArgument.Info.Template template, FriendlyByteBuf friendlyByteBuf) {
+
+		}
+
+		@Override
+		public TeamPropertyArgument.Info.Template deserializeFromNetwork(FriendlyByteBuf friendlyByteBuf) {
+			return new Template();
+		}
+
+		@Override
+		public void serializeToJson(TeamPropertyArgument.Info.Template template, JsonObject jsonObject) {
+
+		}
+
+		@Override
+		public TeamPropertyArgument.Info.Template unpack(TeamPropertyArgument argumentType) {
+			return new Template();
+		}
+
+		public final class Template implements ArgumentTypeInfo.Template<TeamPropertyArgument> {
+			@Override
+			public TeamPropertyArgument instantiate(CommandBuildContext commandBuildContext) {
+				return TeamPropertyArgument.create();
+			}
+
+			@Override
+			public ArgumentTypeInfo<TeamPropertyArgument, ?> type() {
+				return Info.this;
+			}
 		}
 	}
 }

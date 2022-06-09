@@ -4,7 +4,8 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
+
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,7 +46,7 @@ public class ServerTeam extends Team {
 			}
 		}
 
-		source.sendSuccess(new TextComponent("Team deleted"), true);
+		source.sendSuccess(Component.literal("Team deleted"), true);
 		manager.save();
 		manager.syncAll();
 		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));

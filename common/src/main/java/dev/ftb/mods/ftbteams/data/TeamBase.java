@@ -12,9 +12,11 @@ import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -107,7 +109,7 @@ public abstract class TeamBase {
 	}
 
 	public Component getName() {
-		TextComponent text = new TextComponent(getDisplayName());
+		MutableComponent text = Component.literal(getDisplayName());
 
 		if (getType().isPlayer()) {
 			text.withStyle(ChatFormatting.GRAY);
@@ -122,7 +124,7 @@ public abstract class TeamBase {
 	}
 
 	public Component getColoredName() {
-		TextComponent text = new TextComponent(getDisplayName());
+		MutableComponent text = Component.literal(getDisplayName());
 		text.withStyle(getProperty(COLOR).toStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getStringID())));
 		return text;
 	}

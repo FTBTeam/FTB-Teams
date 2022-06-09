@@ -15,9 +15,10 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
@@ -252,15 +253,15 @@ public class FTBTeamsCommands {
 	}
 
 	private int serverId(CommandSourceStack source) {
-		TextComponent component = new TextComponent("Server ID: " + FTBTeamsAPI.getManager().getId());
-		component.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new TextComponent("Click to copy"))));
+		MutableComponent component = Component.literal("Server ID: " + FTBTeamsAPI.getManager().getId());
+		component.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to copy"))));
 		component.withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, FTBTeamsAPI.getManager().getId().toString())));
 		source.sendSuccess(component, false);
 		return 1;
 	}
 
 	private int list(CommandSourceStack source, @Nullable TeamType type) {
-		TextComponent list = new TextComponent("");
+		MutableComponent list = Component.literal("");
 
 		boolean first = true;
 
@@ -278,7 +279,7 @@ public class FTBTeamsCommands {
 			list.append(team.getName());
 		}
 
-		source.sendSuccess(new TranslatableComponent("ftbteams.list", first ? new TranslatableComponent("ftbteams.info.owner.none") : list), false);
+		source.sendSuccess(Component.translatable("ftbteams.list", first ? Component.translatable("ftbteams.info.owner.none") : list), false);
 		return Command.SINGLE_SUCCESS;
 	}
 

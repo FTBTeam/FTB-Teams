@@ -5,7 +5,7 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -86,10 +86,10 @@ public class ClientTeamManager {
 
 	public Component getName(@Nullable UUID id) {
 		if (id == null || id.equals(Util.NIL_UUID)) {
-			return new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE);
+			return Component.literal("System").withStyle(ChatFormatting.LIGHT_PURPLE);
 		}
 
 		KnownClientPlayer p = knownPlayers.get(id);
-		return new TextComponent(p == null ? "Unknown" : p.name).withStyle(ChatFormatting.YELLOW);
+		return Component.literal(p == null ? "Unknown" : p.name).withStyle(ChatFormatting.YELLOW);
 	}
 }

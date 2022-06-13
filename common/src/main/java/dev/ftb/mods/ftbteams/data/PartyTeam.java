@@ -9,10 +9,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
+
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,7 +84,7 @@ public class PartyTeam extends Team {
 
 		((PlayerTeam) oldTeam).actualTeam = this;
 		ranks.put(id, TeamRank.MEMBER);
-		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.GREEN));
+		sendMessage(Util.NIL_UUID, Component.literal("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.GREEN));
 		save();
 
 		oldTeam.ranks.remove(id);
@@ -104,15 +105,15 @@ public class PartyTeam extends Team {
 			ranks.put(player.getId(), TeamRank.INVITED);
 			save();
 
-			sendMessage(from.getUUID(), new TextComponent("Invited " + player.getName()).withStyle(ChatFormatting.GREEN));
+			sendMessage(from.getUUID(), Component.literal("Invited " + player.getName()).withStyle(ChatFormatting.GREEN));
 
 			ServerPlayer p = FTBTUtils.getPlayerByUUID(manager.getServer(), player.getId());
 
 			if (p != null) {
-				p.sendMessage(new TextComponent("").append(from.getName()).append(" has invited you to join their party!"), Util.NIL_UUID);
-				Component acceptButton = new TextComponent("Accept ✔").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party join " + getStringID())));
-				Component denyButton = new TextComponent("Deny ✘").withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party deny_invite " + getStringID())));
-				p.sendMessage(new TextComponent("[").append(acceptButton).append("] [").append(denyButton).append("]"), Util.NIL_UUID);
+				p.sendSystemMessage(Component.literal("").append(from.getName()).append(" has invited you to join their party!"), ChatType.CHAT);
+				Component acceptButton = Component.literal("Accept ✔").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party join " + getStringID())));
+				Component denyButton = Component.literal("Deny ✘").withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party deny_invite " + getStringID())));
+				p.sendSystemMessage(Component.literal("[").append(acceptButton).append("] [").append(denyButton).append("]"), ChatType.CHAT);
 			}
 		}
 
@@ -137,7 +138,7 @@ public class PartyTeam extends Team {
 			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 
 			team.ranks.put(id, TeamRank.OWNER);
-			sendMessage(from.getUUID(), new TextComponent("Kicked ").append(manager.getName(id)).append(" from ").append(getName()).withStyle(ChatFormatting.RED));
+			sendMessage(from.getUUID(), Component.literal("Kicked ").append(manager.getName(id)).append(" from ").append(getName()).withStyle(ChatFormatting.RED));
 			team.save();
 
 			ranks.remove(id);
@@ -147,7 +148,7 @@ public class PartyTeam extends Team {
 			manager.syncAll();
 
 			if (playerEntity != null) {
-				playerEntity.displayClientMessage(new TextComponent("You have been kicked from ").append(getName()).append("!"), false);
+				playerEntity.displayClientMessage(Component.literal("You have been kicked from ").append(getName()).append("!"), false);
 				updateCommands(playerEntity);
 			}
 
@@ -164,7 +165,7 @@ public class PartyTeam extends Team {
 		}
 
 		if (from == to) {
-			from.sendMessage(new TextComponent("What."), Util.NIL_UUID);
+			from.sendSystemMessage(Component.literal("What."), ChatType.CHAT);
 			return 0;
 		}
 
@@ -174,7 +175,7 @@ public class PartyTeam extends Team {
 		save();
 		TeamEvent.OWNERSHIP_TRANSFERRED.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
 
-		sendMessage(from.getUUID(), new TextComponent("Transferred ownership to ").append(to.getDisplayName()).withStyle(ChatFormatting.RED));
+		sendMessage(from.getUUID(), Component.literal("Transferred ownership to ").append(to.getDisplayName()).withStyle(ChatFormatting.RED));
 		updateCommands(from);
 		updateCommands(to);
 		manager.syncAll();
@@ -193,7 +194,7 @@ public class PartyTeam extends Team {
 		team.actualTeam = team;
 
 		team.ranks.put(id, TeamRank.OWNER);
-		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
+		sendMessage(Util.NIL_UUID, Component.literal("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
 		ranks.remove(id);
@@ -241,7 +242,7 @@ public class PartyTeam extends Team {
 
 			if (!isAlly(id)) {
 				ranks.put(id, TeamRank.ALLY);
-				sendMessage(from, new TextComponent("").append(player.getName()).append(" added as ally!").withStyle(ChatFormatting.YELLOW));
+				sendMessage(from, Component.literal("").append(player.getName()).append(" added as ally!").withStyle(ChatFormatting.YELLOW));
 				changed = true;
 			}
 		}
@@ -265,7 +266,7 @@ public class PartyTeam extends Team {
 
 			if (isAlly(id) && !isMember(id)) {
 				ranks.remove(id);
-				sendMessage(from, new TextComponent("").append(player.getName()).append(" removed from allies!").withStyle(ChatFormatting.YELLOW));
+				sendMessage(from, Component.literal("").append(player.getName()).append(" removed from allies!").withStyle(ChatFormatting.YELLOW));
 				changed = true;
 			}
 		}
@@ -281,7 +282,7 @@ public class PartyTeam extends Team {
 
 	@Deprecated
 	public int listAllies(CommandSourceStack source) throws CommandSyntaxException {
-		source.sendSuccess(new TextComponent("Allies:"), false);
+		source.sendSuccess(Component.literal("Allies:"), false);
 		boolean any = false;
 
 		for (Map.Entry<UUID, TeamRank> entry : getRanked(TeamRank.ALLY).entrySet()) {
@@ -292,7 +293,7 @@ public class PartyTeam extends Team {
 		}
 
 		if (!any) {
-			source.sendSuccess(new TextComponent("None"), false);
+			source.sendSuccess(Component.literal("None"), false);
 		}
 
 		return 1;

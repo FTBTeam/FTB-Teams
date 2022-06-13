@@ -7,18 +7,14 @@ import dev.architectury.event.events.common.PlayerEvent;
 import dev.architectury.utils.EnvExecutor;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.FTBTeamsCommands;
-import dev.ftb.mods.ftbteams.data.TeamArgument;
 import dev.ftb.mods.ftbteams.data.TeamBase;
 import dev.ftb.mods.ftbteams.data.TeamManager;
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
-import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.synchronization.ArgumentTypes;
-import net.minecraft.commands.synchronization.EmptyArgumentSerializer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -41,11 +37,6 @@ public class FTBTeams {
 		PlayerEvent.PLAYER_QUIT.register(this::playerLoggedOut);
 		FTBTeamsNet.init();
 		PROXY = EnvExecutor.getEnvSpecific(() -> FTBTeamsClient::new, () -> FTBTeamsCommon::new);
-	}
-
-	public void setup() {
-		ArgumentTypes.register("ftbteams:team", TeamArgument.class, new EmptyArgumentSerializer<>(TeamArgument::create));
-		ArgumentTypes.register("ftbteams:team_property", TeamPropertyArgument.class, new EmptyArgumentSerializer<>(TeamPropertyArgument::create));
 	}
 
 	private void serverAboutToStart(MinecraftServer server) {
@@ -86,5 +77,8 @@ public class FTBTeams {
 		if (TeamManager.INSTANCE != null) {
 			TeamManager.INSTANCE.playerLoggedOut(player);
 		}
+	}
+
+	public void setup() {
 	}
 }

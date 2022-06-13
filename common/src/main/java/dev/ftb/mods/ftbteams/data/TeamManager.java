@@ -17,7 +17,7 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
+
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -385,7 +385,7 @@ public class TeamManager {
 		((PlayerTeam) oldTeam).actualTeam = team;
 
 		team.ranks.put(id, TeamRank.OWNER);
-		team.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
+		team.sendMessage(Util.NIL_UUID, Component.literal("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
 		team.save();
 
 		oldTeam.ranks.remove(id);
@@ -399,18 +399,18 @@ public class TeamManager {
 
 	public Pair<Integer, ServerTeam> createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
 		ServerTeam team = createServerTeam(source.getPlayerOrException(), name);
-		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
+		source.sendSuccess(Component.literal("Created new server team ").append(team.getName()), true);
 		syncAll();
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
 	public Component getName(@Nullable UUID id) {
 		if (id == null || id.equals(Util.NIL_UUID)) {
-			return new TextComponent("System").withStyle(ChatFormatting.LIGHT_PURPLE);
+			return Component.literal("System").withStyle(ChatFormatting.LIGHT_PURPLE);
 		}
 
 		PlayerTeam team = knownPlayers.get(id);
-		return new TextComponent(team == null ? "Unknown" : team.playerName).withStyle(ChatFormatting.YELLOW);
+		return Component.literal(team == null ? "Unknown" : team.playerName).withStyle(ChatFormatting.YELLOW);
 	}
 
 	public CompoundTag getExtraData() {

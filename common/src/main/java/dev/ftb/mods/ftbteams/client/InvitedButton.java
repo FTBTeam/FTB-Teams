@@ -13,14 +13,14 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
+
 
 public class InvitedButton extends NordButton {
 	public static Component checkbox(boolean b) {
 		if (b) {
-			return new TextComponent("☑").withStyle(ChatFormatting.GREEN);
+			return Component.literal("☑").withStyle(ChatFormatting.GREEN);
 		} else {
-			return new TextComponent("☐");
+			return Component.literal("☐");
 		}
 	}
 
@@ -28,7 +28,7 @@ public class InvitedButton extends NordButton {
 	public final KnownClientPlayer player;
 
 	public InvitedButton(Panel panel, CreatePartyScreen s, KnownClientPlayer p) {
-		super(panel, new TextComponent("").append(checkbox(s.invitedMembers.contains(p.uuid))).append(" " + p.name), FaceIcon.getFace(p.getProfile()));
+		super(panel, Component.literal("").append(checkbox(s.invitedMembers.contains(p.uuid))).append(" " + p.name), FaceIcon.getFace(p.getProfile()));
 		screen = s;
 		player = p;
 
@@ -57,10 +57,10 @@ public class InvitedButton extends NordButton {
 
 		if (screen.invitedMembers.contains(player.getProfile())) {
 			screen.invitedMembers.remove(player.getProfile());
-			title = new TextComponent("").append(checkbox(false)).append(" " + player.name);
+			title = Component.literal("").append(checkbox(false)).append(" " + player.name);
 		} else {
 			screen.invitedMembers.add(player.getProfile());
-			title = new TextComponent("").append(checkbox(true)).append(" " + player.name);
+			title = Component.literal("").append(checkbox(true)).append(" " + player.name);
 		}
 	}
 }

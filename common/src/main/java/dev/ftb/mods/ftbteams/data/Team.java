@@ -20,13 +20,10 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.BaseComponent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -217,7 +214,7 @@ public abstract class Team extends TeamBase {
 	@Deprecated
 	public int delete(CommandSourceStack source) throws CommandSyntaxException {
 		if (delete()) {
-			source.sendSuccess(new TextComponent("Deleted " + getId()), true);
+			source.sendSuccess(Component.literal("Deleted " + getId()), true);
 		}
 
 		return Command.SINGLE_SUCCESS;
@@ -227,28 +224,28 @@ public abstract class Team extends TeamBase {
 
 	public int settings(CommandSourceStack source, TeamProperty key, String value) throws CommandSyntaxException {
 		if (value.isEmpty()) {
-			BaseComponent keyc = new TranslatableComponent("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
+			MutableComponent keyc = Component.translatable("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
 			keyc.withStyle(ChatFormatting.YELLOW);
-			TextComponent valuec = new TextComponent(key.toString(getProperty(key)));
+			MutableComponent valuec = Component.literal(key.toString(getProperty(key)));
 			valuec.withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(new TextComponent("").append(keyc).append(" is set to ").append(valuec), true);
+			source.sendSuccess(Component.literal("").append(keyc).append(" is set to ").append(valuec), true);
 		} else {
 			Optional optional = key.fromString(value);
 
 			if (optional.isEmpty()) {
 				//throw CommandSyntaxException
-				source.sendSuccess(new TextComponent("Failed to parse value!"), true);
+				source.sendSuccess(Component.literal("Failed to parse value!"), true);
 				return 0;
 			}
 
 			TeamProperties old = properties.copy();
 
 			setProperty(key, optional.get());
-			BaseComponent keyc = new TranslatableComponent("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
+			MutableComponent keyc = Component.translatable("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
 			keyc.withStyle(ChatFormatting.YELLOW);
-			TextComponent valuec = new TextComponent(value);
+			MutableComponent valuec = Component.literal(value);
 			valuec.withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(new TextComponent("Set ").append(keyc).append(" to ").append(valuec), true);
+			source.sendSuccess(Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
 			TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
 		}
 
@@ -261,7 +258,7 @@ public abstract class Team extends TeamBase {
 
 		if (isInvited(player.getUUID()) && !isMember(player.getUUID())) {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
-			source.sendSuccess(new TextComponent("Invite denied"), true);
+			source.sendSuccess(Component.literal("Invite denied"), true);
 			save();
 			manager.syncAll();
 		}
@@ -271,31 +268,31 @@ public abstract class Team extends TeamBase {
 
 	@Deprecated
 	public int info(CommandSourceStack source) throws CommandSyntaxException {
-		source.sendSuccess(TextComponent.EMPTY, false);
+		source.sendSuccess(Component.empty(), false);
 
-		TextComponent infoComponent = new TextComponent("");
+		MutableComponent infoComponent = Component.literal("");
 		infoComponent.getStyle().withBold(true);
 		infoComponent.append("== ");
 		infoComponent.append(getName());
 		infoComponent.append(" ==");
 		source.sendSuccess(infoComponent, false);
 
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.id", new TextComponent(getId().toString()).withStyle(ChatFormatting.YELLOW)), false);
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.short_id", new TextComponent(getStringID()).withStyle(ChatFormatting.YELLOW)).append(" [" + getType().getSerializedName() + "]"), false);
+		source.sendSuccess(Component.translatable("ftbteams.info.id", Component.literal(getId().toString()).withStyle(ChatFormatting.YELLOW)), false);
+		source.sendSuccess(Component.translatable("ftbteams.info.short_id", Component.literal(getStringID()).withStyle(ChatFormatting.YELLOW)).append(" [" + getType().getSerializedName() + "]"), false);
 
 		if (getOwner().equals(Util.NIL_UUID)) {
-			source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", new TranslatableComponent("ftbteams.info.owner.none")), false);
+			source.sendSuccess(Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none")), false);
 		} else {
-			source.sendSuccess(new TranslatableComponent("ftbteams.info.owner", manager.getName(getOwner())), false);
+			source.sendSuccess(Component.translatable("ftbteams.info.owner", manager.getName(getOwner())), false);
 		}
 
-		source.sendSuccess(new TranslatableComponent("ftbteams.info.members"), false);
+		source.sendSuccess(Component.translatable("ftbteams.info.members"), false);
 
 		if (getMembers().isEmpty()) {
-			source.sendSuccess(new TextComponent("- ").append(new TranslatableComponent("ftbteams.info.members.none")), false);
+			source.sendSuccess(Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")), false);
 		} else {
 			for (UUID member : getMembers()) {
-				source.sendSuccess(new TextComponent("- ").append(manager.getName(member)), false);
+				source.sendSuccess(Component.literal("- ").append(manager.getName(member)), false);
 			}
 		}
 
@@ -319,7 +316,7 @@ public abstract class Team extends TeamBase {
 			messageHistory.remove(0);
 		}
 
-		TextComponent component = new TextComponent("<");
+		MutableComponent component = Component.literal("<");
 		component.append(manager.getName(from));
 		component.append(" @");
 		component.append(getName());

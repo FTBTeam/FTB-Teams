@@ -9,14 +9,15 @@ import dev.ftb.mods.ftblibrary.ui.Theme;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.TeamRank;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
+
 
 public class MemberButton extends NordButton {
 	public final KnownClientPlayer player;
 	public final TeamRank rank;
 
 	public MemberButton(Panel panel, KnownClientPlayer p, TeamRank r) {
-		super(panel, new TextComponent(p.name), FaceIcon.getFace(p.getProfile()));
+		super(panel, Component.literal(p.name), FaceIcon.getFace(p.getProfile()));
 		player = p;
 		rank = r;
 	}

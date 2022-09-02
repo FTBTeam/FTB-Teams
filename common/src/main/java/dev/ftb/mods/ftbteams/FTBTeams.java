@@ -13,6 +13,7 @@ import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
+import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.server.MinecraftServer;
@@ -39,13 +40,14 @@ public class FTBTeams {
 		PROXY = EnvExecutor.getEnvSpecific(() -> FTBTeamsClient::new, () -> FTBTeamsCommon::new);
 	}
 
+
 	private void serverAboutToStart(MinecraftServer server) {
 		TeamManager.INSTANCE = new TeamManager(server);
 		TeamManagerEvent.CREATED.invoker().accept(new TeamManagerEvent(TeamManager.INSTANCE));
 		TeamManager.INSTANCE.load();
 	}
 
-	private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, Commands.CommandSelection selection) {
+	private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext, Commands.CommandSelection selection) {
 		new FTBTeamsCommands().register(dispatcher);
 	}
 

@@ -110,10 +110,10 @@ public class PartyTeam extends Team {
 			ServerPlayer p = FTBTUtils.getPlayerByUUID(manager.getServer(), player.getId());
 
 			if (p != null) {
-				p.sendSystemMessage(Component.literal("").append(from.getName()).append(" has invited you to join their party!"), ChatType.CHAT);
+				p.sendSystemMessage(Component.literal("").append(from.getName()).append(" has invited you to join their party!"), false);
 				Component acceptButton = Component.literal("Accept ✔").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party join " + getStringID())));
 				Component denyButton = Component.literal("Deny ✘").withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party deny_invite " + getStringID())));
-				p.sendSystemMessage(Component.literal("[").append(acceptButton).append("] [").append(denyButton).append("]"), ChatType.CHAT);
+				p.sendSystemMessage(Component.literal("[").append(acceptButton).append("] [").append(denyButton).append("]"), false);
 			}
 		}
 
@@ -165,7 +165,7 @@ public class PartyTeam extends Team {
 		}
 
 		if (from == to) {
-			from.sendSystemMessage(Component.literal("What."), ChatType.CHAT);
+			from.sendSystemMessage(Component.literal("What."), false);
 			return 0;
 		}
 

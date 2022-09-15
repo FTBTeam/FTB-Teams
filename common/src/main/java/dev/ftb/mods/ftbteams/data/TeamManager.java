@@ -368,9 +368,12 @@ public class TeamManager {
 	}
 
 	// Command Handlers //
-
 	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name) throws CommandSyntaxException {
-		if (FTBTeamsAPI.partyCreationOverride != null) {
+		return createParty(player, name, true);
+	}
+
+	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name, boolean fromCommand) throws CommandSyntaxException {
+		if (FTBTeamsAPI.partyCreationOverride != null && fromCommand) {
 			throw TeamArgument.API_OVERRIDE.create();
 		}
 

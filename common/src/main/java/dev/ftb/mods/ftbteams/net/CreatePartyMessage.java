@@ -18,13 +18,11 @@ public class CreatePartyMessage extends BaseC2SMessage {
 	private final String description;
 	private final int color;
 	private final Set<GameProfile> invited;
-	private final boolean isFromScreen;
 
 	CreatePartyMessage(FriendlyByteBuf buffer) {
 		name = buffer.readUtf(Short.MAX_VALUE);
 		description = buffer.readUtf(Short.MAX_VALUE);
 		color = buffer.readInt();
-		isFromScreen = buffer.readBoolean();
 		int s = buffer.readVarInt();
 		invited = new HashSet<>(s);
 
@@ -34,15 +32,10 @@ public class CreatePartyMessage extends BaseC2SMessage {
 	}
 
 	public CreatePartyMessage(String n, String d, int c, Set<GameProfile> i) {
-		this(n, d, c, false, i);
-	}
-
-	public CreatePartyMessage(String n, String d, int c, boolean isFromScreen, Set<GameProfile> i) {
 		name = n;
 		description = d;
 		color = c;
 		invited = i;
-		this.isFromScreen = isFromScreen;
 	}
 
 	@Override
@@ -55,7 +48,6 @@ public class CreatePartyMessage extends BaseC2SMessage {
 		buffer.writeUtf(name, Short.MAX_VALUE);
 		buffer.writeUtf(description, Short.MAX_VALUE);
 		buffer.writeInt(color);
-		buffer.writeBoolean(isFromScreen);
 		buffer.writeVarInt(invited.size());
 
 		for (GameProfile p : invited) {
@@ -70,7 +62,7 @@ public class CreatePartyMessage extends BaseC2SMessage {
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
 
 		if (team instanceof PlayerTeam) {
-			((PlayerTeam) team).createParty(player, name, description, color, invited, isFromScreen);
+			((PlayerTeam) team).createParty(player, name, description, color, invited, false);
 		}
 	}
 }

@@ -169,7 +169,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 			@Override
 			public void onClicked(MouseButton mouseButton) {
 				closeGui(false);
-				new CreatePartyMessage(nameTextBox.getText(), descriptionTextBox.getText(), teamColor.rgb(), true, invitedMembers).sendToServer();
+				new CreatePartyMessage(nameTextBox.getText(), descriptionTextBox.getText(), teamColor.rgb(), invitedMembers).sendToServer();
 			}
 		});
 

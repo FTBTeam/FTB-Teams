@@ -65,12 +65,12 @@ public class PlayerTeam extends Team {
 	}
 
 	public void createParty(ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {
-		createParty(player, name, description, color, invited, false);
+		createParty(player, name, description, color, invited, true);
 	}
 
-	public void createParty(ServerPlayer player, String name, String description, int color, Set<GameProfile> invited, boolean isFromScreen) {
+	public void createParty(ServerPlayer player, String name, String description, int color, Set<GameProfile> invited, boolean isCommand) {
 		try {
-			PartyTeam team = manager.createParty(player, name, isFromScreen).getRight();
+			PartyTeam team = manager.createParty(player, name, isCommand).getRight();
 			team.setProperty(DESCRIPTION, description);
 			team.setProperty(COLOR, Color4I.rgb(color));
 			team.invite(player, invited);

@@ -17,6 +17,7 @@ import dev.ftb.mods.ftblibrary.ui.Theme;
 import dev.ftb.mods.ftblibrary.ui.VerticalSpaceWidget;
 import dev.ftb.mods.ftblibrary.ui.Widget;
 import dev.ftb.mods.ftblibrary.ui.WidgetLayout;
+import dev.ftb.mods.ftblibrary.ui.input.Key;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
@@ -189,5 +190,14 @@ public class CreatePartyScreen extends BaseScreen implements NordColors {
 	public void drawForeground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
 		super.drawForeground(matrixStack, theme, x, y, w, h);
 		theme.drawString(matrixStack, "Create a Party", x + w / 2F, y + 7, SNOW_STORM_1, Theme.CENTERED);
+	}
+
+	@Override
+	public boolean keyPressed(Key key) {
+		if (key.escOrInventory()) {
+			closeGui(false);
+			return true;
+		}
+		return false;
 	}
 }

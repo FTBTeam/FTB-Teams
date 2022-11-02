@@ -21,6 +21,6 @@
 		"fabric": "*",
 		"minecraft": "~1.19",
 		"architectury": ">=5.5.17",
-		"ftblibrary": ">=1900.3.6-build.125"
+		"ftblibrary": ">=1902.3.10-build.155"
 	}
 }

@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
+import dev.ftb.mods.ftbteams.event.TeamAllyEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -19,9 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PartyTeam extends Team {
 	UUID owner;
@@ -234,21 +233,22 @@ public class PartyTeam extends Team {
 	@Deprecated
 	public int addAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
 		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
-		boolean changed = false;
 
+		List<GameProfile> addedPlayers = new ArrayList<>();
 		for (GameProfile player : players) {
 			UUID id = player.getId();
 
 			if (!isAlly(id)) {
 				ranks.put(id, TeamRank.ALLY);
 				sendMessage(from, new TextComponent("").append(player.getName()).append(" added as ally!").withStyle(ChatFormatting.YELLOW));
-				changed = true;
+				addedPlayers.add(player);
 			}
 		}
 
-		if (changed) {
+		if (!addedPlayers.isEmpty()) {
 			save();
 			manager.syncAll();
+			TeamEvent.ADD_ALLY.invoker().accept(new TeamAllyEvent(this, addedPlayers, true));
 			return 1;
 		}
 
@@ -258,7 +258,7 @@ public class PartyTeam extends Team {
 	@Deprecated
 	public int removeAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
 		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
-		boolean changed = false;
+		List<GameProfile> removedPlayers = new ArrayList<>();
 
 		for (GameProfile player : players) {
 			UUID id = player.getId();
@@ -266,13 +266,14 @@ public class PartyTeam extends Team {
 			if (isAlly(id) && !isMember(id)) {
 				ranks.remove(id);
 				sendMessage(from, new TextComponent("").append(player.getName()).append(" removed from allies!").withStyle(ChatFormatting.YELLOW));
-				changed = true;
+				removedPlayers.add(player);
 			}
 		}
 
-		if (changed) {
+		if (!removedPlayers.isEmpty()) {
 			save();
 			manager.syncAll();
+			TeamEvent.REMOVE_ALLY.invoker().accept(new TeamAllyEvent(this, removedPlayers, false));
 			return 1;
 		}
 

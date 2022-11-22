@@ -74,6 +74,7 @@ public class FTBTeams {
 		event.add(TeamBase.DESCRIPTION);
 		event.add(TeamBase.COLOR);
 		event.add(TeamBase.FREE_TO_JOIN);
+		event.add(TeamBase.MAX_MSG_HISTORY_SIZE);
 	}
 
 	private void playerLoggedIn(ServerPlayer player) {

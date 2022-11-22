@@ -22,6 +22,7 @@
 	"ftbteamsconfig.ftbteams.description": "Description",
 	"ftbteamsconfig.ftbteams.color": "Color",
 	"ftbteamsconfig.ftbteams.free_to_join": "Free to Join",
+	"ftbteamsconfig.ftbteams.max_msg_history_size": "Message History Maximum Size",
 	"ftbteams.privacy_mode.allies": "Allies",
 	"ftbteams.privacy_mode.private": "Private",
 	"ftbteams.privacy_mode.public": "Public",

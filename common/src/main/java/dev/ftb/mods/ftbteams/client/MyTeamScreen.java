@@ -32,6 +32,7 @@ import dev.ftb.mods.ftbteams.property.TeamProperty;
 import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Map;
 import java.util.Objects;
@@ -54,7 +55,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public void addWidgets() {
-		add(settingsButton = new SimpleButton(this, net.minecraft.network.chat.Component.translatable("gui.settings"), Icon.getIcon("ftbteams:textures/settings.png").withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> {
+		add(settingsButton = new SimpleButton(this, Component.translatable("gui.settings"), Icon.getIcon("ftbteams:textures/settings.png").withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> {
 			ConfigGroup config = new ConfigGroup("ftbteamsconfig");
 
 			for (Map.Entry<TeamProperty, TeamPropertyValue> entry : data.properties.map.entrySet()) {
@@ -213,10 +214,10 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public boolean keyPressed(Key key) {
-		if (key.escOrInventory()) {
-			closeGui(false);
+		if (key.is(GLFW.GLFW_KEY_TAB)) {
+			chatBox.setFocused(true);
 			return true;
 		}
-		return false;
+		return super.keyPressed(key);
 	}
 }

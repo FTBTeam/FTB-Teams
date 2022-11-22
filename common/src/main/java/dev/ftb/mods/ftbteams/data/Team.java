@@ -165,7 +165,7 @@ public abstract class Team extends TeamBase {
 
 		ListTag messageHistoryTag = new ListTag();
 
-		for (TeamMessage m : messageHistory) {
+		for (TeamMessage m : getMessageHistory()) {
 			SNBTCompoundTag mt = new SNBTCompoundTag();
 			mt.singleLine();
 			mt.putString("from", m.sender.toString());
@@ -201,7 +201,7 @@ public abstract class Team extends TeamBase {
 
 		for (int i = 0; i < messageHistoryTag.size(); i++) {
 			CompoundTag mt = messageHistoryTag.getCompound(i);
-			messageHistory.add(new TeamMessage(UUID.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
+			addMessage(new TeamMessage(UUID.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
 		}
 
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
@@ -310,11 +310,7 @@ public abstract class Team extends TeamBase {
 	}
 
 	public void sendMessage(UUID from, Component text) {
-		messageHistory.add(new TeamMessage(from, System.currentTimeMillis(), text));
-
-		if (messageHistory.size() > 1000) {
-			messageHistory.remove(0);
-		}
+		addMessage(new TeamMessage(from, System.currentTimeMillis(), text));
 
 		MutableComponent component = Component.literal("<");
 		component.append(manager.getName(from));

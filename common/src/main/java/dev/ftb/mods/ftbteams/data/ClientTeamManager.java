@@ -70,7 +70,7 @@ public class ClientTeamManager {
 
 	public void init(UUID self, List<TeamMessage> messages) {
 		selfTeam = teamMap.get(self);
-		selfTeam.messageHistory.addAll(messages);
+		selfTeam.addMessages(messages);
 		selfKnownPlayer = knownPlayers.get(Minecraft.getInstance().getUser().getGameProfile().getId());
 	}
 

@@ -33,7 +33,7 @@ public class SyncTeamsMessage extends BaseS2CMessage {
 	public SyncTeamsMessage(ClientTeamManager m, Team s) {
 		manager = m;
 		self = s.getId();
-		messages = new ArrayList<>(s.messageHistory);
+		messages = new ArrayList<>(s.getMessageHistory());
 	}
 
 	@Override

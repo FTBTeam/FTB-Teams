@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.property;
 
+import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.nbt.CompoundTag;

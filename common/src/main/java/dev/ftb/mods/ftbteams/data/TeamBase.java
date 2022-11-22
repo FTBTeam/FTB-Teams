@@ -2,27 +2,16 @@ package dev.ftb.mods.ftbteams.data;
 
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.property.BooleanProperty;
-import dev.ftb.mods.ftbteams.property.ColorProperty;
-import dev.ftb.mods.ftbteams.property.StringProperty;
-import dev.ftb.mods.ftbteams.property.TeamProperties;
-import dev.ftb.mods.ftbteams.property.TeamProperty;
+import dev.ftb.mods.ftbteams.property.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public abstract class TeamBase {
@@ -30,19 +19,20 @@ public abstract class TeamBase {
 	public static final StringProperty DESCRIPTION = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "description"), "");
 	public static final ColorProperty COLOR = new ColorProperty(new ResourceLocation(FTBTeams.MOD_ID, "color"), Color4I.WHITE);
 	public static final BooleanProperty FREE_TO_JOIN = new BooleanProperty(new ResourceLocation(FTBTeams.MOD_ID, "free_to_join"), false);
+	public static final IntProperty MAX_MSG_HISTORY_SIZE = new IntProperty(new ResourceLocation(FTBTeams.MOD_ID, "max_msg_history_size"), 1000);
 
 	UUID id;
 	public final TeamProperties properties;
 	final Map<UUID, TeamRank> ranks;
 	CompoundTag extraData;
-	public final List<TeamMessage> messageHistory;
+	protected final List<TeamMessage> messageHistory;
 
 	public TeamBase() {
 		id = Util.NIL_UUID;
 		ranks = new HashMap<>();
 		properties = new TeamProperties();
 		extraData = new CompoundTag();
-		messageHistory = new ArrayList<>();
+		messageHistory = new LinkedList<>();
 	}
 
 	public abstract TeamType getType();
@@ -101,6 +91,10 @@ public abstract class TeamBase {
 
 	public boolean isFreeToJoin() {
 		return getProperty(FREE_TO_JOIN);
+	}
+
+	public int getMaxMessageHistorySize() {
+		return getProperty(MAX_MSG_HISTORY_SIZE);
 	}
 
 	public String getStringID() {
@@ -180,5 +174,21 @@ public abstract class TeamBase {
 
 	public boolean isInvited(UUID profile) {
 		return getHighestRank(profile).isInvited();
+	}
+
+	public void addMessage(TeamMessage message) {
+		addMessages(List.of(message));
+	}
+
+	public void addMessages(Collection<TeamMessage> messages) {
+		messageHistory.addAll(messages);
+		while (messageHistory.size() > getMaxMessageHistorySize()) {
+			messageHistory.remove(0);
+		}
+		save();
+	}
+
+	public List<TeamMessage> getMessageHistory() {
+		return messageHistory;
 	}
 }

@@ -146,7 +146,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			public void addWidgets() {
 				UUID prev = null;
 
-				for (TeamMessage message : manager.selfTeam.messageHistory) {
+				for (TeamMessage message : manager.selfTeam.getMessageHistory()) {
 					if (!message.sender.equals(prev)) {
 						MutableComponent name = Component.literal("");
 						name.append(manager.getName(message.sender));

@@ -59,7 +59,7 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 			return;
 		}
 
-		ClientTeamManager.INSTANCE.selfTeam.messageHistory.add(new TeamMessage(from, System.currentTimeMillis(), text));
+		ClientTeamManager.INSTANCE.selfTeam.addMessage(new TeamMessage(from, System.currentTimeMillis(), text));
 
 		MyTeamScreen screen = ClientUtils.getCurrentGuiAs(MyTeamScreen.class);
 

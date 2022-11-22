@@ -32,6 +32,7 @@ import dev.ftb.mods.ftbteams.property.TeamProperty;
 import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import org.lwjgl.glfw.GLFW;
 
 import java.util.Map;
 import java.util.Objects;
@@ -213,10 +214,10 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public boolean keyPressed(Key key) {
-		if (key.escOrInventory()) {
-			closeGui(false);
+		if (key.is(GLFW.GLFW_KEY_TAB)) {
+			chatBox.setFocused(true);
 			return true;
 		}
-		return false;
+		return super.keyPressed(key);
 	}
 }

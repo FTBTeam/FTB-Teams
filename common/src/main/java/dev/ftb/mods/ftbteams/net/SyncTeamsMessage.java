@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseS2CMessage;
 import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.client.MyTeamScreen;
 import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.Team;
@@ -66,5 +67,7 @@ public class SyncTeamsMessage extends BaseS2CMessage {
 		}
 
 		ClientTeamManager.INSTANCE = manager;
+
+		MyTeamScreen.refreshIfOpen();
 	}
 }

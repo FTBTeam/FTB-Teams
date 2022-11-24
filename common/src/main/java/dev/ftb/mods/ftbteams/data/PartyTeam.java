@@ -10,12 +10,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -64,12 +60,6 @@ public class PartyTeam extends Team {
 		return owner;
 	}
 
-	@Nullable
-	public ServerPlayer getOwnerPlayer() {
-		return FTBTUtils.getPlayerByUUID(manager.server, owner);
-	}
-
-	@Deprecated
 	public int join(CommandSourceStack source) throws CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
 		Team oldTeam = manager.getPlayerTeam(player);
@@ -93,7 +83,6 @@ public class PartyTeam extends Team {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int invite(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
 		for (GameProfile player : players) {
 			if (isMember(player.getId())) {
@@ -103,22 +92,27 @@ public class PartyTeam extends Team {
 			ranks.put(player.getId(), TeamRank.INVITED);
 			save();
 
-			sendMessage(from.getUUID(), new TextComponent("Invited " + player.getName()).withStyle(ChatFormatting.GREEN));
+			sendMessage(from.getUUID(), new TranslatableComponent("ftbteams.message.invited", new TextComponent(player.getName()).withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
 
 			ServerPlayer p = FTBTUtils.getPlayerByUUID(manager.getServer(), player.getId());
 
 			if (p != null) {
-				p.sendMessage(new TextComponent("").append(from.getName()).append(" has invited you to join their party!"), Util.NIL_UUID);
-				Component acceptButton = new TextComponent("Accept ✔").withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party join " + getStringID())));
-				Component denyButton = new TextComponent("Deny ✘").withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party deny_invite " + getStringID())));
-				p.sendMessage(new TextComponent("[").append(acceptButton).append("] [").append(denyButton).append("]"), Util.NIL_UUID);
+				p.sendMessage(new TranslatableComponent("ftbteams.message.invite_sent", from.getName().copy().withStyle(ChatFormatting.YELLOW)), Util.NIL_UUID);
+				Component acceptButton = new TranslatableComponent("ftbteams.accept")
+						.withStyle(Style.EMPTY.withColor(ChatFormatting.GREEN).withClickEvent(
+								new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party join " + getStringID()))
+						);
+				Component declineButton = new TranslatableComponent("ftbteams.decline")
+						.withStyle(Style.EMPTY.withColor(ChatFormatting.RED).withClickEvent(
+								new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams party deny_invite " + getStringID()))
+						);
+				p.sendMessage(new TextComponent("[").append(acceptButton).append("] [").append(declineButton).append("]"), Util.NIL_UUID);
 			}
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int kick(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
 		for (GameProfile player : players) {
 			UUID id = player.getId();
@@ -136,7 +130,7 @@ public class PartyTeam extends Team {
 			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 
 			team.ranks.put(id, TeamRank.OWNER);
-			sendMessage(from.getUUID(), new TextComponent("Kicked ").append(manager.getName(id)).append(" from ").append(getName()).withStyle(ChatFormatting.RED));
+			sendMessage(from.getUUID(), new TranslatableComponent("ftbteams.message.kicked", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW), getName()).withStyle(ChatFormatting.GOLD));
 			team.save();
 
 			ranks.remove(id);
@@ -146,7 +140,7 @@ public class PartyTeam extends Team {
 			manager.syncAll();
 
 			if (playerEntity != null) {
-				playerEntity.displayClientMessage(new TextComponent("You have been kicked from ").append(getName()).append("!"), false);
+				playerEntity.displayClientMessage(new TranslatableComponent("ftbteams.message.kicked", playerEntity.getName().copy().withStyle(ChatFormatting.YELLOW), getName().copy().withStyle(ChatFormatting.AQUA)), false);
 				updateCommands(playerEntity);
 			}
 
@@ -156,7 +150,43 @@ public class PartyTeam extends Team {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
+	public int promote(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
+		boolean changesMade = false;
+		for (GameProfile player : players) {
+			UUID id = player.getId();
+			if (getHighestRank(id) == TeamRank.MEMBER) {
+				ranks.put(id, TeamRank.OFFICER);
+				sendMessage(from.getUUID(), new TranslatableComponent("ftbteams.message.promoted", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
+				changesMade = true;
+			} else {
+				throw TeamArgument.NOT_MEMBER.create(manager.getName(id), getName());
+			}
+		}
+		if (changesMade) {
+			save();
+			manager.syncAll();
+		}
+		return Command.SINGLE_SUCCESS;
+	}
+
+	public int demote(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
+		boolean changesMade = false;
+		for (GameProfile player : players) {
+			UUID id = player.getId();
+			if (getHighestRank(id) == TeamRank.OFFICER) {
+				ranks.put(id, TeamRank.MEMBER);
+				sendMessage(from.getUUID(), new TranslatableComponent("ftbteams.message.demoted", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
+				changesMade = true;
+			} else {
+				throw TeamArgument.NOT_OFFICER.create(manager.getName(id), getName());
+			}
+		}
+		if (changesMade) {
+			manager.syncAll();
+		}
+		return Command.SINGLE_SUCCESS;
+	}
+
 	public int transferOwnership(ServerPlayer from, ServerPlayer to) throws CommandSyntaxException {
 		if (!getOnlineMembers().contains(to)) {
 			throw TeamArgument.NOT_MEMBER.create(to.getDisplayName(), getName());
@@ -173,14 +203,13 @@ public class PartyTeam extends Team {
 		save();
 		TeamEvent.OWNERSHIP_TRANSFERRED.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
 
-		sendMessage(from.getUUID(), new TextComponent("Transferred ownership to ").append(to.getDisplayName()).withStyle(ChatFormatting.RED));
+		sendMessage(from.getUUID(), new TranslatableComponent("ftbteams.message.transfer_owner", to.getDisplayName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
 		updateCommands(from);
 		updateCommands(to);
 		manager.syncAll();
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int leave(ServerPlayer player) throws CommandSyntaxException {
 		UUID id = player.getUUID();
 
@@ -192,7 +221,7 @@ public class PartyTeam extends Team {
 		team.actualTeam = team;
 
 		team.ranks.put(id, TeamRank.OWNER);
-		sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" left your party!").withStyle(ChatFormatting.YELLOW));
+		sendMessage(Util.NIL_UUID, new TranslatableComponent("ftbteams.message.left_party", player.getName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
 		team.save();
 
 		ranks.remove(id);
@@ -230,7 +259,6 @@ public class PartyTeam extends Team {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int addAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
 		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
 
@@ -240,7 +268,8 @@ public class PartyTeam extends Team {
 
 			if (!isAlly(id)) {
 				ranks.put(id, TeamRank.ALLY);
-				sendMessage(from, new TextComponent("").append(player.getName()).append(" added as ally!").withStyle(ChatFormatting.YELLOW));
+				sendMessage(from, new TranslatableComponent("ftbteams.message.add_ally",
+						manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
 				addedPlayers.add(player);
 			}
 		}
@@ -255,7 +284,6 @@ public class PartyTeam extends Team {
 		return 0;
 	}
 
-	@Deprecated
 	public int removeAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
 		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
 		List<GameProfile> removedPlayers = new ArrayList<>();
@@ -265,7 +293,8 @@ public class PartyTeam extends Team {
 
 			if (isAlly(id) && !isMember(id)) {
 				ranks.remove(id);
-				sendMessage(from, new TextComponent("").append(player.getName()).append(" removed from allies!").withStyle(ChatFormatting.YELLOW));
+				sendMessage(from, new TranslatableComponent("ftbteams.message.remove_ally",
+						manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
 				removedPlayers.add(player);
 			}
 		}
@@ -280,7 +309,6 @@ public class PartyTeam extends Team {
 		return 0;
 	}
 
-	@Deprecated
 	public int listAllies(CommandSourceStack source) throws CommandSyntaxException {
 		source.sendSuccess(new TextComponent("Allies:"), false);
 		boolean any = false;

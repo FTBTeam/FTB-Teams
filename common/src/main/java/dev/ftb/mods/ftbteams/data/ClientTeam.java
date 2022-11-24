@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.Map;
@@ -9,6 +10,7 @@ public class ClientTeam extends TeamBase {
 	public final ClientTeamManager manager;
 	public boolean invalid;
 	TeamType type;
+	private final UUID ownerID;
 
 	public ClientTeam(ClientTeamManager m, FriendlyByteBuf buffer, long now) {
 		manager = m;
@@ -23,6 +25,8 @@ public class ClientTeam extends TeamBase {
 		}
 
 		extraData = buffer.readNbt();
+
+		ownerID = buffer.readBoolean() ? buffer.readUUID() : Util.NIL_UUID;
 	}
 
 	public ClientTeam(ClientTeamManager m, Team team) {
@@ -32,6 +36,7 @@ public class ClientTeam extends TeamBase {
 		properties.updateFrom(team.properties);
 		ranks.putAll(team.ranks);
 		extraData = team.extraData == null ? null : team.extraData.copy();
+		ownerID = team.getOwner();
 	}
 
 	@Override
@@ -57,9 +62,17 @@ public class ClientTeam extends TeamBase {
 		}
 
 		buffer.writeNbt(extraData);
+
+		boolean hasOwner = !ownerID.equals(Util.NIL_UUID);
+		buffer.writeBoolean(hasOwner);
+		if (hasOwner) buffer.writeUUID(ownerID);
 	}
 
 	public boolean isSelf() {
 		return this == manager.selfTeam;
+	}
+
+	public UUID getOwnerID() {
+		return ownerID;
 	}
 }

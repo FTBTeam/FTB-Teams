@@ -13,7 +13,7 @@ import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamRank;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.ArrayList;
@@ -125,7 +125,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
             }
         } catch (CommandSyntaxException e) {
             // TODO send proper response packet?
-            sourcePlayer.displayClientMessage(new TextComponent(e.getMessage()).withStyle(ChatFormatting.RED), false);
+            sourcePlayer.displayClientMessage(Component.literal(e.getMessage()).withStyle(ChatFormatting.RED), false);
         }
     }
 

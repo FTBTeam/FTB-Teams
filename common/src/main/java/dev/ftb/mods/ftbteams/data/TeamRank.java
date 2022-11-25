@@ -4,7 +4,6 @@ import dev.ftb.mods.ftblibrary.config.NameMap;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.StringRepresentable;
 
 import java.util.Optional;
@@ -88,6 +87,6 @@ public enum TeamRank implements StringRepresentable {
 	}
 
 	public Component getDisplayName() {
-		return new TranslatableComponent("ftbteams.ranks." + name);
+		return Component.translatable("ftbteams.ranks." + name);
 	}
 }

@@ -12,7 +12,6 @@ import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -63,7 +62,7 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
 
     @Override
     public void addWidgets() {
-        add(closeButton = new SimpleButton(this, new TranslatableComponent("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
+        add(closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
             @Override
             public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
                 drawIcon(matrixStack, theme, x, y, w, h);
@@ -104,7 +103,7 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
         @Override
         public void addWidgets() {
             if (available.isEmpty()) {
-                add(new TextField(this).setText(new TranslatableComponent("ftbteams.gui.no_players").withStyle(ChatFormatting.ITALIC)).addFlags(Theme.CENTERED));
+                add(new TextField(this).setText(Component.translatable("ftbteams.gui.no_players").withStyle(ChatFormatting.ITALIC)).addFlags(Theme.CENTERED));
             } else {
                 available.forEach(player -> add(new InvitedButton(this, BaseInvitationScreen.this, player)));
             }

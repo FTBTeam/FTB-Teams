@@ -4,13 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
-import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
-import dev.ftb.mods.ftbteams.event.PlayerJoinedPartyTeamEvent;
-import dev.ftb.mods.ftbteams.event.PlayerLeftPartyTeamEvent;
-import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
-import dev.ftb.mods.ftbteams.event.TeamEvent;
-import dev.ftb.mods.ftbteams.event.TeamInfoEvent;
-import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
+import dev.ftb.mods.ftbteams.event.*;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
@@ -24,11 +18,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+
+import java.util.*;
 
 /**
  * @author LatvianModder

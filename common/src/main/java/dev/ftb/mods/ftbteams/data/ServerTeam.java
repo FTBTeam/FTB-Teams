@@ -6,7 +6,6 @@ import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

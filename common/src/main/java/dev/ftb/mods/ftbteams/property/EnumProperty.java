@@ -6,7 +6,6 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;

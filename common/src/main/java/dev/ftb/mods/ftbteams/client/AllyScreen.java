@@ -6,7 +6,7 @@ import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.net.PlayerGUIOperationMessage;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -17,7 +17,7 @@ public class AllyScreen extends BaseInvitationScreen {
     private Set<GameProfile> toRemove = new HashSet<>();
 
     public AllyScreen() {
-        super(new TranslatableComponent("ftbteams.gui.manage_allies"));
+        super(Component.translatable("ftbteams.gui.manage_allies"));
 
         available.forEach(player -> {
             if (ClientTeamManager.INSTANCE.selfTeam.isAlly(player.uuid)) {
@@ -43,7 +43,7 @@ public class AllyScreen extends BaseInvitationScreen {
 
     @Override
     protected ExecuteButton makeExecuteButton() {
-        return new ExecuteButton(new TranslatableComponent("gui.accept"), Icons.ADD, () -> {
+        return new ExecuteButton(Component.translatable("gui.accept"), Icons.ADD, () -> {
             if (!toAdd.isEmpty()) {
                 new PlayerGUIOperationMessage(PlayerGUIOperationMessage.Operation.ADD_ALLY, toAdd).sendToServer();
             }

@@ -13,8 +13,6 @@ import dev.ftb.mods.ftbteams.data.*;
 import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.UpdateSettingsMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
-import dev.ftb.mods.ftbteams.property.TeamProperty;
-import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -302,10 +300,13 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		public SettingsButton() {
 			super(MyTeamScreen.this, Component.translatable("gui.settings"), Icons.SETTINGS.withTint(NordColors.SNOW_STORM_2), (simpleButton, mouseButton) -> {
 				ConfigGroup config = new ConfigGroup("ftbteamsconfig");
+				Map<String,ConfigGroup> subGroups = new HashMap<>();
 
-				for (Map.Entry<TeamProperty, TeamPropertyValue> entry : MyTeamScreen.this.properties.map.entrySet()) {
-					entry.getKey().config(config, entry.getValue());
-				}
+				MyTeamScreen.this.properties.map.forEach((key, value) -> {
+					String groupName = key.id.getNamespace();
+					ConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getGroup(groupName));
+					key.config(cfg, value);
+				});
 
 				config.savedCallback = b -> {
 					if (b) {

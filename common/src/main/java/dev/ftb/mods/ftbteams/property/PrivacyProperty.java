@@ -41,6 +41,6 @@ public class PrivacyProperty extends TeamProperty<PrivacyMode> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<PrivacyMode> value) {
-		config.addEnum(id.getNamespace() + "." + id.getPath(), value.value, value.consumer, PrivacyMode.NAME_MAP);
+		config.addEnum(id.getPath(), value.value, value.consumer, PrivacyMode.NAME_MAP);
 	}
 }

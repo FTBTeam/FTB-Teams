@@ -16,6 +16,7 @@ public interface FTBTeamsNet {
 	MessageType SEND_MESSAGE_RESPONSE = NET.registerS2C("send_message_response", SendMessageResponseMessage::new);
 	MessageType UPDATE_PRESENCE = NET.registerS2C("update_presence", UpdatePresenceMessage::new);
 	MessageType CREATE_PARTY = NET.registerC2S("create_party", CreatePartyMessage::new);
+	MessageType PLAYER_GUI_OPERATION = NET.registerC2S("player_gui_operation", PlayerGUIOperationMessage::new);
 
 	static void init() {
 	}

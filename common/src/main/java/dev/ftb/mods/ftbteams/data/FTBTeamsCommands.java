@@ -17,7 +17,6 @@ import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;

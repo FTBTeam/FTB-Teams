@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.client;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
@@ -11,30 +12,29 @@ import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 
 
 public class InvitedButton extends NordButton {
-	public static Component checkbox(boolean b) {
-		if (b) {
-			return Component.literal("☑").withStyle(ChatFormatting.GREEN);
-		} else {
-			return Component.literal("☐");
-		}
-	}
+	public final InvitationSetup screen;
 
-	public final CreatePartyScreen screen;
 	public final KnownClientPlayer player;
 
-	public InvitedButton(Panel panel, CreatePartyScreen s, KnownClientPlayer p) {
-		super(panel, Component.literal("").append(checkbox(s.invitedMembers.contains(p.uuid))).append(" " + p.name), FaceIcon.getFace(p.getProfile()));
+	InvitedButton(Panel panel, InvitationSetup s, KnownClientPlayer p) {
+		super(panel, checkbox(s.isInvited(p.getProfile())).append(" " + p.name), FaceIcon.getFace(p.getProfile()));
+
 		screen = s;
 		player = p;
 
 		if (!player.isValid()) {
 			title = title.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(NordColors.POLAR_NIGHT_0.rgb())));
 		}
+	}
+
+	private static MutableComponent checkbox(boolean checked) {
+		return checked ? Component.literal("☑").withStyle(ChatFormatting.GREEN) : Component.literal("☐");
 	}
 
 	@Override
@@ -51,16 +51,11 @@ public class InvitedButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
-		if (!player.isValid()) {
-			return;
-		}
-
-		if (screen.invitedMembers.contains(player.getProfile())) {
-			screen.invitedMembers.remove(player.getProfile());
-			title = Component.literal("").append(checkbox(false)).append(" " + player.name);
-		} else {
-			screen.invitedMembers.add(player.getProfile());
-			title = Component.literal("").append(checkbox(true)).append(" " + player.name);
+		if (player.isValid()) {
+			GameProfile profile = player.getProfile();
+			boolean invited = screen.isInvited(profile);
+			screen.setInvited(profile, !invited);
+			title = checkbox(!invited).append(" " + player.name);
 		}
 	}
 }

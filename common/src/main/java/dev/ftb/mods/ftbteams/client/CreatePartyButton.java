@@ -1,17 +1,16 @@
 package dev.ftb.mods.ftbteams.client;
 
-import dev.ftb.mods.ftblibrary.icon.Icon;
+import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftblibrary.ui.NordButton;
 import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.util.TooltipList;
-import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import net.minecraft.network.chat.Component;
 
 public class CreatePartyButton extends NordButton {
-	public CreatePartyButton(Panel panel) {
-		super(panel, Component.translatable("ftbteams.create_party"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png"));
+	CreatePartyButton(Panel panel) {
+		super(panel, Component.translatable("ftbteams.create_party"), Icons.ADD);
 	}
 
 	@Override

@@ -5,7 +5,6 @@ import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -70,7 +69,7 @@ public class ClientTeamManager {
 
 	public void init(UUID self, List<TeamMessage> messages) {
 		selfTeam = teamMap.get(self);
-		selfTeam.messageHistory.addAll(messages);
+		selfTeam.addMessages(messages);
 		selfKnownPlayer = knownPlayers.get(Minecraft.getInstance().getUser().getGameProfile().getId());
 	}
 

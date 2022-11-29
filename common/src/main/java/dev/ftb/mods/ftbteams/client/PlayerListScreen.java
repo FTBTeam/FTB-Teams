@@ -9,7 +9,6 @@ import dev.ftb.mods.ftblibrary.ui.WidgetLayout;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import net.minecraft.network.chat.Component;
 
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

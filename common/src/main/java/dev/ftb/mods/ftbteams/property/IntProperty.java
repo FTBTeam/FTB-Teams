@@ -57,7 +57,7 @@ public class IntProperty extends TeamProperty<Integer> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<Integer> value) {
-		config.addInt(id.getNamespace() + "." + id.getPath(), value.value, value.consumer, defaultValue, minValue, maxValue);
+		config.addInt(id.getPath(), value.value, value.consumer, defaultValue, minValue, maxValue);
 	}
 
 	@Override

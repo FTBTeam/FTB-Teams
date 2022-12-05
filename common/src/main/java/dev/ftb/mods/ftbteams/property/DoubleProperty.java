@@ -57,7 +57,7 @@ public class DoubleProperty extends TeamProperty<Double> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<Double> value) {
-		config.addDouble(id.getNamespace() + "." + id.getPath(), value.value, value.consumer, defaultValue, minValue, maxValue);
+		config.addDouble(id.getPath(), value.value, value.consumer, defaultValue, minValue, maxValue);
 	}
 
 	@Override

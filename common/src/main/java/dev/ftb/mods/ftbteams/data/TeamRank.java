@@ -1,17 +1,22 @@
 package dev.ftb.mods.ftbteams.data;
 
 import dev.ftb.mods.ftblibrary.config.NameMap;
+import dev.ftb.mods.ftblibrary.icon.Icon;
+import dev.ftb.mods.ftblibrary.icon.Icons;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.util.StringRepresentable;
+
+import java.util.Optional;
 
 public enum TeamRank implements StringRepresentable {
 	ENEMY("enemy", -100),
 	NONE("none", 0),
-	ALLY("ally", 50),
+	ALLY("ally", 50, Icons.FRIENDS),
 	INVITED("invited", 75),
-	MEMBER("member", 100),
-	OFFICER("officer", 500),
-	OWNER("owner", 1000),
-
+	MEMBER("member", 100, Icons.ACCEPT_GRAY),
+	OFFICER("officer", 500, Icons.SHIELD),
+	OWNER("owner", 1000, Icons.DIAMOND),
 	;
 
 	public static final TeamRank[] VALUES = values();
@@ -19,10 +24,16 @@ public enum TeamRank implements StringRepresentable {
 
 	private final String name;
 	private final int power;
+	private Icon icon;
 
-	TeamRank(String n, int p) {
-		name = n;
-		power = p;
+	TeamRank(String name, int power, Icon icon) {
+		this.name = name;
+		this.power = power;
+		this.icon = icon;
+	}
+
+	TeamRank(String name, int power) {
+		this(name, power, null);
 	}
 
 	@Override
@@ -70,5 +81,13 @@ public enum TeamRank implements StringRepresentable {
 
 	public boolean isOwner() {
 		return is(OWNER);
+	}
+
+	public Optional<Icon> getIcon() {
+		return Optional.ofNullable(icon);
+	}
+
+	public Component getDisplayName() {
+		return new TranslatableComponent("ftbteams.ranks." + name);
 	}
 }

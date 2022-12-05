@@ -7,12 +7,12 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 
 public class TeamProperties {
-	public final Map<TeamProperty, TeamPropertyValue> map = new HashMap<>();
+	public final Map<TeamProperty, TeamPropertyValue> map = new LinkedHashMap<>();
 
 	public TeamProperties collect() {
 		map.clear();
@@ -23,17 +23,13 @@ public class TeamProperties {
 	public TeamProperties copy() {
 		TeamProperties p = new TeamProperties();
 
-		for (Map.Entry<TeamProperty, TeamPropertyValue> entry : map.entrySet()) {
-			p.map.put(entry.getKey(), entry.getValue().copy());
-		}
+		map.forEach((key, value) -> p.map.put(key, value.copy()));
 
 		return p;
 	}
 
 	public TeamProperties updateFrom(TeamProperties properties) {
-		for (Map.Entry<TeamProperty, TeamPropertyValue> entry : properties.map.entrySet()) {
-			set(entry.getKey(), entry.getValue().value);
-		}
+		properties.map.forEach((key, value) -> set(key, value.value));
 
 		return this;
 	}
@@ -52,7 +48,7 @@ public class TeamProperties {
 		map.clear();
 
 		for (int i = 0; i < p; i++) {
-			TeamProperty tp = TeamPropertyType.MAP.get(buffer.readUtf(Short.MAX_VALUE)).deserializer.apply(buffer.readResourceLocation(), buffer);
+			TeamProperty<?> tp = TeamPropertyType.MAP.get(buffer.readUtf(Short.MAX_VALUE)).deserializer.apply(buffer.readResourceLocation(), buffer);
 			map.put(tp, new TeamPropertyValue(tp, tp.readValue(buffer)));
 		}
 	}
@@ -60,18 +56,17 @@ public class TeamProperties {
 	public void write(FriendlyByteBuf buffer) {
 		buffer.writeVarInt(map.size());
 
-		for (Map.Entry<TeamProperty, TeamPropertyValue> entry : map.entrySet()) {
-			TeamPropertyType.write(buffer, entry.getKey());
-			entry.getKey().writeValue(buffer, entry.getValue().value);
-		}
+		map.forEach((key, value) -> {
+			TeamPropertyType.write(buffer, key);
+			key.writeValue(buffer, value.value);
+		});
 	}
 
 	public void read(CompoundTag tag) {
-		for (String key : tag.getAllKeys()) {
+		tag.getAllKeys().forEach(key -> {
 			TeamPropertyValue property = findValue(key);
-
 			if (property != null) {
-				Optional optional = property.key.fromNBT(tag.get(key));
+				Optional<?> optional = property.key.fromNBT(tag.get(key));
 
 				if (optional.isPresent()) {
 					property.value = optional.get();
@@ -79,26 +74,23 @@ public class TeamProperties {
 					property.value = property.key.defaultValue;
 				}
 			}
-		}
+		});
 	}
 
 	@Nullable
-	private TeamPropertyValue findValue(String key) {
+	private TeamPropertyValue<?> findValue(String key) {
 		ResourceLocation id = new ResourceLocation(key);
 
-		for (Map.Entry<TeamProperty, TeamPropertyValue> entry : map.entrySet()) {
-			if (entry.getKey().id.equals(id)) {
-				return entry.getValue();
-			}
-		}
+		return map.entrySet().stream()
+				.filter(entry -> entry.getKey().id.equals(id))
+				.findFirst()
+				.map(Map.Entry::getValue)
+				.orElse(null);
 
-		return null;
 	}
 
 	public CompoundTag write(CompoundTag tag) {
-		for (Map.Entry<TeamProperty, TeamPropertyValue> entry : map.entrySet()) {
-			tag.put(entry.getKey().id.toString(), entry.getKey().toNBT(entry.getValue().value));
-		}
+		map.forEach((key, value) -> tag.put(key.id.toString(), key.toNBT(value.value)));
 
 		return tag;
 	}

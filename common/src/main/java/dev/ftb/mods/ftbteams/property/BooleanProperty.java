@@ -47,7 +47,7 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<Boolean> value) {
-		config.addBool(id.getNamespace() + "." + id.getPath(), value.value, value.consumer, defaultValue);
+		config.addBool(id.getPath(), value.value, value.consumer, defaultValue);
 	}
 
 	@Override

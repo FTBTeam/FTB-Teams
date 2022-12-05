@@ -30,6 +30,7 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final DynamicCommandExceptionType TEAM_NOT_FOUND = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.team_not_found", object));
 	public static final DynamicCommandExceptionType CANT_EDIT = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.cant_edit", object));
 	public static final Dynamic2CommandExceptionType NOT_MEMBER = new Dynamic2CommandExceptionType((a, b) -> new TranslatableComponent("ftbteams.not_member", a, b));
+	public static final Dynamic2CommandExceptionType NOT_OFFICER = new Dynamic2CommandExceptionType((a, b) -> new TranslatableComponent("ftbteams.not_officer", a, b));
 	public static final DynamicCommandExceptionType NOT_INVITED = new DynamicCommandExceptionType(object -> new TranslatableComponent("ftbteams.not_invited", object));
 	public static final SimpleCommandExceptionType OWNER_CANT_LEAVE = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.owner_cant_leave"));
 	public static final SimpleCommandExceptionType CANT_KICK_OWNER = new SimpleCommandExceptionType(new TranslatableComponent("ftbteams.cant_kick_owner"));

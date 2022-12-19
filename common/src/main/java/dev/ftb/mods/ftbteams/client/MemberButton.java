@@ -44,6 +44,8 @@ public class MemberButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
+		if (ClientTeamManager.INSTANCE.selfKnownPlayer == null) return;
+
 		KnownClientPlayer self = ClientTeamManager.INSTANCE.selfKnownPlayer;
 		ClientTeam selfTeam = ClientTeamManager.INSTANCE.selfTeam;
 		TeamRank selfRank = selfTeam.getHighestRank(self.uuid);

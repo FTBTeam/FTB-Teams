@@ -162,7 +162,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			return ClientTeamManager.INSTANCE.selfTeam.isOfficer(ClientTeamManager.INSTANCE.selfKnownPlayer.uuid);
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}
 
 		@Override
@@ -178,7 +179,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			return ClientTeamManager.INSTANCE.selfTeam.isOfficer(ClientTeamManager.INSTANCE.selfKnownPlayer.uuid);
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}
 
 		@Override

@@ -1,5 +1,7 @@
 package dev.ftb.mods.ftbteams.data;
 
+import dev.ftb.mods.ftbteams.FTBTeams;
+import net.fabricmc.loader.impl.util.log.Log;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
@@ -71,7 +73,12 @@ public class ClientTeamManager {
 	public void init(UUID self, List<TeamMessage> messages) {
 		selfTeam = teamMap.get(self);
 		selfTeam.addMessages(messages);
-		selfKnownPlayer = knownPlayers.get(Minecraft.getInstance().getUser().getGameProfile().getId());
+		UUID userId = Minecraft.getInstance().getUser().getGameProfile().getId();
+		selfKnownPlayer = knownPlayers.get(userId);
+		if (selfKnownPlayer == null) {
+			FTBTeams.LOGGER.warn("Local player id {} was not found in the known players list [{}]! FTB Teams will not be able to function correctly!",
+					userId, String.join(",", knownPlayers.keySet().stream().map(UUID::toString).toList()));
+		}
 	}
 
 	@Nullable

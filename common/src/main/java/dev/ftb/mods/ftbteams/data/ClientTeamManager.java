@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
 import dev.ftb.mods.ftbteams.FTBTeams;
-import net.fabricmc.loader.impl.util.log.Log;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;

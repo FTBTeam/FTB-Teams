@@ -27,6 +27,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	private final UUID teamID;
 	public Button settingsButton;
 	public Button infoButton;
+	public Button missingDataButton;
 	public Button colorButton;
 	public Button inviteButton;
 	public Button allyButton;
@@ -82,6 +83,18 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 		});
 
+		if (ClientTeamManager.INSTANCE.selfKnownPlayer == null) {
+			add(missingDataButton = new SimpleButton(this, Component.empty(), Icons.CLOSE, (w, mb) -> {}) {
+				@Override
+				public void addMouseOverText(TooltipList list) {
+					list.add(Component.translatable("ftbteams.missing_data").withStyle(ChatFormatting.RED));
+				}
+
+				@Override
+				public void playClickSound() {
+				}
+			});
+		}
 
 		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), properties.get(Team.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
 			Color4I c = FTBTUtils.randomColor();
@@ -111,6 +124,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		
 		colorButton.setPosAndSize(5, 5, 12, 12);
 		infoButton.setPosAndSize(20, 3, 16, 16);
+		if (missingDataButton != null) missingDataButton.setPosAndSize(40, 3, 16, 16);
 
 		settingsButton.setPosAndSize(width - 19, 3, 16, 16);
 		inviteButton.setPosAndSize(width - 37, 3, 16, 16);
@@ -162,7 +176,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			return ClientTeamManager.INSTANCE.selfTeam.isOfficer(ClientTeamManager.INSTANCE.selfKnownPlayer.uuid);
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}
 
 		@Override
@@ -179,7 +194,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			return ClientTeamManager.INSTANCE.selfTeam.isOfficer(ClientTeamManager.INSTANCE.selfKnownPlayer.uuid);
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}
 
 		@Override

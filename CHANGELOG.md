@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1802.2.7]
+## [1802.2.9]
+
+### Fixed
+* Fixed client-side NPE's when teams data is unavailable on the client
+  * Doesn't fix the root cause, which is that for some reason client has not received valid teams data from the server
+  * This could occur if trying to play in offline mode, which is not supported
+
+## [1802.2.8]
 
 ### Added
 * Major GUI overhaul; it is now possible to do just about anything with the GUI that can be done with the `/ftbteams` command

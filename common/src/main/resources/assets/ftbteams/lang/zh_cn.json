@@ -16,7 +16,7 @@
 	"ftbteams.property_not_found": "Property ID not found!",
 	"ftbteams.owner_cant_leave": "离开前你必须先转交队长！",
 	"ftbteams.cant_kick_owner": "不能踢出队长！",
-	"ftbteams.api_override": "In this modpack you can only create party from inventory 'My Team' button!",
+	"ftbteams.api_override": "你只能通过背包界面的“我的队伍”按钮创建小组！",
 	"ftbteams.missing_data": "Team data has not been received from the server!\nFTB Teams will not function correctly.\nCheck server log for errors, and ensure your server is in online mode.",
 	"sidebar_button.ftbteams.my_team": "我的队伍",
 	"ftbteamsconfig": "队伍偏好",

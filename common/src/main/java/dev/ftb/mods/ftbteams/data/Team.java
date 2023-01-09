@@ -109,8 +109,10 @@ public abstract class Team extends TeamBase {
 		return getOnlineRanked(TeamRank.MEMBER);
 	}
 
-	void created(ServerPlayer p) {
-		TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, p));
+	void onCreated(@Nullable ServerPlayer p) {
+		if (p != null) {
+			TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, p));
+		}
 		save();
 		manager.save();
 	}

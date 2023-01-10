@@ -6,6 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TeamPropertyType<T> {
@@ -23,6 +24,7 @@ public class TeamPropertyType<T> {
 
 	public static final TeamPropertyType<Boolean> BOOLEAN = TeamPropertyType.register("boolean", BooleanProperty::new);
 	public static final TeamPropertyType<String> STRING = TeamPropertyType.register("string", StringProperty::new);
+	public static final TeamPropertyType<List<String>> STRING_LIST = TeamPropertyType.register("string_list", StringListProperty::new);
 	public static final TeamPropertyType<Integer> INT = TeamPropertyType.register("int", IntProperty::new);
 	public static final TeamPropertyType<Double> DOUBLE = TeamPropertyType.register("double", DoubleProperty::new);
 	public static final TeamPropertyType<Color4I> COLOR = TeamPropertyType.register("color", ColorProperty::new);

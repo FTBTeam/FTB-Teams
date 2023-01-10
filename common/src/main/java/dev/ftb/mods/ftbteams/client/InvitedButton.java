@@ -27,7 +27,7 @@ public class InvitedButton extends NordButton {
 		screen = s;
 		player = p;
 
-		if (!player.isValid()) {
+		if (!player.online) {
 			title = title.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(NordColors.POLAR_NIGHT_0.rgb())));
 		}
 	}
@@ -50,7 +50,7 @@ public class InvitedButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
-		if (player.isValid()) {
+		if (player.online) {
 			GameProfile profile = player.getProfile();
 			boolean invited = screen.isInvited(profile);
 			screen.setInvited(profile, !invited);

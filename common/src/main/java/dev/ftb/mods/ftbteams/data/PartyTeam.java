@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
 import dev.ftb.mods.ftbteams.event.TeamAllyEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -87,8 +88,8 @@ public class PartyTeam extends Team {
 
 	public int invite(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
 		for (GameProfile player : players) {
-			if (isMember(player.getId())) {
-				continue;
+			if (FTBTeamsAPI.getManager().getPlayerTeam(player.getId()) instanceof PartyTeam) {
+				throw TeamArgument.PLAYER_IN_PARTY.create(player.getName());
 			}
 
 			ranks.put(player.getId(), TeamRank.INVITED);
@@ -274,6 +275,10 @@ public class PartyTeam extends Team {
 				sendMessage(from, Component.translatable("ftbteams.message.add_ally",
 						manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
 				addedPlayers.add(player);
+				ServerPlayer invitedPlayer = manager.getServer().getPlayerList().getPlayer(id);
+				if (invitedPlayer != null) {
+					invitedPlayer.displayClientMessage(Component.translatable("ftbteams.message.now_allied", getDisplayName()).withStyle(ChatFormatting.GREEN), false);
+				}
 			}
 		}
 
@@ -299,6 +304,10 @@ public class PartyTeam extends Team {
 				sendMessage(from, Component.translatable("ftbteams.message.remove_ally",
 						manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
 				removedPlayers.add(player);
+				ServerPlayer removedPlayer = manager.getServer().getPlayerList().getPlayer(id);
+				if (removedPlayer != null) {
+					removedPlayer.displayClientMessage(Component.translatable("ftbteams.message.no_longer_allied", getDisplayName()).withStyle(ChatFormatting.GOLD), false);
+				}
 			}
 		}
 

@@ -176,6 +176,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+				return false;
+			}
 			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
 			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}
@@ -194,6 +197,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+				return false;
+			}
 			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
 			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}

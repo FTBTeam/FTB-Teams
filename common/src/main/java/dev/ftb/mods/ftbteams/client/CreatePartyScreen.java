@@ -139,7 +139,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			});
 
 			for (KnownClientPlayer player : manager.knownPlayers.values().stream().sorted().toList()) {
-				if (player != manager.selfKnownPlayer) {
+				if (player.isOnlineAndNotInParty() && player != manager.selfKnownPlayer) {
 					add(new InvitedButton(this, CreatePartyScreen.this, player));
 				}
 			}

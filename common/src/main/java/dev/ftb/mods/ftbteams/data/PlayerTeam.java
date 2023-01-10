@@ -3,10 +3,13 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
+import java.awt.*;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -72,6 +75,7 @@ public class PlayerTeam extends Team {
 			team.invite(player, invited);
 			manager.syncAll();
 		} catch (Exception ex) {
+			player.displayClientMessage(Component.literal(ex.getMessage()).withStyle(ChatFormatting.RED), false);
 		}
 	}
 

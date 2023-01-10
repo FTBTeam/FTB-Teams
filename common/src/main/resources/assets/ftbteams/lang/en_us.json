@@ -1,5 +1,6 @@
 {
 	"ftbteams.already_in_party": "You are already in a party!",
+	"ftbteams.player_already_in_party": "Player '%s' is already in a party!",
 	"ftbteams.not_in_party": "You haven't created or joined a party!",
 	"ftbteams.team_not_found": "Team '%s' not found!",
 	"ftbteams.cant_edit": "You can't edit %s!",
@@ -68,13 +69,16 @@
 	"key.categories.ftbteams": "FTB Teams",
 	"ftbteams.message.invited": "Invited %s",
 	"ftbteams.message.invite_sent": "%s has invited you to join their party!",
+	"ftbteams.message.declined": "You have declined the invitation",
 	"ftbteams.message.kicked": "Kicked %s from %s!",
 	"ftbteams.message.promoted": "Promoted %s to Officer!",
 	"ftbteams.message.demoted": "Demoted %s to Member!",
 	"ftbteams.message.transfer_owner": "Transferred ownership to %s!",
 	"ftbteams.message.left_party": "Player %s left your party!",
 	"ftbteams.message.add_ally": "Player %s is now an ally of your team!",
+	"ftbteams.message.now_allied": "You are now an ally of '%s'!",
 	"ftbteams.message.remove_ally": "Player %s is no longer an ally of your team!",
+	"ftbteams.message.no_longer_allied": "You are no longer an ally of '%s'!",
 	"ftbteams.accept": "Accept ✔",
 	"ftbteams.decline": "Decline ✘"
 }

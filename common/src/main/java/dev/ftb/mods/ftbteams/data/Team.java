@@ -45,52 +45,6 @@ public abstract class Team extends TeamBase {
 		manager.nameMap = null;
 	}
 
-	/*
-	public boolean delete() {
-		if (!manager.teamMap.containsKey(id)) {
-			return false;
-		}
-
-		Path directory = manager.getServer().getWorldPath(TeamManager.FOLDER_NAME);
-		Path deletedDirectory = directory.resolve("deleted");
-
-		try {
-			if (Files.notExists(deletedDirectory)) {
-				Files.createDirectories(deletedDirectory);
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-		try (OutputStream stream = Files.newOutputStream(deletedDirectory.resolve(getId() + ".nbt"))) {
-			NbtIo.writeCompressed(serializeNBT(), stream);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-		Set<UUID> prevMembers = new HashSet<>();
-
-		if (!owner.equals(Util.NIL_UUID)) {
-			prevMembers.add(owner);
-		}
-
-		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
-			if (entry.getValue().is(TeamRank.MEMBER)) {
-				prevMembers.add(entry.getKey());
-			}
-		}
-
-		for (UUID id : prevMembers) {
-			removeMember(id, false);
-		}
-
-		TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(this, prevMembers));
-		manager.teamMap.remove(id);
-		directory.resolve(getId() + ".nbt").toFile().delete();
-		return true;
-	}
-	 */
-
 	public List<ServerPlayer> getOnlineRanked(TeamRank rank) {
 		List<ServerPlayer> list = new ArrayList<>();
 
@@ -200,22 +154,7 @@ public abstract class Team extends TeamBase {
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
 	}
 
-	// Commands //
-
-	/*
-
-	@Deprecated
-	public int delete(CommandSourceStack source) throws CommandSyntaxException {
-		if (delete()) {
-			source.sendSuccess(Component.literal("Deleted " + getId()), true);
-		}
-
-		return Command.SINGLE_SUCCESS;
-	}
-
-	*/
-
-	public int settings(CommandSourceStack source, TeamProperty key, String value) throws CommandSyntaxException {
+	public <T> int settings(CommandSourceStack source, TeamProperty<T> key, String value) throws CommandSyntaxException {
 		if (value.isEmpty()) {
 			MutableComponent keyc = Component.translatable("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
 			keyc.withStyle(ChatFormatting.YELLOW);
@@ -223,11 +162,11 @@ public abstract class Team extends TeamBase {
 			valuec.withStyle(ChatFormatting.AQUA);
 			source.sendSuccess(Component.literal("").append(keyc).append(" is set to ").append(valuec), true);
 		} else {
-			Optional optional = key.fromString(value);
+			Optional<T> optional = key.fromString(value);
 
 			if (optional.isEmpty()) {
 				//throw CommandSyntaxException
-				source.sendSuccess(Component.literal("Failed to parse value!"), true);
+				source.sendFailure(Component.literal("Failed to parse value!"));
 				return 0;
 			}
 
@@ -245,13 +184,12 @@ public abstract class Team extends TeamBase {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int denyInvite(CommandSourceStack source) throws CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
 
 		if (isInvited(player.getUUID()) && !isMember(player.getUUID())) {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
-			source.sendSuccess(Component.literal("Invite denied"), true);
+			source.sendSuccess(Component.translatable("ftbteams.message.declined"), true);
 			save();
 			manager.syncAll();
 		}
@@ -259,7 +197,6 @@ public abstract class Team extends TeamBase {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int info(CommandSourceStack source) throws CommandSyntaxException {
 		source.sendSuccess(Component.empty(), false);
 

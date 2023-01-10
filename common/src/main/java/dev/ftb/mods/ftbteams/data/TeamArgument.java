@@ -30,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType ALREADY_IN_PARTY = new SimpleCommandExceptionType(Component.translatable("ftbteams.already_in_party"));
+	public static final DynamicCommandExceptionType PLAYER_IN_PARTY = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.player_already_in_party", object));
 	public static final SimpleCommandExceptionType NOT_IN_PARTY = new SimpleCommandExceptionType(Component.translatable("ftbteams.not_in_party"));
 	public static final DynamicCommandExceptionType TEAM_NOT_FOUND = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.team_not_found", object));
 	public static final DynamicCommandExceptionType CANT_EDIT = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.cant_edit", object));

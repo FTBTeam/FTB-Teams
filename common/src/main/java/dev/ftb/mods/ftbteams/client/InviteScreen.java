@@ -14,7 +14,7 @@ public class InviteScreen extends BaseInvitationScreen {
     @Override
     protected boolean shouldIncludePlayer(KnownClientPlayer player) {
         // any player who is online and not in a team
-        return player.online && player.isValid() && player.isInternalTeam() && player != ClientTeamManager.INSTANCE.selfKnownPlayer;
+        return player.isOnlineAndNotInParty() && player != ClientTeamManager.INSTANCE.selfKnownPlayer;
     }
 
     @Override

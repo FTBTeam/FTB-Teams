@@ -10,10 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Team properties can now include properties which are lists of string (required by new FTB Chunks builds)
 
 ### Fixed
+* Major improvements in efficiency of server->client sync for team data
+  * Should greatly reduce network traffic and load for busy servers (many players & teams) in particular
 * A few GUI and logic fixes related to handling invites for team members and allies
   * Allow players to be added as allies of your team even when they are a member of a different team
   * Don't allow invitations to be sent to players who are already in a different team (they couldn't actually be added, but a useless invitation was being sent)
   * Only show the GUI "Manage Allies" and "Invite Players" buttons for party teams
+  * Don't show "Disband Party" context menu entry in the GUI for non-party teams
+* Don't allow server teams to be created with names shorter than 3 characters
+* Converted a couple of more messages into translations
 
 ## [1902.2.11]
 

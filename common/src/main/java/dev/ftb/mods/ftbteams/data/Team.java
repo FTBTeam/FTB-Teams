@@ -191,7 +191,7 @@ public abstract class Team extends TeamBase {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
 			source.sendSuccess(Component.translatable("ftbteams.message.declined"), true);
 			save();
-			manager.syncAll();
+			manager.syncTeamsToAll(this);
 		}
 
 		return Command.SINGLE_SUCCESS;

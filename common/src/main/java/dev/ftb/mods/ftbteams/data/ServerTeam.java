@@ -20,8 +20,7 @@ public class ServerTeam extends Team {
 		return TeamType.SERVER;
 	}
 
-	@Deprecated
-	public int delete(CommandSourceStack source) throws CommandSyntaxException {
+	public int delete(CommandSourceStack source) {
 		save();
 		manager.saveNow();
 		manager.teamMap.remove(getId());
@@ -45,9 +44,9 @@ public class ServerTeam extends Team {
 			}
 		}
 
-		source.sendSuccess(Component.literal("Team deleted"), true);
+		source.sendSuccess(Component.translatable("ftbteams.messages.deleted_server_team", getStringID()), true);
 		manager.save();
-		manager.syncAll();
+		manager.syncTeamsToAll(this);
 		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 		return Command.SINGLE_SUCCESS;
 	}

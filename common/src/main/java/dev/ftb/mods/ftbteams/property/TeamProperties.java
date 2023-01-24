@@ -7,9 +7,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class TeamProperties {
 	public final Map<TeamProperty, TeamPropertyValue> map = new LinkedHashMap<>();
@@ -57,6 +55,23 @@ public class TeamProperties {
 		buffer.writeVarInt(map.size());
 
 		map.forEach((key, value) -> {
+			TeamPropertyType.write(buffer, key);
+			key.writeValue(buffer, value.value);
+		});
+	}
+
+	public void writeSyncableOnly(FriendlyByteBuf buffer, List<TeamProperty> syncableProps) {
+		// this is used when sync'ing team data for a different team
+		// player A only needs to know limited info (display name, color...) about team B if A isn't a member of B
+		Map<TeamProperty, TeamPropertyValue> subMap = new HashMap<>();
+		syncableProps.forEach(prop -> {
+			if (map.containsKey(prop)) {
+				subMap.put(prop, map.get(prop));
+			}
+		});
+
+		buffer.writeVarInt(subMap.size());
+		subMap.forEach((key, value) -> {
 			TeamPropertyType.write(buffer, key);
 			key.writeValue(buffer, value.value);
 		});

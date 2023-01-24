@@ -44,12 +44,14 @@ public class MemberButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
-		if (ClientTeamManager.INSTANCE.selfKnownPlayer == null) return;
+		if (ClientTeamManager.INSTANCE.selfKnownPlayer == null || ClientTeamManager.INSTANCE.selfTeam == null) return;
 
 		KnownClientPlayer self = ClientTeamManager.INSTANCE.selfKnownPlayer;
 		ClientTeam selfTeam = ClientTeamManager.INSTANCE.selfTeam;
 		TeamRank selfRank = selfTeam.getHighestRank(self.uuid);
 		TeamRank playerRank = selfTeam.getHighestRank(player.uuid);
+
+		if (selfTeam.getType() != TeamType.PARTY) return;
 
 		List<ContextMenuItem> items0 = new ArrayList<>();
 		if (player.uuid.equals(self.uuid)) {

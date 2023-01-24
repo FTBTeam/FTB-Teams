@@ -425,7 +425,7 @@ public class TeamManager {
 			throw TeamArgument.NAME_TOO_SHORT.create();
 		}
 		ServerTeam team = createServerTeam(source.getPlayerOrException(), name);
-		source.sendSuccess(Component.translatable("ftbmessages.created_server_team", team.getName()), true);
+		source.sendSuccess(Component.translatable("ftbteams.message.created_server_team", team.getName()), true);
 		syncTeamsToAll(team);
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}

@@ -44,7 +44,7 @@ public class ServerTeam extends Team {
 			}
 		}
 
-		source.sendSuccess(Component.translatable("ftbteams.messages.deleted_server_team", getStringID()), true);
+		source.sendSuccess(Component.translatable("ftbteams.message.deleted_server_team", getStringID()), true);
 		manager.save();
 		manager.syncTeamsToAll(this);
 		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));

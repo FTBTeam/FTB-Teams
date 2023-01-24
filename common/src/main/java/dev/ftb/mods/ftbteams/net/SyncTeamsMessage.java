@@ -3,38 +3,29 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseS2CMessage;
 import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.client.MyTeamScreen;
-import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.data.TeamMessage;
 import net.minecraft.network.FriendlyByteBuf;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 public class SyncTeamsMessage extends BaseS2CMessage {
 	private final ClientTeamManager manager;
-	private final UUID self;
-	private final List<TeamMessage> messages;
+	private final UUID selfTeamID;
+	private final boolean fullSync;
 
 	SyncTeamsMessage(FriendlyByteBuf buffer) {
-		long now = System.currentTimeMillis();
-		manager = new ClientTeamManager(buffer, now);
-		self = buffer.readUUID();
-		int ms = buffer.readVarInt();
-		messages = new ArrayList<>(ms);
-
-		for (int i = 0; i < ms; i++) {
-			messages.add(new TeamMessage(now, buffer));
-		}
+		manager = new ClientTeamManager(buffer);
+		selfTeamID = buffer.readUUID();
+		fullSync = buffer.readBoolean();
 	}
 
-	public SyncTeamsMessage(ClientTeamManager m, Team s) {
-		manager = m;
-		self = s.getId();
-		messages = new ArrayList<>(s.getMessageHistory());
+	public SyncTeamsMessage(ClientTeamManager manager, Team selfTeam, boolean fullSync) {
+		this.manager = manager;
+		this.selfTeamID = selfTeam.getId();
+		this.fullSync = fullSync;
 	}
 
 	@Override
@@ -44,30 +35,14 @@ public class SyncTeamsMessage extends BaseS2CMessage {
 
 	@Override
 	public void write(FriendlyByteBuf buffer) {
-		long now = System.currentTimeMillis();
-		manager.write(buffer, now);
-		buffer.writeUUID(self);
-		buffer.writeVarInt(messages.size());
-
-		for (TeamMessage tm : messages) {
-			tm.write(now, buffer);
-		}
+		manager.write(buffer, selfTeamID);
+		buffer.writeUUID(selfTeamID);
+		buffer.writeBoolean(fullSync);
 	}
 
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
-		manager.init(self, messages);
-
-		if (ClientTeamManager.INSTANCE != null) {
-			for (ClientTeam team : ClientTeamManager.INSTANCE.teamMap.values()) {
-				team.invalid = true;
-			}
-
-			ClientTeamManager.INSTANCE.invalid = true;
-		}
-
-		ClientTeamManager.INSTANCE = manager;
-
+		ClientTeamManager.syncFromServer(manager, selfTeamID, fullSync);
 		MyTeamScreen.refreshIfOpen();
 	}
 }

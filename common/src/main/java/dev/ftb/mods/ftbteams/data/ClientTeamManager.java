@@ -10,68 +10,70 @@ import net.minecraft.network.chat.TextComponent;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Represents the teams and known players that the client knows about; one global instance exists on the client.
+ * Instances are also created server-side for when changes need to be sync'd to the client; the server side instance
+ * will usually not have a complete list of client teams, but just those that needed to be added/updated/removed
+ * on the client.
+ */
 public class ClientTeamManager {
-	public static ClientTeamManager INSTANCE;
+	public static ClientTeamManager INSTANCE;  // instantiated when initial team data is sync'd on player login
 
-	public boolean invalid;
-	private final UUID id;
+	private final UUID managerId;
+	private boolean invalid;
 	public final Map<UUID, ClientTeam> teamMap;
 	public final Map<UUID, KnownClientPlayer> knownPlayers;
 	public ClientTeam selfTeam;
 	public KnownClientPlayer selfKnownPlayer;
 
-	public ClientTeamManager(UUID i) {
+	public ClientTeamManager(UUID managerId) {
+		this.managerId = managerId;
 		invalid = false;
-		id = i;
 		teamMap = new HashMap<>();
 		knownPlayers = new HashMap<>();
 	}
 
-	public ClientTeamManager(FriendlyByteBuf buffer, long now) {
+	public ClientTeamManager(FriendlyByteBuf buffer) {
 		this(buffer.readUUID());
 
-		int ts = buffer.readVarInt();
-
-		for (int i = 0; i < ts; i++) {
-			ClientTeam t = new ClientTeam(this, buffer, now);
+		int nTeams = buffer.readVarInt();
+		for (int i = 0; i < nTeams; i++) {
+			ClientTeam t = new ClientTeam(this, buffer);
 			teamMap.put(t.getId(), t);
 		}
 
-		int ps = buffer.readVarInt();
-
-		for (int i = 0; i < ps; i++) {
+		int nPlayers = buffer.readVarInt();
+		for (int i = 0; i < nPlayers; i++) {
 			KnownClientPlayer knownClientPlayer = new KnownClientPlayer(buffer);
 			knownPlayers.put(knownClientPlayer.uuid, knownClientPlayer);
 		}
 	}
 
-	public UUID getId() {
-		return id;
+	public UUID getManagerId() {
+		return managerId;
 	}
 
-	public void write(FriendlyByteBuf buffer, long now) {
-		buffer.writeUUID(getId());
+	public boolean isInvalid() {
+		return invalid;
+	}
+
+	public void write(FriendlyByteBuf buffer, UUID selfTeamID) {
+		buffer.writeUUID(getManagerId());
 
 		buffer.writeVarInt(teamMap.size());
-
-		for (ClientTeam t : teamMap.values()) {
-			t.write(buffer, now);
-		}
+		teamMap.values().forEach(clientTeam -> clientTeam.write(buffer, selfTeamID.equals(clientTeam.getId())));
 
 		buffer.writeVarInt(knownPlayers.size());
-
 		for (KnownClientPlayer knownClientPlayer : knownPlayers.values()) {
 			knownClientPlayer.write(buffer);
 		}
 	}
 
-	public void init(UUID self, List<TeamMessage> messages) {
-		selfTeam = teamMap.get(self);
-		selfTeam.addMessages(messages);
+	public void initSelfDetails(UUID selfTeamID) {
+		selfTeam = teamMap.get(selfTeamID);
 		UUID userId = Minecraft.getInstance().getUser().getGameProfile().getId();
 		selfKnownPlayer = knownPlayers.get(userId);
 		if (selfKnownPlayer == null) {
@@ -97,5 +99,40 @@ public class ClientTeamManager {
 
 		KnownClientPlayer p = knownPlayers.get(id);
 		return new TextComponent(p == null ? "Unknown" : p.name).withStyle(ChatFormatting.YELLOW);
+	}
+
+	public void invalidate() {
+		teamMap.values().forEach(team -> team.invalid = true);
+		invalid = true;
+	}
+
+	public static void syncFromServer(ClientTeamManager syncedData, UUID selfTeamID, boolean fullSync) {
+		if (fullSync) {
+			// complete live team manager invalidation and replacement
+			syncedData.initSelfDetails(selfTeamID);
+			if (INSTANCE != null) {
+				INSTANCE.invalidate();
+			}
+			INSTANCE = syncedData;
+		} else if (ClientTeamManager.INSTANCE != null) {
+			// just copy the sync'd team(s) into the live client team manager
+			syncedData.teamMap.forEach((teamID, clientTeam) -> {
+				if (clientTeam.invalid) {
+					FTBTeams.LOGGER.debug("remove {} from client team map", teamID);
+					INSTANCE.teamMap.remove(teamID);
+				} else {
+					ClientTeam existing = INSTANCE.teamMap.get(teamID);
+					if (existing != null) {
+						FTBTeams.LOGGER.debug("update {} in client team map", teamID);
+					} else {
+						FTBTeams.LOGGER.debug("insert {} into client team map", teamID);
+					}
+					INSTANCE.teamMap.put(teamID, clientTeam);
+				}
+			});
+			INSTANCE.knownPlayers.putAll(syncedData.knownPlayers);
+			INSTANCE.initSelfDetails(selfTeamID);
+		}
+
 	}
 }

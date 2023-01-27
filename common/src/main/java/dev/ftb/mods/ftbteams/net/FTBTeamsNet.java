@@ -8,6 +8,7 @@ public interface FTBTeamsNet {
 	SimpleNetworkManager NET = SimpleNetworkManager.create(FTBTeams.MOD_ID);
 
 	MessageType SYNC_TEAMS = NET.registerS2C("sync_teams", SyncTeamsMessage::new);
+	MessageType SYNC_MESSAGE_HISTORY = NET.registerS2C("sync_message_history", SyncMessageHistoryMessage::new);
 	MessageType OPEN_GUI = NET.registerC2S("open_gui", OpenGUIMessage::new);
 	MessageType OPEN_MY_TEAM_GUI = NET.registerS2C("open_my_team_gui", OpenMyTeamGUIMessage::new);
 	MessageType UPDATE_SETTINGS = NET.registerC2S("update_settings", UpdateSettingsMessage::new);

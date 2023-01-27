@@ -30,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
  */
 public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType ALREADY_IN_PARTY = new SimpleCommandExceptionType(Component.translatable("ftbteams.already_in_party"));
+	public static final DynamicCommandExceptionType PLAYER_IN_PARTY = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.player_already_in_party", object));
 	public static final SimpleCommandExceptionType NOT_IN_PARTY = new SimpleCommandExceptionType(Component.translatable("ftbteams.not_in_party"));
 	public static final DynamicCommandExceptionType TEAM_NOT_FOUND = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.team_not_found", object));
 	public static final DynamicCommandExceptionType CANT_EDIT = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.cant_edit", object));
@@ -39,6 +40,7 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType OWNER_CANT_LEAVE = new SimpleCommandExceptionType(Component.translatable("ftbteams.owner_cant_leave"));
 	public static final SimpleCommandExceptionType CANT_KICK_OWNER = new SimpleCommandExceptionType(Component.translatable("ftbteams.cant_kick_owner"));
 	public static final SimpleCommandExceptionType API_OVERRIDE = new SimpleCommandExceptionType(Component.translatable("ftbteams.api_override"));
+	public static final SimpleCommandExceptionType NAME_TOO_SHORT = new SimpleCommandExceptionType(Component.translatable("ftbteams.name_too_short"));
 
 	public static TeamArgument create() {
 		return new TeamArgument();
@@ -125,7 +127,7 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 						}
 					}
 				}
-			} else if (ClientTeamManager.INSTANCE != null && !ClientTeamManager.INSTANCE.invalid) {
+			} else if (ClientTeamManager.INSTANCE != null && !ClientTeamManager.INSTANCE.isInvalid()) {
 				for (ClientTeam team : ClientTeamManager.INSTANCE.teamMap.values()) {
 					if (!team.getType().isPlayer()) {
 						list.add(team.getStringID());

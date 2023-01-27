@@ -1,9 +1,12 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
+import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
@@ -66,12 +69,10 @@ public class PlayerTeam extends Team {
 
 	public void createParty(ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {
 		try {
-			PartyTeam team = manager.createParty(player, name).getRight();
-			team.setProperty(DESCRIPTION, description);
-			team.setProperty(COLOR, Color4I.rgb(color));
+			PartyTeam team = manager.createParty(player, name, description, Color4I.rgb(color)).getRight();
 			team.invite(player, invited);
-			manager.syncAll();
-		} catch (Exception ex) {
+		} catch (CommandSyntaxException ex) {
+			player.displayClientMessage(Component.literal(ex.getMessage()).withStyle(ChatFormatting.RED), false);
 		}
 	}
 

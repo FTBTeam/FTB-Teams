@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
 import dev.ftb.mods.ftbteams.event.TeamAllyEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -74,21 +75,21 @@ public class PartyTeam extends Team {
 
 		((PlayerTeam) oldTeam).actualTeam = this;
 		ranks.put(id, TeamRank.MEMBER);
-		sendMessage(Util.NIL_UUID, Component.literal("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.GREEN));
+		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.joined", player.getName()).withStyle(ChatFormatting.GREEN));
 		save();
 
 		oldTeam.ranks.remove(id);
 		oldTeam.save();
 		((PlayerTeam) oldTeam).updatePresence();
-		manager.syncAll();
+		manager.syncTeamsToAll(this, oldTeam);
 		changedTeam(oldTeam, id, player, false);
 		return Command.SINGLE_SUCCESS;
 	}
 
 	public int invite(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
 		for (GameProfile player : players) {
-			if (isMember(player.getId())) {
-				continue;
+			if (FTBTeamsAPI.getManager().getPlayerTeam(player.getId()) instanceof PartyTeam) {
+				throw TeamArgument.PLAYER_IN_PARTY.create(player.getName());
 			}
 
 			ranks.put(player.getId(), TeamRank.INVITED);
@@ -140,7 +141,7 @@ public class PartyTeam extends Team {
 			save();
 
 			team.updatePresence();
-			manager.syncAll();
+			manager.syncTeamsToAll(this, team);
 
 			if (playerEntity != null) {
 				playerEntity.displayClientMessage(Component.translatable("ftbteams.message.kicked", playerEntity.getName().copy().withStyle(ChatFormatting.YELLOW), getName().copy().withStyle(ChatFormatting.AQUA)), false);
@@ -167,7 +168,7 @@ public class PartyTeam extends Team {
 		}
 		if (changesMade) {
 			save();
-			manager.syncAll();
+			manager.syncTeamsToAll(this);
 		}
 		return Command.SINGLE_SUCCESS;
 	}
@@ -185,7 +186,7 @@ public class PartyTeam extends Team {
 			}
 		}
 		if (changesMade) {
-			manager.syncAll();
+			manager.syncTeamsToAll(this);
 		}
 		return Command.SINGLE_SUCCESS;
 	}
@@ -209,7 +210,7 @@ public class PartyTeam extends Team {
 		sendMessage(from.getUUID(), Component.translatable("ftbteams.message.transfer_owner", to.getDisplayName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
 		updateCommands(from);
 		updateCommands(to);
-		manager.syncAll();
+		manager.syncTeamsToAll(this);
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -257,7 +258,7 @@ public class PartyTeam extends Team {
 		}
 
 		team.updatePresence();
-		manager.syncAll();
+		manager.syncTeamsToAll(this, team);
 		team.changedTeam(this, id, player, deleted);
 		return Command.SINGLE_SUCCESS;
 	}
@@ -274,12 +275,16 @@ public class PartyTeam extends Team {
 				sendMessage(from, Component.translatable("ftbteams.message.add_ally",
 						manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
 				addedPlayers.add(player);
+				ServerPlayer invitedPlayer = manager.getServer().getPlayerList().getPlayer(id);
+				if (invitedPlayer != null) {
+					invitedPlayer.displayClientMessage(Component.translatable("ftbteams.message.now_allied", getDisplayName()).withStyle(ChatFormatting.GREEN), false);
+				}
 			}
 		}
 
 		if (!addedPlayers.isEmpty()) {
 			save();
-			manager.syncAll();
+			manager.syncTeamsToAll(this);
 			TeamEvent.ADD_ALLY.invoker().accept(new TeamAllyEvent(this, addedPlayers, true));
 			return 1;
 		}
@@ -299,12 +304,16 @@ public class PartyTeam extends Team {
 				sendMessage(from, Component.translatable("ftbteams.message.remove_ally",
 						manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
 				removedPlayers.add(player);
+				ServerPlayer removedPlayer = manager.getServer().getPlayerList().getPlayer(id);
+				if (removedPlayer != null) {
+					removedPlayer.displayClientMessage(Component.translatable("ftbteams.message.no_longer_allied", getDisplayName()).withStyle(ChatFormatting.GOLD), false);
+				}
 			}
 		}
 
 		if (!removedPlayers.isEmpty()) {
 			save();
-			manager.syncAll();
+			manager.syncTeamsToAll(this);
 			TeamEvent.REMOVE_ALLY.invoker().accept(new TeamAllyEvent(this, removedPlayers, false));
 			return 1;
 		}

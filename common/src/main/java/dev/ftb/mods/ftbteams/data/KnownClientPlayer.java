@@ -58,7 +58,7 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 		return teamId.equals(uuid);
 	}
 
-	public boolean isValid() {
+	public boolean isOnlineAndNotInParty() {
 		return online && isInternalTeam();
 	}
 
@@ -68,7 +68,7 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 
 	@Override
 	public int compareTo(KnownClientPlayer o) {
-		int i = Boolean.compare(o.isValid(), isValid());
+		int i = Boolean.compare(o.isOnlineAndNotInParty(), isOnlineAndNotInParty());
 		return i == 0 ? name.compareToIgnoreCase(o.name) : i;
 	}
 }

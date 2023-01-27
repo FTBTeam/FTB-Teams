@@ -30,7 +30,7 @@ public class AllyScreen extends BaseInvitationScreen {
     @Override
     protected boolean shouldIncludePlayer(KnownClientPlayer player) {
         // any player who isn't in our team is a valid potential or actual ally
-        return player.isValid() && !ClientTeamManager.INSTANCE.selfTeam.isMember(player.uuid);
+        return player.online && !ClientTeamManager.INSTANCE.selfTeam.isMember(player.uuid);
     }
 
     @Override

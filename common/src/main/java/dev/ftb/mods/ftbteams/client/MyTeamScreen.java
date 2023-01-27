@@ -50,7 +50,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			if (mts.getManager().selfTeam.getId().equals(mts.teamID)) {
 				mts.refreshWidgets();
 			} else {
-				// team has changed (player left or got kicked?)
+				// team has changed (player left or got kicked from party?)
 				mts.closeGui(false);
 			}
 		}
@@ -176,6 +176,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+				return false;
+			}
 			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
 			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}
@@ -194,6 +197,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+				return false;
+			}
 			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
 			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
 		}
@@ -277,7 +283,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		@Override
 		public void addWidgets() {
 			ClientTeamManager manager = getManager();
-			if (manager == null || manager.invalid) return;
+			if (manager == null || manager.isInvalid()) return;
 
 			PARTY_RANKS.stream()
 					.flatMap(rank -> manager.selfTeam.getRanked(rank).entrySet().stream()

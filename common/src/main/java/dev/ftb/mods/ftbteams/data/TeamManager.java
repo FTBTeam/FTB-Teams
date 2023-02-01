@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftbteams.FTBTeams;
@@ -11,6 +12,7 @@ import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
+import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -18,6 +20,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
@@ -27,12 +30,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author LatvianModder
@@ -157,17 +156,16 @@ public class TeamManager {
 			Path dir = directory.resolve(type.getSerializedName());
 
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
-				try {
-					for (Path file : Files.list(dir).filter(path -> path.getFileName().toString().endsWith(".snbt")).toList()) {
+				try (Stream<Path> s = Files.list(dir)) {
+					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
 						CompoundTag nbt = SNBT.read(file);
-
 						if (nbt != null) {
 							Team team = type.factory.apply(this);
 							team.id = UUID.fromString(nbt.getString("id"));
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt);
 						}
-					}
+					});
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -184,7 +182,6 @@ public class TeamManager {
 			if (team instanceof PartyTeam) {
 				for (UUID member : team.getMembers()) {
 					PlayerTeam t = knownPlayers.get(member);
-
 					if (t != null) {
 						t.actualTeam = team;
 					}
@@ -192,7 +189,7 @@ public class TeamManager {
 			}
 		}
 
-		FTBTeams.LOGGER.info("Loaded FTB Teams - " + knownPlayers.size() + " known players");
+		FTBTeams.LOGGER.info("loaded team data: {} known players, {} teams total", knownPlayers.size(), teamMap.size());
 	}
 
 	public void save() {
@@ -244,7 +241,7 @@ public class TeamManager {
 		return nbt;
 	}
 
-	public ServerTeam createServerTeam(ServerPlayer player, String name) {
+	private ServerTeam createServerTeam(ServerPlayer player, String name) {
 		ServerTeam team = new ServerTeam(this);
 		team.id = UUID.randomUUID();
 		teamMap.put(team.id, team);
@@ -252,11 +249,11 @@ public class TeamManager {
 		team.setProperty(Team.DISPLAY_NAME, name.isEmpty() ? team.id.toString().substring(0, 8) : name);
 		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
-		team.created(player);
+		team.onCreated(player);
 		return team;
 	}
 
-	public PartyTeam createPartyTeam(ServerPlayer player, String name) {
+	private PartyTeam createPartyTeam(ServerPlayer player, String name) {
 		PartyTeam team = new PartyTeam(this);
 		team.id = UUID.randomUUID();
 		team.owner = player.getUUID();
@@ -265,61 +262,66 @@ public class TeamManager {
 		team.setProperty(Team.DISPLAY_NAME, name.isEmpty() ? (player.getGameProfile().getName() + "'s Party") : name);
 		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
-		team.created(player);
+		team.onCreated(player);
+		return team;
+	}
+
+	private PlayerTeam createPlayerTeam(@Nullable ServerPlayer player, UUID playerId, String playerName) {
+		PlayerTeam team = new PlayerTeam(this);
+
+		team.id = playerId;
+		team.playerName = playerName;
+
+		team.setProperty(Team.DISPLAY_NAME, team.playerName);
+		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
+
+		team.ranks.put(playerId, TeamRank.OWNER);
+
+		team.onCreated(player);
 		return team;
 	}
 
 	public void playerLoggedIn(@Nullable ServerPlayer player, UUID id, String name) {
 		PlayerTeam team = knownPlayers.get(id);
-		boolean all = false;
-		boolean created = false;
+		boolean syncToAll = false;
+
+		FTBTeams.LOGGER.debug("player {} logged in, player team = {}", id, team);
 
 		if (team == null) {
-			team = new PlayerTeam(this);
-			team.id = id;
-			team.playerName = name;
+			FTBTeams.LOGGER.debug("creating new player team for player {}", id);
+
+			team = createPlayerTeam(player, id, name);
 			teamMap.put(id, team);
 			knownPlayers.put(id, team);
 
-			team.setProperty(Team.DISPLAY_NAME, team.playerName);
-			team.setProperty(Team.COLOR, FTBTUtils.randomColor());
+			syncToAll = true;
+			team.changedTeam(null, id, player, false);
 
-			team.ranks.put(id, TeamRank.OWNER);
-			created = true;
-			team.save();
-			save();
-			all = true;
-		}
-
-		if (!team.playerName.equals(name)) {
+			FTBTeams.LOGGER.debug("  - team created");
+		} else if (!team.playerName.equals(name)) {
+			FTBTeams.LOGGER.debug("updating player name: {} -> {}", team.playerName, name);
 			team.playerName = name;
 			team.save();
 			save();
-			all = true;
+			syncToAll = true;
 		}
 
-		if (all) {
-			syncAll();
-		} else if (player != null) {
-			sync(player, team.actualTeam);
+		FTBTeams.LOGGER.debug("syncing player team data, all = {}", syncToAll);
+		if (player != null) {
+			syncAllToPlayer(player, team.actualTeam);
+		}
+		if (syncToAll) {
+			syncTeamsToAll(team.actualTeam);
 		}
 
-		if (created) {
-			if (player != null) {
-				team.created(player);
-			} else {
-				team.save();
-				save();
-			}
-
-			team.changedTeam(null, id, player, false);
-		}
-
+		FTBTeams.LOGGER.debug("updating team presence");
 		team.online = true;
 		team.updatePresence();
 
 		if (player != null) {
+			FTBTeams.LOGGER.debug("sending team login event for {}...", player.getUUID());
 			TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(team.actualTeam, player));
+			FTBTeams.LOGGER.debug("team login event for {} sent", player.getUUID());
 		}
 	}
 
@@ -332,11 +334,15 @@ public class TeamManager {
 		}
 	}
 
-	public ClientTeamManager createClientTeamManager() {
+	private ClientTeamManager createClientTeamManager(Collection<Team> teams) {
 		ClientTeamManager clientManager = new ClientTeamManager(getId());
 
-		for (Team team : getTeams()) {
-			ClientTeam t = new ClientTeam(clientManager, team);
+		for (Team team : teams) {
+			// deleted party teams won't be in the manager's team map; use an invalid client team to indicate
+			//  that the client must remove that team from its client-side manager
+			ClientTeam t = teamMap.containsKey(team.getId()) ?
+					new ClientTeam(clientManager, team) :
+					ClientTeam.invalidTeam(clientManager, team);
 			clientManager.teamMap.put(t.getId(), t);
 
 			if (team instanceof PlayerTeam) {
@@ -347,63 +353,81 @@ public class TeamManager {
 		return clientManager;
 	}
 
-	public void sync(ServerPlayer player, Team self) {
-		new SyncTeamsMessage(createClientTeamManager(), self).sendTo(player);
+	/**
+	 * Sync team information about all teams to one player, along with that player's team's message history.
+	 * Called on player login.
+	 *
+	 * @param player player to sync to
+	 * @param selfTeam the player's own team, which could be a party team
+	 */
+	public void syncAllToPlayer(ServerPlayer player, Team selfTeam) {
+		new SyncTeamsMessage(createClientTeamManager(getTeams()), selfTeam, true).sendTo(player);
+		new SyncMessageHistoryMessage(selfTeam).sendTo(player);
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
-	public void sync(ServerPlayer player) {
-		sync(player, getPlayerTeam(player));
-	}
+	/**
+	 * Sync only the given team(s) to all players. Called when one or more teams are modified in any way. In practice,
+	 * this will always be one or two teams (two when a player is joining or leaving a team).
+	 *
+	 * @param teams the teams to sync
+	 */
+	public void syncTeamsToAll(Team... teams) {
+		if (teams.length == 0) return;
 
-	public void syncAll() {
-		save();
-
-		ClientTeamManager clientManager = createClientTeamManager();
-
+		ClientTeamManager manager = createClientTeamManager(Arrays.stream(teams).toList());
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
-			new SyncTeamsMessage(clientManager, getPlayerTeam(player)).sendTo(player);
-			server.getPlayerList().sendPlayerPermissionLevel(player);
+			Team selfTeam = getPlayerTeam(player);
+			new SyncTeamsMessage(manager, selfTeam, false).sendTo(player);
+			if (teams.length > 1) {
+				new SyncMessageHistoryMessage(selfTeam).sendTo(player);
+			}
 		}
 	}
 
 	// Command Handlers //
 	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name) throws CommandSyntaxException {
-		return createParty(player, name, true);
+		return createParty(player, name, null, null);
 	}
 
-	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name, boolean fromCommand) throws CommandSyntaxException {
-		if (FTBTeamsAPI.partyCreationOverride != null && fromCommand) {
+	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
+		if (FTBTeamsAPI.partyCreationOverride != null) {
 			throw TeamArgument.API_OVERRIDE.create();
 		}
 
 		UUID id = player.getUUID();
 		Team oldTeam = getPlayerTeam(player);
 
-		if (!oldTeam.getType().isPlayer()) {
+		if (!(oldTeam instanceof PlayerTeam playerTeam)) {
 			throw TeamArgument.ALREADY_IN_PARTY.create();
 		}
 
 		PartyTeam team = createPartyTeam(player, name);
-		((PlayerTeam) oldTeam).actualTeam = team;
+		if (description != null) team.setProperty(TeamBase.DESCRIPTION, description);
+		if (color != null) team.setProperty(TeamBase.COLOR, color);
+
+		playerTeam.actualTeam = team;
 
 		team.ranks.put(id, TeamRank.OWNER);
-		team.sendMessage(Util.NIL_UUID, new TextComponent("").append(player.getName()).append(" joined your party!").withStyle(ChatFormatting.YELLOW));
+		team.sendMessage(Util.NIL_UUID, new TranslatableComponent("ftbteams.message.joined", player.getName()).withStyle(ChatFormatting.YELLOW));
 		team.save();
 
-		oldTeam.ranks.remove(id);
-		oldTeam.save();
+		playerTeam.ranks.remove(id);
+		playerTeam.save();
 
-		((PlayerTeam) oldTeam).updatePresence();
-		syncAll();
-		team.changedTeam(oldTeam, id, player, false);
+		playerTeam.updatePresence();
+		syncTeamsToAll(team, playerTeam);
+		team.changedTeam(playerTeam, id, player, false);
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 
 	public Pair<Integer, ServerTeam> createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
+		if (name.length() < 3) {
+			throw TeamArgument.NAME_TOO_SHORT.create();
+		}
 		ServerTeam team = createServerTeam(source.getPlayerOrException(), name);
-		source.sendSuccess(new TextComponent("Created new server team ").append(team.getName()), true);
-		syncAll();
+		source.sendSuccess(new TranslatableComponent("ftbteams.message.created_server_team", team.getName()), true);
+		syncTeamsToAll(team);
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}
 

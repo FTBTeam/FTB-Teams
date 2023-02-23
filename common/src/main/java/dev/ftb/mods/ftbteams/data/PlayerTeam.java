@@ -20,8 +20,9 @@ public class PlayerTeam extends Team {
 	public boolean online;
 	public Team actualTeam;
 
-	public PlayerTeam(TeamManager m) {
-		super(m);
+	public PlayerTeam(TeamManager manager, UUID id) {
+		super(manager, id);
+
 		playerName = "";
 		online = false;
 		actualTeam = this;
@@ -64,7 +65,7 @@ public class PlayerTeam extends Team {
 	}
 
 	public void updatePresence() {
-		new UpdatePresenceMessage(new KnownClientPlayer(this)).sendToAll(manager.server);
+		new UpdatePresenceMessage(KnownClientPlayer.fromTeam(this)).sendToAll(manager.server);
 	}
 
 	public void createParty(ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {

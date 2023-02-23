@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,8 +28,6 @@ public class OpenGUIMessage extends BaseC2SMessage {
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
-		OpenMyTeamGUIMessage res = new OpenMyTeamGUIMessage();
-		res.properties = team.properties.copy();
-		res.sendTo(player);
+		new OpenMyTeamGUIMessage(team.getProperties()).sendTo(player);
 	}
 }

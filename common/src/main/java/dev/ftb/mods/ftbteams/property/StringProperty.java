@@ -27,6 +27,7 @@ public class StringProperty extends TeamProperty<String> {
 		super(id, buf.readUtf(Short.MAX_VALUE));
 		int f = buf.readVarInt();
 		String s = buf.readUtf(Short.MAX_VALUE);
+		//noinspection MagicConstant
 		pattern = s.isEmpty() ? null : Pattern.compile(s, f);
 	}
 

@@ -3,9 +3,9 @@ package dev.ftb.mods.ftbteams.property;
 import java.util.function.Consumer;
 
 public final class TeamPropertyValue<T> {
-	public final TeamProperty<T> key;
-	public T value;
-	public Consumer<T> consumer;
+	final TeamProperty<T> key;
+	T value;
+	Consumer<T> consumer;
 
 	public TeamPropertyValue(TeamProperty<T> k, T v) {
 		key = k;

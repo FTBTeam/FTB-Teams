@@ -6,7 +6,7 @@ import dev.ftb.mods.ftbteams.data.TeamArgument;
 import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.commands.synchronization.ArgumentTypeInfos;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -19,7 +19,7 @@ import static net.minecraftforge.fml.IExtensionPoint.DisplayTest;
 
 @Mod(FTBTeams.MOD_ID)
 public class FTBTeamsForge {
-	private static final DeferredRegister<ArgumentTypeInfo<?, ?>> COMMAND_ARGUMENT_TYPES = DeferredRegister.create(Registry.COMMAND_ARGUMENT_TYPE_REGISTRY, FTBTeams.MOD_ID);
+	private static final DeferredRegister<ArgumentTypeInfo<?, ?>> COMMAND_ARGUMENT_TYPES = DeferredRegister.create(Registries.COMMAND_ARGUMENT_TYPE, FTBTeams.MOD_ID);
 	private static final RegistryObject<TeamArgument.Info> TEAM_ARGUMENT = COMMAND_ARGUMENT_TYPES.register("team", () -> ArgumentTypeInfos.registerByClass(TeamArgument.class, new TeamArgument.Info()));
 	private static final RegistryObject<TeamPropertyArgument.Info> TEAM_PROPERTY_ARGUMENT = COMMAND_ARGUMENT_TYPES.register("team_property", () -> ArgumentTypeInfos.registerByClass(TeamPropertyArgument.class, new TeamPropertyArgument.Info()));
 

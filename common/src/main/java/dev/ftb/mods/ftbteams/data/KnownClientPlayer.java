@@ -6,48 +6,36 @@ import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.UUID;
 
-public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
-	public final UUID uuid;
-	public String name;
-	public boolean online;
-	public UUID teamId;
-	private GameProfile profile;
-	private CompoundTag extraData;
+public record KnownClientPlayer(UUID id, String name, boolean online, UUID teamId, GameProfile profile, CompoundTag extraData)
+		implements Comparable<KnownClientPlayer> {
 
-	public KnownClientPlayer(PlayerTeam pt) {
-		uuid = pt.getId();
-		name = pt.playerName;
-		online = pt.online;
-		teamId = pt.actualTeam.getId();
-		extraData = pt.getExtraData();
+	public static KnownClientPlayer fromTeam(PlayerTeam playerTeam) {
+		return new KnownClientPlayer(
+				playerTeam.getId(),
+				playerTeam.playerName,
+				playerTeam.online,
+				playerTeam.actualTeam.getId(),
+				new GameProfile(playerTeam.getId(), playerTeam.playerName),
+				playerTeam.getExtraData()
+		);
 	}
 
-	public KnownClientPlayer(FriendlyByteBuf buf) {
-		uuid = buf.readUUID();
-		name = buf.readUtf(Short.MAX_VALUE);
-		online = buf.readBoolean();
-		teamId = buf.readUUID();
-		extraData = buf.readAnySizeNbt();
+	public static KnownClientPlayer fromNetwork(FriendlyByteBuf buf) {
+		UUID id = buf.readUUID();
+		String name = buf.readUtf(Short.MAX_VALUE);
+		boolean online = buf.readBoolean();
+		UUID teamId = buf.readUUID();
+		CompoundTag extraData = buf.readAnySizeNbt();
+
+		return new KnownClientPlayer(id, name, online, teamId, new GameProfile(id, name), extraData);
 	}
 
-	public void update(KnownClientPlayer p) {
-		name = p.name;
-		online = p.online;
-		teamId = p.teamId;
-		profile = null;
-		extraData = p.extraData;
-	}
-
-	public GameProfile getProfile() {
-		if (profile == null) {
-			profile = new GameProfile(uuid, name);
-		}
-
-		return profile;
+	public KnownClientPlayer updateFrom(KnownClientPlayer other) {
+		return new KnownClientPlayer(id, other.name, other.online, other.teamId, other.profile, other.extraData);
 	}
 
 	public void write(FriendlyByteBuf buf) {
-		buf.writeUUID(uuid);
+		buf.writeUUID(id);
 		buf.writeUtf(name, Short.MAX_VALUE);
 		buf.writeBoolean(online);
 		buf.writeUUID(teamId);
@@ -55,15 +43,11 @@ public class KnownClientPlayer implements Comparable<KnownClientPlayer> {
 	}
 
 	public boolean isInternalTeam() {
-		return teamId.equals(uuid);
+		return teamId.equals(id);
 	}
 
 	public boolean isOnlineAndNotInParty() {
 		return online && isInternalTeam();
-	}
-
-	public CompoundTag getExtraData() {
-		return extraData;
 	}
 
 	@Override

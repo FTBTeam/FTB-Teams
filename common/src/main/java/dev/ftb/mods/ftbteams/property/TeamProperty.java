@@ -12,12 +12,20 @@ import java.util.Optional;
  * @author LatvianModder
  */
 public abstract class TeamProperty<T> {
-	public final ResourceLocation id;
-	public final T defaultValue;
+	protected final ResourceLocation id;
+	protected final T defaultValue;
 
 	public TeamProperty(ResourceLocation _id, T def) {
 		id = _id;
 		defaultValue = def;
+	}
+
+	public ResourceLocation getId() {
+		return id;
+	}
+
+	public String getTranslationKey(String prefix) {
+		return prefix + "." + id.getNamespace() + "." + id.getPath();
 	}
 
 	public abstract TeamPropertyType<T> getType();
@@ -42,7 +50,7 @@ public abstract class TeamProperty<T> {
 		if (o == this) {
 			return true;
 		} else if (o instanceof TeamProperty) {
-			return id.equals(((TeamProperty) o).id);
+			return id.equals(((TeamProperty<?>) o).id);
 		}
 
 		return false;

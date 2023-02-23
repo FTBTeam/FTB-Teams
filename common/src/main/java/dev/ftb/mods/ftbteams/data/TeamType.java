@@ -2,30 +2,24 @@ package dev.ftb.mods.ftbteams.data;
 
 import net.minecraft.util.StringRepresentable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.UUID;
+import java.util.function.BiFunction;
 
 public enum TeamType implements StringRepresentable {
 	PLAYER("player", PlayerTeam::new),
 	PARTY("party", PartyTeam::new),
 	SERVER("server", ServerTeam::new);
 
-	public static final TeamType[] VALUES = values();
-	public static final Map<String, TeamType> MAP = new HashMap<>();
-
-	static {
-		for (TeamType t : values()) {
-			MAP.put(t.name, t);
-		}
-	}
-
 	private final String name;
-	public final Function<TeamManager, Team> factory;
+	private final BiFunction<TeamManager, UUID, Team> factory;
 
-	TeamType(String n, Function<TeamManager, Team> f) {
+	TeamType(String n, BiFunction<TeamManager, UUID, Team> f) {
 		name = n;
 		factory = f;
+	}
+
+	public Team createTeam(TeamManager manager, UUID id) {
+		return factory.apply(manager, id);
 	}
 
 	@Override

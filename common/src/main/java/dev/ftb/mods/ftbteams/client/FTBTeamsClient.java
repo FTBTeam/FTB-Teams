@@ -58,8 +58,8 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 	}
 
 	@Override
-	public void openMyTeamGui(OpenMyTeamGUIMessage res) {
-		new MyTeamScreen(res.properties).openGui();
+	public void openMyTeamGui(TeamProperties properties) {
+		new MyTeamScreen(properties).openGui();
 	}
 
 	@Override
@@ -69,11 +69,8 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 		}
 
 		ClientTeam team = ClientTeamManager.INSTANCE.getTeam(id);
-
 		if (team != null) {
-			TeamProperties old = team.properties.copy();
-			team.properties.updateFrom(properties);
-			TeamEvent.CLIENT_PROPERTIES_CHANGED.invoker().accept(new ClientTeamPropertiesChangedEvent(team, old));
+			team.updateProperties(properties);
 		}
 	}
 
@@ -83,31 +80,18 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 			return;
 		}
 
-		ClientTeamManager.INSTANCE.selfTeam.addMessage(new TeamMessage(from, System.currentTimeMillis(), text));
+		ClientTeamManager.INSTANCE.selfTeam().addMessage(new TeamMessage(from, System.currentTimeMillis(), text));
 
 		MyTeamScreen screen = ClientUtils.getCurrentGuiAs(MyTeamScreen.class);
-
 		if (screen != null) {
-			screen.chatPanel.refreshWidgets();
+			screen.refreshChat();
 		}
 	}
 
 	@Override
 	public void updatePresence(KnownClientPlayer update) {
-		if (ClientTeamManager.INSTANCE == null) {
-			return;
-		}
-
-		KnownClientPlayer p = ClientTeamManager.INSTANCE.knownPlayers.get(update.uuid);
-
-		if (p == null) {
-			ClientTeamManager.INSTANCE.knownPlayers.put(update.uuid, update);
-		} else {
-			p.update(update);
-		}
-
-		if (Platform.isDevelopmentEnvironment()) {
-			FTBTeams.LOGGER.info("Updated presence of " + update.name);
+		if (ClientTeamManager.INSTANCE != null) {
+			ClientTeamManager.INSTANCE.updatePresence(update);
 		}
 	}
 }

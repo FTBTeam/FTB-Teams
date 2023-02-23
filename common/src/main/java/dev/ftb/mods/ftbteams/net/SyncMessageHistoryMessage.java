@@ -21,7 +21,7 @@ public class SyncMessageHistoryMessage extends BaseS2CMessage {
         int nMessages = buf.readVarInt();
         messages = new ArrayList<>(nMessages);
         for (int i = 0; i < nMessages; i++) {
-            messages.add(new TeamMessage(now, buf));
+            messages.add(TeamMessage.fromNetwork(now, buf));
         }
     }
 
@@ -39,13 +39,13 @@ public class SyncMessageHistoryMessage extends BaseS2CMessage {
         long now = System.currentTimeMillis();
         buf.writeVarInt(messages.size());
         for (TeamMessage tm : messages) {
-            tm.write(now, buf);
+            tm.toNetwork(now, buf);
         }
     }
 
     @Override
     public void handle(NetworkManager.PacketContext context) {
-        ClientTeam team = ClientTeamManager.INSTANCE.selfTeam;
+        ClientTeam team = ClientTeamManager.INSTANCE.selfTeam();
         if (team != null) {
             team.setMessageHistory(messages);
             MyTeamScreen.refreshIfOpen();

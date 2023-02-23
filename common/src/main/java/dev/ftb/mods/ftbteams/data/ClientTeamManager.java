@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import dev.architectury.platform.Platform;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -8,6 +9,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -22,11 +24,12 @@ public class ClientTeamManager {
 	public static ClientTeamManager INSTANCE;  // instantiated when initial team data is sync'd on player login
 
 	private final UUID managerId;
+	private final Map<UUID, ClientTeam> teamMap;
+	private final Map<UUID, KnownClientPlayer> knownPlayers;
+
 	private boolean invalid;
-	public final Map<UUID, ClientTeam> teamMap;
-	public final Map<UUID, KnownClientPlayer> knownPlayers;
-	public ClientTeam selfTeam;
-	public KnownClientPlayer selfKnownPlayer;
+	private ClientTeam selfTeam;
+	private KnownClientPlayer selfKnownPlayer;
 
 	public ClientTeamManager(UUID managerId) {
 		this.managerId = managerId;
@@ -40,15 +43,34 @@ public class ClientTeamManager {
 
 		int nTeams = buffer.readVarInt();
 		for (int i = 0; i < nTeams; i++) {
-			ClientTeam t = new ClientTeam(this, buffer);
+			ClientTeam t = ClientTeam.fromNetwork(this, buffer);
 			teamMap.put(t.getId(), t);
 		}
 
 		int nPlayers = buffer.readVarInt();
 		for (int i = 0; i < nPlayers; i++) {
-			KnownClientPlayer knownClientPlayer = new KnownClientPlayer(buffer);
-			knownPlayers.put(knownClientPlayer.uuid, knownClientPlayer);
+			KnownClientPlayer knownClientPlayer = KnownClientPlayer.fromNetwork(buffer);
+			knownPlayers.put(knownClientPlayer.id(), knownClientPlayer);
 		}
+	}
+
+	public static ClientTeamManager createServerSide(TeamManager manager, Collection<Team> teams) {
+		ClientTeamManager clientManager = new ClientTeamManager(manager.getId());
+
+		for (Team team : teams) {
+			// deleted party teams won't be in the manager's team map; use an invalid client team to indicate
+			//  that the client must remove that team from its client-side manager
+			ClientTeam clientTeam = manager.getTeamMap().containsKey(team.getId()) ?
+					ClientTeam.copyOf(clientManager, team) :
+					ClientTeam.invalidTeam(clientManager, team);
+			clientManager.addTeam(clientTeam);
+
+			if (team instanceof PlayerTeam playerTeam) {
+				clientManager.knownPlayers.put(team.getId(), KnownClientPlayer.fromTeam(playerTeam));
+			}
+		}
+
+		return clientManager;
 	}
 
 	public UUID getManagerId() {
@@ -57,6 +79,22 @@ public class ClientTeamManager {
 
 	public boolean isInvalid() {
 		return invalid;
+	}
+
+	public Collection<KnownClientPlayer> knownClientPlayers() {
+		return knownPlayers.values();
+	}
+
+	public Collection<ClientTeam> getTeams() {
+		return teamMap.values();
+	}
+
+	public ClientTeam selfTeam() {
+		return selfTeam;
+	}
+
+	public KnownClientPlayer self() {
+		return selfKnownPlayer;
 	}
 
 	public void write(FriendlyByteBuf buffer, UUID selfTeamID) {
@@ -76,7 +114,7 @@ public class ClientTeamManager {
 		UUID userId = Minecraft.getInstance().getUser().getGameProfile().getId();
 		selfKnownPlayer = knownPlayers.get(userId);
 		if (selfKnownPlayer == null) {
-			FTBTeams.LOGGER.warn("Local player id {} was not found in the known players list [{}]! FTB Teams will not be able to function correctly!",
+			FTBTeams.LOGGER.error("Local player id {} was not found in the known players list [{}]! FTB Teams will not be able to function correctly!",
 					userId, String.join(",", knownPlayers.keySet().stream().map(UUID::toString).toList()));
 		}
 	}
@@ -97,11 +135,15 @@ public class ClientTeamManager {
 		}
 
 		KnownClientPlayer p = knownPlayers.get(id);
-		return Component.literal(p == null ? "Unknown" : p.name).withStyle(ChatFormatting.YELLOW);
+		return Component.literal(p == null ? "Unknown" : p.name()).withStyle(ChatFormatting.YELLOW);
+	}
+
+	public void addTeam(ClientTeam team) {
+		teamMap.put(team.getId(), team);
 	}
 
 	public void invalidate() {
-		teamMap.values().forEach(team -> team.invalid = true);
+		teamMap.clear();
 		invalid = true;
 	}
 
@@ -116,7 +158,7 @@ public class ClientTeamManager {
 		} else if (ClientTeamManager.INSTANCE != null) {
 			// just copy the sync'd team(s) into the live client team manager
 			syncedData.teamMap.forEach((teamID, clientTeam) -> {
-				if (clientTeam.invalid) {
+				if (clientTeam.toBeRemoved()) {
 					FTBTeams.LOGGER.debug("remove {} from client team map", teamID);
 					INSTANCE.teamMap.remove(teamID);
 				} else {
@@ -132,6 +174,16 @@ public class ClientTeamManager {
 			INSTANCE.knownPlayers.putAll(syncedData.knownPlayers);
 			INSTANCE.initSelfDetails(selfTeamID);
 		}
+	}
 
+	public void updatePresence(KnownClientPlayer newPlayer) {
+		KnownClientPlayer existing = ClientTeamManager.INSTANCE.knownPlayers.get(newPlayer.id());
+		KnownClientPlayer toUpdate = existing == null ? newPlayer : existing.updateFrom(newPlayer);
+
+		knownPlayers.put(toUpdate.id(), newPlayer);
+
+		if (Platform.isDevelopmentEnvironment()) {
+			FTBTeams.LOGGER.info("Updated presence of " + newPlayer.name());
+		}
 	}
 }

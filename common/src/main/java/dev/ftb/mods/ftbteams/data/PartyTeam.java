@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
 import dev.ftb.mods.ftbteams.event.TeamAllyEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
@@ -24,8 +24,8 @@ import java.util.*;
 public class PartyTeam extends Team {
 	UUID owner;
 
-	public PartyTeam(TeamManager m) {
-		super(m);
+	public PartyTeam(TeamManager m, UUID id) {
+		super(m, id);
 		owner = Util.NIL_UUID;
 	}
 
@@ -76,10 +76,10 @@ public class PartyTeam extends Team {
 		((PlayerTeam) oldTeam).actualTeam = this;
 		ranks.put(id, TeamRank.MEMBER);
 		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.joined", player.getName()).withStyle(ChatFormatting.GREEN));
-		save();
+		markDirty();
 
 		oldTeam.ranks.remove(id);
-		oldTeam.save();
+		oldTeam.markDirty();
 		((PlayerTeam) oldTeam).updatePresence();
 		manager.syncTeamsToAll(this, oldTeam);
 		changedTeam(oldTeam, id, player, false);
@@ -93,7 +93,7 @@ public class PartyTeam extends Team {
 			}
 
 			ranks.put(player.getId(), TeamRank.INVITED);
-			save();
+			markDirty();
 
 
 			sendMessage(from.getUUID(), Component.translatable("ftbteams.message.invited", Component.literal(player.getName()).withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
@@ -135,10 +135,10 @@ public class PartyTeam extends Team {
 
 			team.ranks.put(id, TeamRank.OWNER);
 			sendMessage(from.getUUID(), Component.translatable("ftbteams.message.kicked", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW), getName()).withStyle(ChatFormatting.GOLD));
-			team.save();
+			team.markDirty();
 
 			ranks.remove(id);
-			save();
+			markDirty();
 
 			team.updatePresence();
 			manager.syncTeamsToAll(this, team);
@@ -167,7 +167,7 @@ public class PartyTeam extends Team {
 			}
 		}
 		if (changesMade) {
-			save();
+			markDirty();
 			manager.syncTeamsToAll(this);
 		}
 		return Command.SINGLE_SUCCESS;
@@ -204,7 +204,7 @@ public class PartyTeam extends Team {
 		ranks.put(owner, TeamRank.OFFICER);
 		owner = to.getUUID();
 		ranks.put(owner, TeamRank.OWNER);
-		save();
+		markDirty();
 		TeamEvent.OWNERSHIP_TRANSFERRED.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
 
 		sendMessage(from.getUUID(), Component.translatable("ftbteams.message.transfer_owner", to.getDisplayName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
@@ -226,15 +226,15 @@ public class PartyTeam extends Team {
 
 		team.ranks.put(id, TeamRank.OWNER);
 		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.left_party", player.getName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
-		team.save();
+		team.markDirty();
 
 		ranks.remove(id);
-		manager.save();
+		manager.markDirty();
 		boolean deleted = false;
 
 		if (getMembers().isEmpty()) {
 			deleted = true;
-			manager.saveNow();
+			manager.save();
 			manager.teamMap.remove(getId());
 			String fn = getId() + ".snbt";
 
@@ -283,7 +283,7 @@ public class PartyTeam extends Team {
 		}
 
 		if (!addedPlayers.isEmpty()) {
-			save();
+			markDirty();
 			manager.syncTeamsToAll(this);
 			TeamEvent.ADD_ALLY.invoker().accept(new TeamAllyEvent(this, addedPlayers, true));
 			return 1;
@@ -312,7 +312,7 @@ public class PartyTeam extends Team {
 		}
 
 		if (!removedPlayers.isEmpty()) {
-			save();
+			markDirty();
 			manager.syncTeamsToAll(this);
 			TeamEvent.REMOVE_ALLY.invoker().accept(new TeamAllyEvent(this, removedPlayers, false));
 			return 1;

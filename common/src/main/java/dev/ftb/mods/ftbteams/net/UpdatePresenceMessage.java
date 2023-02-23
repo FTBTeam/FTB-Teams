@@ -11,7 +11,7 @@ public class UpdatePresenceMessage extends BaseS2CMessage {
 	private final KnownClientPlayer update;
 
 	UpdatePresenceMessage(FriendlyByteBuf buffer) {
-		update = new KnownClientPlayer(buffer);
+		update = KnownClientPlayer.fromNetwork(buffer);
 	}
 
 	public UpdatePresenceMessage(KnownClientPlayer p) {

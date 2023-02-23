@@ -19,10 +19,10 @@ public class AllyScreen extends BaseInvitationScreen {
     public AllyScreen() {
         super(Component.translatable("ftbteams.gui.manage_allies"));
 
-        available.forEach(player -> {
-            if (ClientTeamManager.INSTANCE.selfTeam.isAlly(player.uuid)) {
-                existingAllies.add(player.getProfile());
-                invites.add(player.getProfile());
+        available.forEach(knownClientPlayer -> {
+            if (ClientTeamManager.INSTANCE.selfTeam().isAlly(knownClientPlayer.id())) {
+                existingAllies.add(knownClientPlayer.profile());
+                invites.add(knownClientPlayer.profile());
             }
         });
     }
@@ -30,7 +30,7 @@ public class AllyScreen extends BaseInvitationScreen {
     @Override
     protected boolean shouldIncludePlayer(KnownClientPlayer player) {
         // any player who isn't in our team is a valid potential or actual ally
-        return player.online && !ClientTeamManager.INSTANCE.selfTeam.isMember(player.uuid);
+        return player.online() && !ClientTeamManager.INSTANCE.selfTeam().isMember(player.id());
     }
 
     @Override

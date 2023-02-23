@@ -15,10 +15,10 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 public class PlayerListScreen extends BaseScreen {
-	public final Component title;
-	public final List<GameProfile> profiles;
-	public final Set<GameProfile> selected;
-	public final Consumer<GameProfile> callback;
+	private final Component title;
+	private final List<GameProfile> profiles;
+	private final Set<GameProfile> selected;
+	private final Consumer<GameProfile> callback;
 
 	public PlayerListScreen(Component t, List<GameProfile> p, Consumer<GameProfile> c) {
 		title = t;

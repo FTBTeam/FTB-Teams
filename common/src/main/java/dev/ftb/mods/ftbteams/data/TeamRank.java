@@ -18,12 +18,11 @@ public enum TeamRank implements StringRepresentable {
 	OWNER("owner", 1000, Icons.DIAMOND),
 	;
 
-	public static final TeamRank[] VALUES = values();
 	public static final NameMap<TeamRank> NAME_MAP = NameMap.of(NONE, values()).create();
 
 	private final String name;
 	private final int power;
-	private Icon icon;
+	private final Icon icon;
 
 	TeamRank(String name, int power, Icon icon) {
 		this.name = name;

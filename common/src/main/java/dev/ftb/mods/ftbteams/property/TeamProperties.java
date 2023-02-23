@@ -8,14 +8,24 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class TeamProperties {
-	public final Map<TeamProperty, TeamPropertyValue> map = new LinkedHashMap<>();
+	private final Map<TeamProperty, TeamPropertyValue> map = new LinkedHashMap<>();
 
-	public TeamProperties collect() {
+	public static TeamProperties fromNetwork(FriendlyByteBuf buf) {
+		TeamProperties properties = new TeamProperties();
+		properties.read(buf);
+		return properties;
+	}
+
+	public void forEach(BiConsumer<TeamProperty,TeamPropertyValue> consumer) {
+		map.forEach(consumer);
+	}
+
+	public void collect() {
 		map.clear();
 		TeamEvent.COLLECT_PROPERTIES.invoker().accept(new TeamCollectPropertiesEvent(prop -> map.put(prop, new TeamPropertyValue(prop, prop.defaultValue))));
-		return this;
 	}
 
 	public TeamProperties copy() {
@@ -26,10 +36,8 @@ public class TeamProperties {
 		return p;
 	}
 
-	public TeamProperties updateFrom(TeamProperties properties) {
+	public void updateFrom(TeamProperties properties) {
 		properties.map.forEach((key, value) -> set(key, value.value));
-
-		return this;
 	}
 
 	public <T> T get(TeamProperty<T> key) {
@@ -46,7 +54,7 @@ public class TeamProperties {
 		map.clear();
 
 		for (int i = 0; i < p; i++) {
-			TeamProperty<?> tp = TeamPropertyType.MAP.get(buffer.readUtf(Short.MAX_VALUE)).deserializer.apply(buffer.readResourceLocation(), buffer);
+			TeamProperty<?> tp = TeamPropertyType.read(buffer);
 			map.put(tp, new TeamPropertyValue(tp, tp.readValue(buffer)));
 		}
 	}

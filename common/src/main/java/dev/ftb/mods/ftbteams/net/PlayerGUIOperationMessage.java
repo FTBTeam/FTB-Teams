@@ -6,11 +6,8 @@ import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
 import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
-import dev.ftb.mods.ftbteams.data.PartyTeam;
-import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.data.TeamRank;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.data.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -96,7 +93,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
                 }
                 case TRANSFER_OWNER -> {
                     if (senderRank.is(TeamRank.OWNER)) {
-                        ServerPlayer p = partyTeam.manager.server.getPlayerList().getPlayer(targetId);
+                        ServerPlayer p = sourcePlayer.getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
                             partyTeam.transferOwnership(sourcePlayer, p);
                         }
@@ -105,7 +102,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
                 case LEAVE -> partyTeam.leave(sourcePlayer);
                 case INVITE -> {
                     if (senderRank.is(TeamRank.OFFICER)) {
-                        ServerPlayer p = partyTeam.manager.server.getPlayerList().getPlayer(targetId);
+                        ServerPlayer p = sourcePlayer.getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
                             // need the player to be online to receive an invitation
                             partyTeam.invite(sourcePlayer, List.of(p.getGameProfile()));
@@ -150,7 +147,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
         }
 
         public void sendMessage(KnownClientPlayer target) {
-            new PlayerGUIOperationMessage(this, target.uuid).sendToServer();
+            new PlayerGUIOperationMessage(this, target.id()).sendToServer();
         }
     }
 }

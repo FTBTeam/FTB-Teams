@@ -11,7 +11,7 @@ import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -128,7 +128,7 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 					}
 				}
 			} else if (ClientTeamManager.INSTANCE != null && !ClientTeamManager.INSTANCE.isInvalid()) {
-				for (ClientTeam team : ClientTeamManager.INSTANCE.teamMap.values()) {
+				for (ClientTeam team : ClientTeamManager.INSTANCE.getTeams()) {
 					if (!team.getType().isPlayer()) {
 						list.add(team.getStringID());
 					}

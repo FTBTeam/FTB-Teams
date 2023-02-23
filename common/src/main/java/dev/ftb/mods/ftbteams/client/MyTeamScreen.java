@@ -25,15 +25,15 @@ import java.util.*;
 public class MyTeamScreen extends BaseScreen implements NordColors {
 	private final TeamProperties properties;
 	private final UUID teamID;
-	public Button settingsButton;
-	public Button infoButton;
-	public Button missingDataButton;
-	public Button colorButton;
-	public Button inviteButton;
-	public Button allyButton;
-	public Panel memberPanel;
-	public Panel chatPanel;
-	public TextBox chatBox;
+	private Button settingsButton;
+	private Button infoButton;
+	private Button missingDataButton;
+	private Button colorButton;
+	private Button inviteButton;
+	private Button allyButton;
+	private Panel memberPanel;
+	private Panel chatPanel;
+	private TextBox chatBox;
 
 	// ranks which will appear in the member list, in descending order of seniority
 	private static final List<TeamRank> PARTY_RANKS = List.of(TeamRank.OWNER, TeamRank.OFFICER, TeamRank.MEMBER, TeamRank.ALLY);
@@ -42,12 +42,12 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	public MyTeamScreen(TeamProperties props) {
 		properties = props;
-		teamID = getManager().selfTeam.getId();
+		teamID = getManager().selfTeam().getId();
 	}
 
 	public static void refreshIfOpen() {
 		if (Minecraft.getInstance().screen instanceof ScreenWrapper w && w.getGui() instanceof MyTeamScreen mts) {
-			if (mts.getManager().selfTeam.getId().equals(mts.teamID)) {
+			if (mts.getManager().selfTeam().getId().equals(mts.teamID)) {
 				mts.refreshWidgets();
 			} else {
 				// team has changed (player left or got kicked from party?)
@@ -83,7 +83,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 		});
 
-		if (ClientTeamManager.INSTANCE.selfKnownPlayer == null) {
+		if (ClientTeamManager.INSTANCE.self() == null) {
 			add(missingDataButton = new SimpleButton(this, Component.empty(), Icons.CLOSE, (w, mb) -> {}) {
 				@Override
 				public void addMouseOverText(TooltipList list) {
@@ -136,7 +136,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	private void addTeamInfo(TooltipList list) {
 		ClientTeamManager manager = getManager();
 		if (manager != null) {
-			ClientTeam team = getManager().selfTeam;
+			ClientTeam team = getManager().selfTeam();
 			list.add(Component.translatable("ftbteams.team_type." + team.getType().getSerializedName()).withStyle(ChatFormatting.AQUA));
 			list.add(Component.translatable("ftbteams.info.id", Component.literal(team.getId().toString()).withStyle(ChatFormatting.YELLOW)));
 			list.add(Component.translatable("ftbteams.info.short_id", Component.literal(team.getStringID()).withStyle(ChatFormatting.YELLOW)));
@@ -169,6 +169,10 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		return super.keyPressed(key);
 	}
 
+	public void refreshChat() {
+		chatPanel.refreshWidgets();
+	}
+
 	private static class InviteButton extends SimpleButton {
 		public InviteButton(Panel panel) {
 			super(panel, Component.translatable("ftbteams.gui.invite"), Icons.ADD, (w, mb) -> new InviteScreen().openGui());
@@ -176,11 +180,11 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+			if (ClientTeamManager.INSTANCE.selfTeam().getType() != TeamType.PARTY) {
 				return false;
 			}
-			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
-			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.self();
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam().isOfficer(knownPlayer.id());
 		}
 
 		@Override
@@ -197,11 +201,11 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+			if (ClientTeamManager.INSTANCE.selfTeam().getType() != TeamType.PARTY) {
 				return false;
 			}
-			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
-			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.self();
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam().isOfficer(knownPlayer.id());
 		}
 
 		@Override
@@ -222,22 +226,22 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			ClientTeamManager manager = getManager();
 			if (manager == null) return;
 
-			for (TeamMessage message : manager.selfTeam.getMessageHistory()) {
-				if (!message.sender.equals(prev)) {
+			for (TeamMessage message : manager.selfTeam().getMessageHistory()) {
+				if (!message.sender().equals(prev)) {
 					add(new VerticalSpaceWidget(this, 2));
 
-					Component name = manager.getName(message.sender).copy().append(":");
+					Component name = manager.getName(message.sender()).copy().append(":");
 					add(new TextField(this).setMaxWidth(width).setText(name));
 
-					prev = message.sender;
+					prev = message.sender();
 				}
 
 				add(new TextField(this) {
 					@Override
 					public void addMouseOverText(TooltipList list) {
-						list.add(Component.literal(DateFormat.getInstance().format(new Date(message.date))));
+						list.add(Component.literal(DateFormat.getInstance().format(new Date(message.date()))));
 					}
-				}.setMaxWidth(width).setText(Component.literal("  ").append(message.text)));
+				}.setMaxWidth(width).setText(Component.literal("  ").append(message.text())));
 			}
 
 			if (!widgets.isEmpty()) {
@@ -286,15 +290,15 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			if (manager == null || manager.isInvalid()) return;
 
 			PARTY_RANKS.stream()
-					.flatMap(rank -> manager.selfTeam.getRanked(rank).entrySet().stream()
+					.flatMap(rank -> manager.selfTeam().getRanked(rank).entrySet().stream()
 							.filter(e -> e.getValue() == rank)
 							.map(e -> manager.getKnownPlayer(e.getKey()))
 							.filter(Objects::nonNull)
-							.sorted(Comparator.comparing(kcp -> kcp.name))
-							.map(kcp -> new MemberButton(this, kcp, rank))
+							.sorted(Comparator.comparing(KnownClientPlayer::name))
+							.map(kcp -> new MemberButton(this, kcp))
 					).forEach(this::add);
 
-			if (manager.selfTeam.getType() == TeamType.PLAYER) {
+			if (manager.selfTeam().getType() == TeamType.PLAYER) {
 				add(new CreatePartyButton(this));
 			}
 		}
@@ -321,21 +325,19 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	private class SettingsButton extends SimpleButton {
 		public SettingsButton() {
 			super(MyTeamScreen.this, Component.translatable("gui.settings"), Icons.SETTINGS.withTint(NordColors.SNOW_STORM_2), (simpleButton, mouseButton) -> {
-				ConfigGroup config = new ConfigGroup("ftbteamsconfig");
-				Map<String,ConfigGroup> subGroups = new HashMap<>();
-
-				MyTeamScreen.this.properties.map.forEach((key, value) -> {
-					String groupName = key.id.getNamespace();
-					ConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getGroup(groupName));
-					key.config(cfg, value);
-				});
-
-				config.savedCallback = b -> {
-					if (b) {
+				ConfigGroup config = new ConfigGroup("ftbteamsconfig", accepted -> {
+					if (accepted) {
 						new UpdateSettingsMessage(MyTeamScreen.this.properties).sendToServer();
 					}
 					MyTeamScreen.this.openGui();
-				};
+				});
+
+				Map<String,ConfigGroup> subGroups = new HashMap<>();
+				MyTeamScreen.this.properties.forEach((key, value) -> {
+					String groupName = key.getId().getNamespace();
+					ConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getOrCreateSubgroup(groupName));
+					key.config(cfg, value);
+				});
 
 				new EditConfigScreen(config).openGui();
 			});

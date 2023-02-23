@@ -1,19 +1,17 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
-import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
+import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -25,7 +23,6 @@ import net.minecraft.world.level.storage.LevelResource;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -36,14 +33,13 @@ import java.util.stream.Stream;
  */
 public class TeamManager {
 	public static final LevelResource FOLDER_NAME = new LevelResource("ftbteams");
-	private static final LevelResource OLD_ID_FILE = new LevelResource("data/ftbchunks/info.json");
 
 	public static TeamManager INSTANCE;
 
 	public final MinecraftServer server;
 	private UUID id;
 	private boolean shouldSave;
-	final Map<UUID, PlayerTeam> knownPlayers;
+	private final Map<UUID, PlayerTeam> knownPlayers;
 	final Map<UUID, Team> teamMap;
 	Map<String, Team> nameMap;
 	private CompoundTag extraData;
@@ -136,21 +132,9 @@ public class TeamManager {
 
 			extraData = dataFileTag.getCompound("extra");
 			TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
-		} else {
-			Path oldFile = server.getWorldPath(OLD_ID_FILE);
-
-			if (Files.exists(oldFile)) {
-				try (BufferedReader reader = Files.newBufferedReader(oldFile)) {
-					id = UUID.fromString(new GsonBuilder().create().fromJson(reader, JsonObject.class).get("id").getAsString());
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-			}
-
-			save();
 		}
 
-		for (TeamType type : TeamType.MAP.values()) {
+		for (TeamType type : TeamType.values()) {
 			Path dir = directory.resolve(type.getSerializedName());
 
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
@@ -158,8 +142,7 @@ public class TeamManager {
 					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
 						CompoundTag nbt = SNBT.read(file);
 						if (nbt != null) {
-							Team team = type.factory.apply(this);
-							team.id = UUID.fromString(nbt.getString("id"));
+							Team team = type.createTeam(this, UUID.fromString(nbt.getString("id")));
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt);
 						}
@@ -190,12 +173,12 @@ public class TeamManager {
 		FTBTeams.LOGGER.info("loaded team data: {} known players, {} teams total", knownPlayers.size(), teamMap.size());
 	}
 
-	public void save() {
+	public void markDirty() {
 		shouldSave = true;
-		nameMap = null;
+		nameMap = null;  // in case any team has changed their stringID (i.e. "friendly" name)
 	}
 
-	public void saveNow() {
+	public void save() {
 		Path directory = server.getWorldPath(FOLDER_NAME);
 
 		if (Files.notExists(directory)) {
@@ -212,7 +195,7 @@ public class TeamManager {
 			shouldSave = false;
 		}
 
-		for (TeamType type : TeamType.MAP.values()) {
+		for (TeamType type : TeamType.values()) {
 			Path path = directory.resolve(type.getSerializedName());
 
 			if (Files.notExists(path)) {
@@ -225,10 +208,7 @@ public class TeamManager {
 		}
 
 		for (Team team : getTeams()) {
-			if (team.shouldSave) {
-				SNBT.write(directory.resolve(team.getType().getSerializedName() + "/" + team.getId() + ".snbt"), team.serializeNBT());
-				team.shouldSave = false;
-			}
+			team.saveIfNeeded(directory);
 		}
 	}
 
@@ -240,8 +220,7 @@ public class TeamManager {
 	}
 
 	private ServerTeam createServerTeam(ServerPlayer player, String name) {
-		ServerTeam team = new ServerTeam(this);
-		team.id = UUID.randomUUID();
+		ServerTeam team = new ServerTeam(this, UUID.randomUUID());
 		teamMap.put(team.id, team);
 
 		team.setProperty(Team.DISPLAY_NAME, name.isEmpty() ? team.id.toString().substring(0, 8) : name);
@@ -252,8 +231,7 @@ public class TeamManager {
 	}
 
 	private PartyTeam createPartyTeam(ServerPlayer player, String name) {
-		PartyTeam team = new PartyTeam(this);
-		team.id = UUID.randomUUID();
+		PartyTeam team = new PartyTeam(this, UUID.randomUUID());
 		team.owner = player.getUUID();
 		teamMap.put(team.id, team);
 
@@ -265,15 +243,14 @@ public class TeamManager {
 	}
 
 	private PlayerTeam createPlayerTeam(@Nullable ServerPlayer player, UUID playerId, String playerName) {
-		PlayerTeam team = new PlayerTeam(this);
+		PlayerTeam team = new PlayerTeam(this, playerId);
 
-		team.id = playerId;
 		team.playerName = playerName;
 
 		team.setProperty(Team.DISPLAY_NAME, team.playerName);
 		team.setProperty(Team.COLOR, FTBTUtils.randomColor());
 
-		team.ranks.put(playerId, TeamRank.OWNER);
+		team.addMember(playerId, TeamRank.OWNER);
 
 		team.onCreated(player);
 		return team;
@@ -299,8 +276,8 @@ public class TeamManager {
 		} else if (!team.playerName.equals(name)) {
 			FTBTeams.LOGGER.debug("updating player name: {} -> {}", team.playerName, name);
 			team.playerName = name;
-			team.save();
-			save();
+			team.markDirty();
+			markDirty();
 			syncToAll = true;
 		}
 
@@ -332,25 +309,6 @@ public class TeamManager {
 		}
 	}
 
-	private ClientTeamManager createClientTeamManager(Collection<Team> teams) {
-		ClientTeamManager clientManager = new ClientTeamManager(getId());
-
-		for (Team team : teams) {
-			// deleted party teams won't be in the manager's team map; use an invalid client team to indicate
-			//  that the client must remove that team from its client-side manager
-			ClientTeam t = teamMap.containsKey(team.getId()) ?
-					new ClientTeam(clientManager, team) :
-					ClientTeam.invalidTeam(clientManager, team);
-			clientManager.teamMap.put(t.getId(), t);
-
-			if (team instanceof PlayerTeam) {
-				clientManager.knownPlayers.put(team.getId(), new KnownClientPlayer((PlayerTeam) team));
-			}
-		}
-
-		return clientManager;
-	}
-
 	/**
 	 * Sync team information about all teams to one player, along with that player's team's message history.
 	 * Called on player login.
@@ -359,7 +317,7 @@ public class TeamManager {
 	 * @param selfTeam the player's own team, which could be a party team
 	 */
 	public void syncAllToPlayer(ServerPlayer player, Team selfTeam) {
-		new SyncTeamsMessage(createClientTeamManager(getTeams()), selfTeam, true).sendTo(player);
+		new SyncTeamsMessage(ClientTeamManager.createServerSide(this, getTeams()), selfTeam, true).sendTo(player);
 		new SyncMessageHistoryMessage(selfTeam).sendTo(player);
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
@@ -368,12 +326,12 @@ public class TeamManager {
 	 * Sync only the given team(s) to all players. Called when one or more teams are modified in any way. In practice,
 	 * this will always be one or two teams (two when a player is joining or leaving a team).
 	 *
-	 * @param teams the teams to sync
+	 * @param teams the teams to sync, which may have been deleted already
 	 */
 	public void syncTeamsToAll(Team... teams) {
 		if (teams.length == 0) return;
 
-		ClientTeamManager manager = createClientTeamManager(Arrays.stream(teams).toList());
+		ClientTeamManager manager = ClientTeamManager.createServerSide(this, Arrays.stream(teams).toList());
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			Team selfTeam = getPlayerTeam(player);
 			new SyncTeamsMessage(manager, selfTeam, false).sendTo(player);
@@ -407,12 +365,12 @@ public class TeamManager {
 
 		playerTeam.actualTeam = team;
 
-		team.ranks.put(id, TeamRank.OWNER);
+		team.addMember(id, TeamRank.OWNER);
 		team.sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.joined", player.getName()).withStyle(ChatFormatting.YELLOW));
-		team.save();
+		team.markDirty();
 
-		playerTeam.ranks.remove(id);
-		playerTeam.save();
+		playerTeam.removeMember(id);
+		playerTeam.markDirty();
 
 		playerTeam.updatePresence();
 		syncTeamsToAll(team, playerTeam);

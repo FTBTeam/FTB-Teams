@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
 import dev.ftb.mods.ftbteams.event.*;
@@ -19,18 +20,20 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.*;
 
 /**
- * @author LatvianModder
+ * Base class for server-side teams
  */
 public abstract class Team extends TeamBase {
-	public final TeamManager manager;
-	boolean shouldSave;
+	protected final TeamManager manager;
+	private boolean shouldSave;
 
-	public Team(TeamManager m) {
-		id = Util.NIL_UUID;
-		manager = m;
+	public Team(TeamManager manager, UUID id) {
+		super(id);
+		this.manager = manager;
+
 		properties.collect();
 	}
 
@@ -40,7 +43,7 @@ public abstract class Team extends TeamBase {
 	}
 
 	@Override
-	public void save() {
+	public void markDirty() {
 		shouldSave = true;
 		manager.nameMap = null;
 	}
@@ -67,8 +70,8 @@ public abstract class Team extends TeamBase {
 		if (p != null) {
 			TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, p));
 		}
-		save();
-		manager.save();
+		markDirty();
+		manager.markDirty();
 	}
 
 	void updateCommands(ServerPlayer player) {
@@ -115,9 +118,9 @@ public abstract class Team extends TeamBase {
 		for (TeamMessage m : getMessageHistory()) {
 			SNBTCompoundTag mt = new SNBTCompoundTag();
 			mt.singleLine();
-			mt.putString("from", m.sender.toString());
-			mt.putLong("date", m.date);
-			mt.putString("text", Component.Serializer.toJson(m.text));
+			mt.putString("from", m.sender().toString());
+			mt.putLong("date", m.date());
+			mt.putString("text", Component.Serializer.toJson(m.text()));
 			messageHistoryTag.add(mt);
 		}
 
@@ -154,33 +157,26 @@ public abstract class Team extends TeamBase {
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
 	}
 
-	public <T> int settings(CommandSourceStack source, TeamProperty<T> key, String value) throws CommandSyntaxException {
+	public <T> int settings(CommandSourceStack source, TeamProperty<T> key, String value) {
+		MutableComponent keyc = Component.translatable(key.getTranslationKey("ftbteamsconfig")).withStyle(ChatFormatting.YELLOW);
 		if (value.isEmpty()) {
-			MutableComponent keyc = Component.translatable("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
-			keyc.withStyle(ChatFormatting.YELLOW);
-			MutableComponent valuec = Component.literal(key.toString(getProperty(key)));
-			valuec.withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(Component.literal("").append(keyc).append(" is set to ").append(valuec), true);
+			Component valuec = Component.literal(key.toString(getProperty(key))).withStyle(ChatFormatting.AQUA);
+			source.sendSuccess(keyc.append(" is set to ").append(valuec), true);
 		} else {
 			Optional<T> optional = key.fromString(value);
 
-			if (optional.isEmpty()) {
-				//throw CommandSyntaxException
+			if (optional.isPresent()) {
+				TeamProperties old = properties.copy();
+				setProperty(key, optional.get());
+				Component valuec = Component.literal(value).withStyle(ChatFormatting.AQUA);
+				source.sendSuccess(Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
+
+				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
+			} else {
 				source.sendFailure(Component.literal("Failed to parse value!"));
 				return 0;
 			}
-
-			TeamProperties old = properties.copy();
-
-			setProperty(key, optional.get());
-			MutableComponent keyc = Component.translatable("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
-			keyc.withStyle(ChatFormatting.YELLOW);
-			MutableComponent valuec = Component.literal(value);
-			valuec.withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
-			TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
 		}
-
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -190,7 +186,7 @@ public abstract class Team extends TeamBase {
 		if (isInvited(player.getUUID()) && !isMember(player.getUUID())) {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
 			source.sendSuccess(Component.translatable("ftbteams.message.declined"), true);
-			save();
+			markDirty();
 			manager.syncTeamsToAll(this);
 		}
 
@@ -254,6 +250,20 @@ public abstract class Team extends TeamBase {
 			new SendMessageResponseMessage(from, text).sendTo(p);
 		}
 
-		save();
+		markDirty();
+	}
+
+	public void updatePropertiesFrom(TeamProperties properties) {
+		TeamProperties old = properties.copy();
+		properties.updateFrom(properties);
+		TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
+		markDirty();
+	}
+
+	void saveIfNeeded(Path directory) {
+		if (shouldSave) {
+			SNBT.write(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT());
+			shouldSave = false;
+		}
 	}
 }

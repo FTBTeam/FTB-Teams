@@ -58,7 +58,7 @@ public class FTBTeams {
 
 	private void worldSaved(ServerLevel level) {
 		if (TeamManager.INSTANCE != null) {
-			TeamManager.INSTANCE.saveNow();
+			TeamManager.INSTANCE.save();
 		}
 	}
 

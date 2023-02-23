@@ -5,7 +5,7 @@ import dev.ftb.mods.ftblibrary.ui.NordButton;
 import dev.ftb.mods.ftblibrary.ui.Panel;
 import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.util.TooltipList;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import net.minecraft.network.chat.Component;
 
 public class CreatePartyButton extends NordButton {

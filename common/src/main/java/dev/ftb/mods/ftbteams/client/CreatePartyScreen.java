@@ -11,7 +11,6 @@ import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.FTBTUtils;
-import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.TeamBase;
 import dev.ftb.mods.ftbteams.net.CreatePartyMessage;
 import net.minecraft.ChatFormatting;
@@ -26,28 +25,26 @@ import java.util.Objects;
 import java.util.Set;
 
 public class CreatePartyScreen extends BaseScreen implements NordColors, InvitationSetup {
-	public final ClientTeamManager manager;
+	private final ClientTeamManager manager;
+	private final Set<GameProfile> invitedMembers;
 
-	public Button closeButton;
-	public Button colorButton;
-	public Panel invitePanel;
-	public Panel settingsPanel;
-	public Button createTeamButton;
-
-	public Color4I teamColor;
-	public TextBox nameTextBox;
-	public TextBox descriptionTextBox;
-	private Set<GameProfile> invitedMembers;
+	private Panel invitePanel;
+	private Panel settingsPanel;
+	private Button createTeamButton;
+	private Color4I teamColor;
+	private TextBox nameTextBox;
+	private TextBox descriptionTextBox;
 
 	public CreatePartyScreen() {
 		setSize(300, 200);
 		manager = Objects.requireNonNull(ClientTeamManager.INSTANCE);
-		teamColor = manager.selfTeam.getProperty(TeamBase.COLOR);
 		invitedMembers = new HashSet<>();
+		teamColor = manager.selfTeam().getProperty(TeamBase.COLOR);
 	}
 
 	@Override
 	public void addWidgets() {
+		Button closeButton;
 		add(closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
 			@Override
 			public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
@@ -55,6 +52,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			}
 		});
 
+		Button colorButton;
 		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), teamColor.withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
 			teamColor = FTBTUtils.randomColor();
 			simpleButton.setIcon(teamColor.withBorder(POLAR_NIGHT_0, false));
@@ -138,11 +136,10 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 				}
 			});
 
-			for (KnownClientPlayer player : manager.knownPlayers.values().stream().sorted().toList()) {
-				if (player.isOnlineAndNotInParty() && player != manager.selfKnownPlayer) {
-					add(new InvitedButton(this, CreatePartyScreen.this, player));
-				}
-			}
+			manager.knownClientPlayers().stream()
+					.filter(kcp -> kcp.isOnlineAndNotInParty() && kcp != manager.self())
+					.sorted()
+					.forEach(kcp -> add(new InvitedButton(this, CreatePartyScreen.this, kcp)));
 		}
 
 		@Override

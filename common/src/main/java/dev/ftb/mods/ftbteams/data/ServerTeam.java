@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -9,10 +8,11 @@ import net.minecraft.network.chat.Component;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
 public class ServerTeam extends Team {
-	public ServerTeam(TeamManager m) {
-		super(m);
+	public ServerTeam(TeamManager manager, UUID id) {
+		super(manager, id);
 	}
 
 	@Override
@@ -21,8 +21,8 @@ public class ServerTeam extends Team {
 	}
 
 	public int delete(CommandSourceStack source) {
-		save();
-		manager.saveNow();
+		markDirty();
+		manager.save();
 		manager.teamMap.remove(getId());
 		String fn = getId() + ".snbt";
 
@@ -45,7 +45,7 @@ public class ServerTeam extends Team {
 		}
 
 		source.sendSuccess(Component.translatable("ftbteams.message.deleted_server_team", getStringID()), true);
-		manager.save();
+		manager.markDirty();
 		manager.syncTeamsToAll(this);
 		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 		return Command.SINGLE_SUCCESS;

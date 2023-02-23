@@ -25,14 +25,14 @@ import java.util.concurrent.CompletableFuture;
 /**
  * @author LatvianModder
  */
-public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
+public class TeamPropertyArgument implements ArgumentType<TeamProperty<?>> {
 	private static final SimpleCommandExceptionType PROPERTY_NOT_FOUND = new SimpleCommandExceptionType(Component.translatable("ftbteams.property_not_found"));
 
 	public static TeamPropertyArgument create() {
 		return new TeamPropertyArgument();
 	}
 
-	public static TeamProperty get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+	public static TeamProperty<?> get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return context.getArgument(name, TeamProperty.class);
 	}
 
@@ -40,11 +40,11 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
 	}
 
 	@Override
-	public TeamProperty parse(StringReader reader) throws CommandSyntaxException {
+	public TeamProperty<?> parse(StringReader reader) throws CommandSyntaxException {
 		ResourceLocation id = ResourceLocation.read(reader);
-		Map<ResourceLocation, TeamProperty> map = new LinkedHashMap<>();
+		Map<ResourceLocation, TeamProperty<?>> map = new LinkedHashMap<>();
 		TeamEvent.COLLECT_PROPERTIES.invoker().accept(new TeamCollectPropertiesEvent(property -> map.put(property.id, property)));
-		TeamProperty property = map.get(id);
+		TeamProperty<?> property = map.get(id);
 
 		if (property != null) {
 			return property;
@@ -56,7 +56,7 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty> {
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
 		try {
-			Map<String, TeamProperty> map = new LinkedHashMap<>();
+			Map<String, TeamProperty<?>> map = new LinkedHashMap<>();
 			TeamEvent.COLLECT_PROPERTIES.invoker().accept(new TeamCollectPropertiesEvent(property -> map.put(property.id.toString(), property)));
 			return SharedSuggestionProvider.suggest(map.keySet(), builder);
 		} catch (Exception ex) {

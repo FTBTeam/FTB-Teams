@@ -8,7 +8,7 @@ import net.minecraft.network.chat.Component;
 import java.util.UUID;
 
 public class FTBTeamsCommon {
-	public void openMyTeamGui(OpenMyTeamGUIMessage res) {
+	public void openMyTeamGui(TeamProperties properties) {
 	}
 
 	public void updateSettings(UUID id, TeamProperties properties) {

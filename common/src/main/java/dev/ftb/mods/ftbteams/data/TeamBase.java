@@ -4,7 +4,6 @@ import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.property.*;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -14,6 +13,9 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * Base class for all teams, client and server side
+ */
 public abstract class TeamBase {
 	public static final StringProperty DISPLAY_NAME = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "display_name"), "", Pattern.compile(".{3,}"));
 	public static final StringProperty DESCRIPTION = new StringProperty(new ResourceLocation(FTBTeams.MOD_ID, "description"), "");
@@ -21,18 +23,22 @@ public abstract class TeamBase {
 	public static final BooleanProperty FREE_TO_JOIN = new BooleanProperty(new ResourceLocation(FTBTeams.MOD_ID, "free_to_join"), false);
 	public static final IntProperty MAX_MSG_HISTORY_SIZE = new IntProperty(new ResourceLocation(FTBTeams.MOD_ID, "max_msg_history_size"), 1000);
 
-	UUID id;
-	public final TeamProperties properties;
-	final Map<UUID, TeamRank> ranks;
-	CompoundTag extraData;
+	protected final UUID id;
+	protected final TeamProperties properties;
+	protected final Map<UUID, TeamRank> ranks;
+	protected CompoundTag extraData;
 	protected final List<TeamMessage> messageHistory;
 
-	public TeamBase() {
-		id = Util.NIL_UUID;
+	public TeamBase(UUID id) {
+		this.id = id;
 		ranks = new HashMap<>();
 		properties = new TeamProperties();
 		extraData = new CompoundTag();
 		messageHistory = new LinkedList<>();
+	}
+
+	public TeamProperties getProperties() {
+		return properties;
 	}
 
 	public abstract TeamType getType();
@@ -74,7 +80,7 @@ public abstract class TeamBase {
 
 	public <T> void setProperty(TeamProperty<T> property, T value) {
 		properties.set(property, value);
-		save();
+		markDirty();
 	}
 
 	public String getDisplayName() {
@@ -123,7 +129,7 @@ public abstract class TeamBase {
 		return text;
 	}
 
-	public void save() {
+	public void markDirty() {
 	}
 
 	public TeamRank getHighestRank(UUID playerId) {
@@ -185,10 +191,18 @@ public abstract class TeamBase {
 		while (messageHistory.size() > getMaxMessageHistorySize()) {
 			messageHistory.remove(0);
 		}
-		save();
+		markDirty();
 	}
 
 	public List<TeamMessage> getMessageHistory() {
 		return messageHistory;
+	}
+
+	public void addMember(UUID id, TeamRank rank) {
+		ranks.put(id, rank);
+	}
+
+	public void removeMember(UUID id) {
+		ranks.remove(id);
 	}
 }

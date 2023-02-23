@@ -19,16 +19,15 @@ import net.minecraft.network.chat.TextColor;
 
 public class InvitedButton extends NordButton {
 	public final InvitationSetup screen;
-
 	public final KnownClientPlayer player;
 
-	InvitedButton(Panel panel, InvitationSetup s, KnownClientPlayer p) {
-		super(panel, checkbox(s.isInvited(p.getProfile())).append(" " + p.name), FaceIcon.getFace(p.getProfile()));
+	InvitedButton(Panel panel, InvitationSetup setup, KnownClientPlayer knownClientPlayer) {
+		super(panel, checkbox(setup.isInvited(knownClientPlayer.profile())).append(" " + knownClientPlayer.name()), FaceIcon.getFace(knownClientPlayer.profile()));
 
-		screen = s;
-		player = p;
+		screen = setup;
+		player = knownClientPlayer;
 
-		if (!player.online) {
+		if (!player.online()) {
 			title = title.copy().withStyle(Style.EMPTY.withColor(TextColor.fromRgb(NordColors.POLAR_NIGHT_0.rgb())));
 		}
 	}
@@ -41,7 +40,7 @@ public class InvitedButton extends NordButton {
 	public void drawIcon(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
 		super.drawIcon(matrixStack, theme, x, y, w, h);
 
-		if (player.online) {
+		if (player.online()) {
 			matrixStack.pushPose();
 			matrixStack.translate(x + w - 1.5D, y - 0.5D, 0);
 			Color4I.GREEN.draw(matrixStack, 0, 0, 2, 2);
@@ -51,11 +50,11 @@ public class InvitedButton extends NordButton {
 
 	@Override
 	public void onClicked(MouseButton button) {
-		if (player.online) {
-			GameProfile profile = player.getProfile();
+		if (player.online()) {
+			GameProfile profile = player.profile();
 			boolean invited = screen.isInvited(profile);
 			screen.setInvited(profile, !invited);
-			title = checkbox(!invited).append(" " + player.name);
+			title = checkbox(!invited).append(" " + player.name());
 		}
 	}
 }

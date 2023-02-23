@@ -3,24 +3,21 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.event.TeamEvent;
-import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
 public class UpdateSettingsMessage extends BaseC2SMessage {
-	public final TeamProperties properties;
+	private final TeamProperties properties;
 
 	UpdateSettingsMessage(FriendlyByteBuf buffer) {
-		properties = new TeamProperties();
-		properties.read(buffer);
+		this.properties = TeamProperties.fromNetwork(buffer);
 	}
 
-	public UpdateSettingsMessage(TeamProperties p) {
-		properties = p;
+	public UpdateSettingsMessage(TeamProperties properties) {
+		this.properties = properties;
 	}
 
 	@Override
@@ -42,10 +39,8 @@ public class UpdateSettingsMessage extends BaseC2SMessage {
 			return;
 		}
 
-		TeamProperties old = team.properties.copy();
-		team.properties.updateFrom(properties);
-		TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(team, old));
-		team.save();
-		new UpdateSettingsResponseMessage(team.getId(), team.properties).sendToAll(player.server);
+		team.updatePropertiesFrom(properties);
+
+		new UpdateSettingsResponseMessage(team.getId(), team.getProperties()).sendToAll(player.server);
 	}
 }

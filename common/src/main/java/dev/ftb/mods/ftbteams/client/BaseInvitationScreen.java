@@ -15,11 +15,12 @@ import net.minecraft.network.chat.Style;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static dev.ftb.mods.ftblibrary.ui.misc.NordColors.*;
 
 public abstract class BaseInvitationScreen extends BaseScreen implements InvitationSetup {
-    protected final Set<KnownClientPlayer> available = new HashSet<>();
+    protected final Set<KnownClientPlayer> available;
     protected final Set<GameProfile> invites = new HashSet<>();
     private Panel playerPanel;
     private Button executeButton;
@@ -29,11 +30,9 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
     public BaseInvitationScreen(Component title) {
         this.title = title;
 
-        ClientTeamManager.INSTANCE.knownPlayers.forEach((id, known) -> {
-            if (shouldIncludePlayer(known)) {
-                available.add(known);
-            }
-        });
+        this.available = ClientTeamManager.INSTANCE.knownClientPlayers().stream()
+                .filter(this::shouldIncludePlayer)
+                .collect(Collectors.toSet());
     }
 
     protected abstract boolean shouldIncludePlayer(KnownClientPlayer player);

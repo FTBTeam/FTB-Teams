@@ -83,6 +83,7 @@
 	"ftbteams.message.no_longer_allied": "You are no longer an ally of '%s'!",
 	"ftbteams.message.created_server_team": "Created new server team '%s'!",
 	"ftbteams.message.deleted_server_team": "Deleted server team '%s'!",
+	"ftbteams.message.team_disbanded": "Forcibly disbanded party team '%s' (%s) !",
 	"ftbteams.accept": "Accept ✔",
 	"ftbteams.decline": "Decline ✘"
 }

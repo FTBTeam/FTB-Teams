@@ -80,7 +80,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
             switch (op) {
                 case KICK -> {
                     if (senderRank.getPower() > targetRank.getPower()) {
-                        partyTeam.kick(sourcePlayer, targetProfile);
+                        partyTeam.kick(sourcePlayer.createCommandSourceStack(), targetProfile);
                     }
                 }
                 case PROMOTE -> {
@@ -101,7 +101,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
                         }
                     }
                 }
-                case LEAVE -> partyTeam.leave(sourcePlayer);
+                case LEAVE -> partyTeam.leave(sourcePlayer.getUUID());
                 case INVITE -> {
                     if (senderRank.isAtLeast(TeamRank.OFFICER)) {
                         ServerPlayer p = sourcePlayer.getServer().getPlayerList().getPlayer(targetId);

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1902.2.13]
 
+### Added
+* Added a `/ftbteams force-disband <party>` command
+  * Server admins can use this to disband any party team regardless of whether they are a member
+
 ### Fixed
 * Fix an initialisation order bug which could cause handlers of `TeamManagerEvent.CREATED` to crash with NPE when querying the player team
 

@@ -3,11 +3,12 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseS2CMessage;
 import dev.architectury.networking.simple.MessageType;
-import dev.ftb.mods.ftbteams.client.MyTeamScreen;
+import dev.ftb.mods.ftbteams.api.Team;
+import dev.ftb.mods.ftbteams.api.TeamMessage;
+import dev.ftb.mods.ftbteams.client.gui.MyTeamScreen;
 import dev.ftb.mods.ftbteams.data.ClientTeam;
-import dev.ftb.mods.ftbteams.data.ClientTeamManager;
-import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.data.TeamMessage;
+import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
+import dev.ftb.mods.ftbteams.data.TeamMessageImpl;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class SyncMessageHistoryMessage extends BaseS2CMessage {
         int nMessages = buf.readVarInt();
         messages = new ArrayList<>(nMessages);
         for (int i = 0; i < nMessages; i++) {
-            messages.add(TeamMessage.fromNetwork(now, buf));
+            messages.add(TeamMessageImpl.fromNetwork(now, buf));
         }
     }
 
@@ -38,14 +39,14 @@ public class SyncMessageHistoryMessage extends BaseS2CMessage {
     public void write(FriendlyByteBuf buf) {
         long now = System.currentTimeMillis();
         buf.writeVarInt(messages.size());
-        for (TeamMessage tm : messages) {
-            tm.toNetwork(now, buf);
+        for (TeamMessage msg : messages) {
+            TeamMessageImpl.toNetwork(msg, now, buf);
         }
     }
 
     @Override
     public void handle(NetworkManager.PacketContext context) {
-        ClientTeam team = ClientTeamManager.INSTANCE.selfTeam();
+        ClientTeam team = ClientTeamManagerImpl.getInstance().selfTeam();
         if (team != null) {
             team.setMessageHistory(messages);
             MyTeamScreen.refreshIfOpen();

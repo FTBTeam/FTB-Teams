@@ -6,7 +6,6 @@ import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.PlayerTeam;
-import dev.ftb.mods.ftbteams.data.Team;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -59,10 +58,10 @@ public class CreatePartyMessage extends BaseC2SMessage {
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
-		Team team = FTBTeamsAPI.getPlayerTeam(player);
-
-		if (team instanceof PlayerTeam) {
-			((PlayerTeam) team).createParty(player, name, description, color, invited);
-		}
+		FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
+			if (team instanceof PlayerTeam playerTeam) {
+				playerTeam.createParty(player, name, description, color, invited);
+			}
+		});
 	}
 }

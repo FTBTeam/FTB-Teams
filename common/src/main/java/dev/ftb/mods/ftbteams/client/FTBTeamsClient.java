@@ -3,21 +3,16 @@ package dev.ftb.mods.ftbteams.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.architectury.event.EventResult;
 import dev.architectury.event.events.client.ClientRawInputEvent;
-import dev.architectury.platform.Platform;
 import dev.architectury.registry.client.keymappings.KeyMappingRegistry;
 import dev.ftb.mods.ftblibrary.ui.CustomClickEvent;
 import dev.ftb.mods.ftblibrary.util.ClientUtils;
-import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.FTBTeamsCommon;
-import dev.ftb.mods.ftbteams.data.ClientTeam;
-import dev.ftb.mods.ftbteams.data.ClientTeamManager;
-import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
-import dev.ftb.mods.ftbteams.data.TeamMessage;
-import dev.ftb.mods.ftbteams.event.ClientTeamPropertiesChangedEvent;
-import dev.ftb.mods.ftbteams.event.TeamEvent;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.TeamMessage;
+import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
+import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
+import dev.ftb.mods.ftbteams.client.gui.MyTeamScreen;
+import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
 import dev.ftb.mods.ftbteams.net.OpenGUIMessage;
-import dev.ftb.mods.ftbteams.net.OpenMyTeamGUIMessage;
-import dev.ftb.mods.ftbteams.property.TeamProperties;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -25,12 +20,12 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.UUID;
 
-public class FTBTeamsClient extends FTBTeamsCommon {
-	public static final ResourceLocation OPEN_GUI_ID = new ResourceLocation(FTBTeams.MOD_ID, "open_gui");
+public class FTBTeamsClient {
+	public static final ResourceLocation OPEN_GUI_ID = new ResourceLocation(FTBTeamsAPI.MOD_ID, "open_gui");
 
 	public static KeyMapping openTeamsKey;
 
-	public FTBTeamsClient() {
+	public static void init() {
 		registerKeys();
 
 		CustomClickEvent.EVENT.register(event -> {
@@ -41,15 +36,15 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 			return EventResult.pass();
 		});
 
-		ClientRawInputEvent.KEY_PRESSED.register(this::keyPressed);
+		ClientRawInputEvent.KEY_PRESSED.register(FTBTeamsClient::keyPressed);
 	}
 
-	private void registerKeys() {
+	private static void registerKeys() {
 		openTeamsKey = new KeyMapping("key.ftbteams.open_gui", InputConstants.Type.KEYSYM, -1, "key.categories.ftbteams");
 		KeyMappingRegistry.register(openTeamsKey);
 	}
 
-	private EventResult keyPressed(Minecraft client, int keyCode, int scanCode, int action, int modifiers) {
+	private static EventResult keyPressed(Minecraft client, int keyCode, int scanCode, int action, int modifiers) {
 		if (openTeamsKey.isDown()) {
 			new OpenGUIMessage().sendToServer();
 			return EventResult.interruptTrue();
@@ -57,30 +52,26 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 		return EventResult.pass();
 	}
 
-	@Override
-	public void openMyTeamGui(TeamProperties properties) {
+	public static void openMyTeamGui(TeamPropertyCollection properties) {
 		new MyTeamScreen(properties).openGui();
 	}
 
-	@Override
-	public void updateSettings(UUID id, TeamProperties properties) {
-		if (ClientTeamManager.INSTANCE == null) {
+	public static void updateSettings(UUID id, TeamPropertyCollection properties) {
+		if (ClientTeamManagerImpl.getInstance() == null) {
 			return;
 		}
 
-		ClientTeam team = ClientTeamManager.INSTANCE.getTeam(id);
-		if (team != null) {
-			team.updateProperties(properties);
-		}
+		ClientTeamManagerImpl.getInstance().getTeam(id)
+				.ifPresent(team -> team.updateProperties(properties));
 	}
 
-	@Override
-	public void sendMessage(UUID from, Component text) {
-		if (ClientTeamManager.INSTANCE == null) {
+	public static void sendMessage(UUID from, Component text) {
+		if (ClientTeamManagerImpl.getInstance() == null) {
 			return;
 		}
 
-		ClientTeamManager.INSTANCE.selfTeam().addMessage(new TeamMessage(from, System.currentTimeMillis(), text));
+		TeamMessage msg = FTBTeamsAPI.api().createMessage(from, text);
+		ClientTeamManagerImpl.getInstance().selfTeam().addMessage(msg);
 
 		MyTeamScreen screen = ClientUtils.getCurrentGuiAs(MyTeamScreen.class);
 		if (screen != null) {
@@ -88,10 +79,9 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 		}
 	}
 
-	@Override
-	public void updatePresence(KnownClientPlayer update) {
-		if (ClientTeamManager.INSTANCE != null) {
-			ClientTeamManager.INSTANCE.updatePresence(update);
+	public static void updatePresence(KnownClientPlayer update) {
+		if (ClientTeamManagerImpl.getInstance() != null) {
+			ClientTeamManagerImpl.getInstance().updatePresence(update);
 		}
 	}
 }

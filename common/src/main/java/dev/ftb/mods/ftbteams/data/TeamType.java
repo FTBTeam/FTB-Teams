@@ -11,14 +11,14 @@ public enum TeamType implements StringRepresentable {
 	SERVER("server", ServerTeam::new);
 
 	private final String name;
-	private final BiFunction<TeamManager, UUID, Team> factory;
+	private final BiFunction<TeamManagerImpl, UUID, AbstractTeam> factory;
 
-	TeamType(String n, BiFunction<TeamManager, UUID, Team> f) {
+	TeamType(String n, BiFunction<TeamManagerImpl, UUID, AbstractTeam> f) {
 		name = n;
 		factory = f;
 	}
 
-	public Team createTeam(TeamManager manager, UUID id) {
+	public AbstractTeam createTeam(TeamManagerImpl manager, UUID id) {
 		return factory.apply(manager, id);
 	}
 

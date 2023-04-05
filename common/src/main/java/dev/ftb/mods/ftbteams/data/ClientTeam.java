@@ -1,43 +1,46 @@
 package dev.ftb.mods.ftbteams.data;
 
-import dev.ftb.mods.ftbteams.event.ClientTeamPropertiesChangedEvent;
-import dev.ftb.mods.ftbteams.event.TeamEvent;
-import dev.ftb.mods.ftbteams.property.TeamProperties;
-import dev.ftb.mods.ftbteams.property.TeamProperty;
+import dev.ftb.mods.ftbteams.api.TeamMessage;
+import dev.ftb.mods.ftbteams.api.TeamRank;
+import dev.ftb.mods.ftbteams.api.event.ClientTeamPropertiesChangedEvent;
+import dev.ftb.mods.ftbteams.api.event.TeamEvent;
+import dev.ftb.mods.ftbteams.api.property.TeamProperties;
+import dev.ftb.mods.ftbteams.api.property.TeamProperty;
+import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class ClientTeam extends TeamBase {
-	private static final List<TeamProperty> SYNCABLE_PROPS = List.of(DISPLAY_NAME, COLOR);
+public class ClientTeam extends AbstractTeamBase {
+	private static final List<TeamProperty<?>> SYNCABLE_PROPS = List.of(TeamProperties.DISPLAY_NAME, TeamProperties.COLOR);
 
-	private final ClientTeamManager manager;
 	private final TeamType type;
 	private final UUID ownerID;
-	private final boolean toBeRemoved;
+	private final boolean toBeRemoved;  // true when server is sync'ing a team deletion
 
-	private ClientTeam(ClientTeamManager m, UUID id, UUID ownerId, TeamType type, boolean toBeRemoved) {
+	private ClientTeam(UUID id, UUID ownerId, TeamType type, boolean toBeRemoved) {
 		super(id);
-		this.manager = m;
+
 		this.ownerID = ownerId;
 		this.type = type;
 		this.toBeRemoved = toBeRemoved;
 	}
 
-	public static ClientTeam invalidTeam(ClientTeamManager m, Team team) {
-		return new ClientTeam(m, team.getId(), Util.NIL_UUID, team.getType(), true);
+	public static ClientTeam invalidTeam(AbstractTeam team) {
+		return new ClientTeam(team.getId(), Util.NIL_UUID, team.getType(), true);
 	}
 
-	public static ClientTeam fromNetwork(ClientTeamManager manager, FriendlyByteBuf buffer) {
+	public static ClientTeam fromNetwork(FriendlyByteBuf buffer) {
 		UUID id = buffer.readUUID();
 		UUID ownerID = buffer.readBoolean() ? buffer.readUUID() : Util.NIL_UUID;
 		TeamType type = buffer.readEnum(TeamType.class);
 		boolean mustRemove = buffer.readBoolean();
 
-		ClientTeam clientTeam = new ClientTeam(manager, id, ownerID, type, mustRemove);
+		ClientTeam clientTeam = new ClientTeam(id, ownerID, type, mustRemove);
 
 		clientTeam.properties.read(buffer);
 		int nMembers = buffer.readVarInt();
@@ -50,8 +53,8 @@ public class ClientTeam extends TeamBase {
 		return clientTeam;
 	}
 
-	public static ClientTeam copyOf(ClientTeamManager manager, Team team) {
-		ClientTeam clientTeam = new ClientTeam(manager, team.id, team.getOwner(), team.getType(), false);
+	public static ClientTeam copyOf(AbstractTeam team) {
+		ClientTeam clientTeam = new ClientTeam(team.id, team.getOwner(), team.getType(), false);
 		clientTeam.properties.updateFrom(team.properties);
 		clientTeam.ranks.putAll(team.ranks);
 		clientTeam.extraData = team.extraData == null ? null : team.extraData.copy();
@@ -64,8 +67,38 @@ public class ClientTeam extends TeamBase {
 	}
 
 	@Override
-	public boolean isValid() {
-		return manager.getTeam(id) != null;
+	public UUID getOwner() {
+		return ownerID;
+	}
+
+	@Override
+	public void sendMessage(UUID senderId, String message) {
+		// no-op
+	}
+
+	@Override
+	public List<Component> getTeamInfo() {
+		return List.of();
+	}
+
+	@Override
+	public boolean isClientTeam() {
+		return true;
+	}
+
+	@Override
+	public boolean isPlayerTeam() {
+		return type == TeamType.PLAYER;
+	}
+
+	@Override
+	public boolean isPartyTeam() {
+		return type == TeamType.PARTY;
+	}
+
+	@Override
+	public boolean isServerTeam() {
+		return type == TeamType.SERVER;
 	}
 
 	public void write(FriendlyByteBuf buffer, boolean writeAllProperties) {
@@ -92,11 +125,6 @@ public class ClientTeam extends TeamBase {
 		}
 
 		buffer.writeNbt(extraData);
-
-	}
-
-	public UUID getOwnerID() {
-		return ownerID;
 	}
 
 	public void setMessageHistory(List<TeamMessage> messages) {
@@ -108,9 +136,9 @@ public class ClientTeam extends TeamBase {
 		return toBeRemoved;
 	}
 
-	public void updateProperties(TeamProperties newProps) {
-		TeamProperties old = properties.copy();
-		properties.updateFrom(properties);
+	public void updateProperties(TeamPropertyCollection newProps) {
+		TeamPropertyCollection old = properties.copy();
+		properties.updateFrom(newProps);
 
 		TeamEvent.CLIENT_PROPERTIES_CHANGED.invoker().accept(new ClientTeamPropertiesChangedEvent(this, old));
 	}

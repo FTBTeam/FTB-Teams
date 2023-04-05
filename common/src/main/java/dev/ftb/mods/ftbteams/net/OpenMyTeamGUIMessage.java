@@ -3,19 +3,20 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseS2CMessage;
 import dev.architectury.networking.simple.MessageType;
-import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.property.TeamProperties;
+import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
+import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
+import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
 import net.minecraft.network.FriendlyByteBuf;
 
 public class OpenMyTeamGUIMessage extends BaseS2CMessage {
-	private final TeamProperties properties;
+	private final TeamPropertyCollection properties;
 
-	public OpenMyTeamGUIMessage(TeamProperties properties) {
+	public OpenMyTeamGUIMessage(TeamPropertyCollection properties) {
 		this.properties = properties;
 	}
 
 	OpenMyTeamGUIMessage(FriendlyByteBuf buffer) {
-		this.properties = TeamProperties.fromNetwork(buffer);
+		this.properties = TeamPropertyCollectionImpl.fromNetwork(buffer);
 	}
 
 	@Override
@@ -30,6 +31,6 @@ public class OpenMyTeamGUIMessage extends BaseS2CMessage {
 
 	@Override
 	public void handle(NetworkManager.PacketContext context) {
-		FTBTeams.PROXY.openMyTeamGui(properties);
+		FTBTeamsClient.openMyTeamGui(properties);
 	}
 }

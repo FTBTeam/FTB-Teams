@@ -275,7 +275,6 @@ public class TeamManager {
 
 		team.ranks.put(playerId, TeamRank.OWNER);
 
-		team.onCreated(player);
 		return team;
 	}
 
@@ -291,6 +290,8 @@ public class TeamManager {
 			team = createPlayerTeam(player, id, name);
 			teamMap.put(id, team);
 			knownPlayers.put(id, team);
+
+			team.onCreated(player);
 
 			syncToAll = true;
 			team.changedTeam(null, id, player, false);

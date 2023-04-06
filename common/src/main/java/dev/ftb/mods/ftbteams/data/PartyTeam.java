@@ -13,6 +13,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -117,7 +118,7 @@ public class PartyTeam extends Team {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	public int kick(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
+	public int kick(CommandSourceStack from, Collection<GameProfile> players) throws CommandSyntaxException {
 		for (GameProfile player : players) {
 			UUID id = player.getId();
 			Team oldTeam = manager.getPlayerTeam(id);
@@ -134,7 +135,8 @@ public class PartyTeam extends Team {
 			ServerPlayer playerEntity = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 
 			team.ranks.put(id, TeamRank.OWNER);
-			sendMessage(from.getUUID(), Component.translatable("ftbteams.message.kicked", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW), getName()).withStyle(ChatFormatting.GOLD));
+			UUID fromId = from.getPlayer() != null ? from.getPlayer().getUUID() : Util.NIL_UUID;
+			sendMessage(fromId, Component.translatable("ftbteams.message.kicked", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW), getName()).withStyle(ChatFormatting.GOLD));
 			team.save();
 
 			ranks.remove(id);
@@ -214,8 +216,8 @@ public class PartyTeam extends Team {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	public int leave(ServerPlayer player) throws CommandSyntaxException {
-		UUID id = player.getUUID();
+	public int leave(UUID id) throws CommandSyntaxException {
+		ServerPlayer player = FTBTeamsAPI.getManager().getServer().getPlayerList().getPlayer(id);
 
 		if (isOwner(id) && getMembers().size() > 1) {
 			throw TeamArgument.OWNER_CANT_LEAVE.create();
@@ -225,7 +227,8 @@ public class PartyTeam extends Team {
 		team.actualTeam = team;
 
 		team.ranks.put(id, TeamRank.OWNER);
-		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.left_party", player.getName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
+		MutableComponent playerName = player == null ? Component.literal(id.toString()) : player.getName().copy();
+		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.left_party", playerName.withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
 		team.save();
 
 		ranks.remove(id);
@@ -335,6 +338,20 @@ public class PartyTeam extends Team {
 		if (!any) {
 			source.sendSuccess(Component.literal("None"), false);
 		}
+
+		return 1;
+	}
+
+	public int forceDisband(CommandSourceStack from) throws CommandSyntaxException {
+		// kick all non-owner members
+		Set<UUID> members = new HashSet<>(getMembers());
+		members.remove(owner);
+		kick(from, members.stream().map(id -> new GameProfile(id, null)).toList());
+
+		// now make the owner leave too
+		leave(owner);
+
+		from.sendSuccess(Component.translatable("ftbteams.message.team_disbanded", getName(), getId()).withStyle(ChatFormatting.GOLD), false);
 
 		return 1;
 	}

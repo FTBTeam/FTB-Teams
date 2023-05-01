@@ -4,9 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.event.PlayerTransferredTeamOwnershipEvent;
-import dev.ftb.mods.ftbteams.event.TeamAllyEvent;
-import dev.ftb.mods.ftbteams.event.TeamEvent;
+import dev.ftb.mods.ftbteams.event.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -94,6 +92,7 @@ public class PartyTeam extends Team {
 			}
 
 			ranks.put(player.getId(), TeamRank.INVITED);
+			TeamEvent.INVITED.invoker().accept(new TeamInvitedEvent(this, players, from));
 			save();
 
 
@@ -162,6 +161,7 @@ public class PartyTeam extends Team {
 			UUID id = player.getId();
 			if (getHighestRank(id) == TeamRank.MEMBER) {
 				ranks.put(id, TeamRank.OFFICER);
+				TeamEvent.RANK_CHANGED.invoker().accept(new TeamRankChangedEvent(this, player, TeamRank.MEMBER, TeamRank.OFFICER));
 				sendMessage(from.getUUID(), Component.translatable("ftbteams.message.promoted", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
 				changesMade = true;
 			} else {
@@ -181,6 +181,7 @@ public class PartyTeam extends Team {
 			UUID id = player.getId();
 			if (getHighestRank(id) == TeamRank.OFFICER) {
 				ranks.put(id, TeamRank.MEMBER);
+				TeamEvent.RANK_CHANGED.invoker().accept(new TeamRankChangedEvent(this, player, TeamRank.OFFICER, TeamRank.MEMBER));
 				sendMessage(from.getUUID(), Component.translatable("ftbteams.message.demoted", manager.getName(id).copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
 				changesMade = true;
 			} else {

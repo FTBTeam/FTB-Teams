@@ -27,7 +27,7 @@ public class TeamEvent {
 	public static final Event<Consumer<TeamMessageSentEvent>> MESSAGE_SENT = EventFactory.createConsumerLoop();
 	public static final Event<Consumer<TeamRankChangedEvent>> RANK_CHANGED = EventFactory.createConsumerLoop();
 	public static final Event<Consumer<TeamInvitedEvent>> INVITED = EventFactory.createConsumerLoop();
-	public static final Event<Consumer<TeamInviteDenied>> INVITE_DENIED = EventFactory.createConsumerLoop();
+	public static final Event<Consumer<TeamInviteDeniedEvent>> INVITE_DENIED = EventFactory.createConsumerLoop();
 
 	public static final Event<Consumer<ClientTeamPropertiesChangedEvent>> CLIENT_PROPERTIES_CHANGED = EventFactory.createConsumerLoop(ClientTeamPropertiesChangedEvent.class);
 

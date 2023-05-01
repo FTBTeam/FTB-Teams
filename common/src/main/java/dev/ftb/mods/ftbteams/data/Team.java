@@ -189,7 +189,7 @@ public abstract class Team extends TeamBase {
 
 		if (isInvited(player.getUUID()) && !isMember(player.getUUID())) {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
-			TeamEvent.INVITE_DENIED.invoker().accept(new TeamInviteDenied(this, player));
+			TeamEvent.INVITE_DENIED.invoker().accept(new TeamInviteDeniedEvent(this, player));
 			source.sendSuccess(Component.translatable("ftbteams.message.declined"), true);
 			save();
 			manager.syncTeamsToAll(this);

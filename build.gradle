@@ -58,6 +58,13 @@ allprojects {
 				includeGroup "dev.ftb.mods"
 			}
 		}
+		maven {
+			url "https://maven.saps.dev/snapshots"
+			content {
+				includeGroup "dev.latvian.mods"
+				includeGroup "dev.ftb.mods"
+			}
+		}
 	}
 
 	java {

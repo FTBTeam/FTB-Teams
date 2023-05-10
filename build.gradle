@@ -1,6 +1,6 @@
 plugins {
-	id "architectury-plugin" version "3.1-SNAPSHOT"
-	id "dev.architectury.loom" version "0.7.2-SNAPSHOT" apply false
+	id "architectury-plugin" version "3.4-SNAPSHOT"
+	id "dev.architectury.loom" version "0.10.0-SNAPSHOT" apply false
 }
 
 architectury {
@@ -12,7 +12,6 @@ subprojects {
 
 	loom {
 		silentMojangMappingsLicense()
-		useFabricMixin = true
 	}
 
 	dependencies {

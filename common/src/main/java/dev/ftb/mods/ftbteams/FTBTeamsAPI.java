@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams;
 
+import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftbteams.data.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.Team;
 import dev.ftb.mods.ftbteams.data.TeamManager;
@@ -9,11 +10,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * @author LatvianModder
  */
 public class FTBTeamsAPI {
+	public static Consumer<MouseButton> partyCreationOverride = null;
+
 	public static boolean isManagerLoaded() {
 		return TeamManager.INSTANCE != null;
 	}

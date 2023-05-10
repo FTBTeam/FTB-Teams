@@ -1,84 +1,112 @@
 package dev.ftb.mods.ftbteams.client;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
-import dev.ftb.mods.ftblibrary.icon.Icon;
-import dev.ftb.mods.ftblibrary.ui.BaseScreen;
-import dev.ftb.mods.ftblibrary.ui.Button;
-import dev.ftb.mods.ftblibrary.ui.GuiHelper;
-import dev.ftb.mods.ftblibrary.ui.Panel;
-import dev.ftb.mods.ftblibrary.ui.SimpleButton;
-import dev.ftb.mods.ftblibrary.ui.TextBox;
-import dev.ftb.mods.ftblibrary.ui.TextField;
-import dev.ftb.mods.ftblibrary.ui.Theme;
-import dev.ftb.mods.ftblibrary.ui.Widget;
-import dev.ftb.mods.ftblibrary.ui.WidgetLayout;
+import dev.ftb.mods.ftblibrary.icon.Icons;
+import dev.ftb.mods.ftblibrary.ui.*;
+import dev.ftb.mods.ftblibrary.ui.input.Key;
 import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
-import dev.ftb.mods.ftbteams.data.ClientTeamManager;
-import dev.ftb.mods.ftbteams.data.FTBTUtils;
-import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
-import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.data.TeamMessage;
-import dev.ftb.mods.ftbteams.data.TeamRank;
-import dev.ftb.mods.ftbteams.data.TeamType;
-import dev.ftb.mods.ftbteams.net.OpenMyTeamGUIMessage;
+import dev.ftb.mods.ftblibrary.util.TooltipList;
+import dev.ftb.mods.ftbteams.data.*;
 import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.UpdateSettingsMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
-import dev.ftb.mods.ftbteams.property.TeamProperty;
-import dev.ftb.mods.ftbteams.property.TeamPropertyValue;
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
+import org.lwjgl.glfw.GLFW;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.text.DateFormat;
+import java.util.*;
 
 public class MyTeamScreen extends BaseScreen implements NordColors {
-	public final ClientTeamManager manager;
-	public final OpenMyTeamGUIMessage data;
+	private final TeamProperties properties;
+	private final UUID teamID;
 	public Button settingsButton;
+	public Button infoButton;
+	public Button missingDataButton;
 	public Button colorButton;
+	public Button inviteButton;
+	public Button allyButton;
 	public Panel memberPanel;
 	public Panel chatPanel;
 	public TextBox chatBox;
 
-	public MyTeamScreen(OpenMyTeamGUIMessage res) {
-		manager = Objects.requireNonNull(ClientTeamManager.INSTANCE);
-		data = res;
-		setSize(300, 200);
+	// ranks which will appear in the member list, in descending order of seniority
+	private static final List<TeamRank> PARTY_RANKS = ImmutableList.of(TeamRank.OWNER, TeamRank.OFFICER, TeamRank.MEMBER, TeamRank.ALLY);
+
+	private static final int MIN_MEMBER_PANEL_WIDTH = 80;
+
+	public MyTeamScreen(TeamProperties props) {
+		properties = props;
+		teamID = getManager().selfTeam.getId();
+	}
+
+	public static void refreshIfOpen() {
+		Screen s = Minecraft.getInstance().screen;
+		if (s instanceof ScreenWrapper) {
+			BaseScreen gui = ((ScreenWrapper) s).getGui();
+			if (gui instanceof MyTeamScreen) {
+				MyTeamScreen mts = (MyTeamScreen) gui;
+				if (mts.getManager().selfTeam.getId().equals(mts.teamID)) {
+					mts.refreshWidgets();
+				} else {
+					// team has changed (player left or got kicked?)
+					mts.closeGui(false);
+				}
+			}
+		}
+	}
+
+	private ClientTeamManager getManager() {
+		return ClientTeamManager.INSTANCE;
+	}
+
+	@Override
+	public boolean onInit() {
+		setWidth(getScreen().getGuiScaledWidth() * 4 / 5);
+		setHeight(getScreen().getGuiScaledHeight() * 4 / 5);
+		return true;
 	}
 
 	@Override
 	public void addWidgets() {
-		add(settingsButton = new SimpleButton(this, new TranslatableComponent("gui.settings"), Icon.getIcon("ftbteams:textures/settings.png").withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> {
-			ConfigGroup config = new ConfigGroup("ftbteamsconfig");
+		add(settingsButton = new SettingsButton());
 
-			for (Map.Entry<TeamProperty, TeamPropertyValue> entry : data.properties.map.entrySet()) {
-				entry.getKey().config(config, entry.getValue());
+		add(infoButton = new SimpleButton(this, TextComponent.EMPTY, Icons.INFO, (w,mb) -> {}) {
+			@Override
+			public void addMouseOverText(TooltipList list) {
+				addTeamInfo(list);
 			}
 
-			config.savedCallback = b -> {
-				if (b) {
-					new UpdateSettingsMessage(data.properties).sendToServer();
-				}
-
-				openGui();
-			};
-
-			new EditConfigScreen(config).openGui();
-		}) {
 			@Override
-			public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-				drawIcon(matrixStack, theme, x, y, w, h);
+			public void playClickSound() {
 			}
 		});
 
-		add(colorButton = new SimpleButton(this, new TranslatableComponent("gui.color"), data.properties.get(Team.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
+		if (ClientTeamManager.INSTANCE.selfKnownPlayer == null) {
+			add(missingDataButton = new SimpleButton(this, TextComponent.EMPTY, Icons.CLOSE, (w, mb) -> {}) {
+				@Override
+				public void addMouseOverText(TooltipList list) {
+					list.add(new TranslatableComponent("ftbteams.missing_data").withStyle(ChatFormatting.RED));
+				}
+
+				@Override
+				public void playClickSound() {
+				}
+			});
+		}
+
+		add(colorButton = new SimpleButton(this, new TranslatableComponent("gui.color"), properties.get(Team.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
 			Color4I c = FTBTUtils.randomColor();
-			data.properties.set(Team.COLOR, c);
+			properties.set(Team.COLOR, c);
 			simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
 			TeamProperties properties = new TeamProperties();
 			properties.set(Team.COLOR, c);
@@ -90,110 +118,40 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 		});
 
-		add(memberPanel = new Panel(this) {
-			@Override
-			public void addWidgets() {
-				for (Map.Entry<UUID, TeamRank> entry : manager.selfTeam.getRanked(TeamRank.NONE).entrySet()) {
-					KnownClientPlayer p = manager.getKnownPlayer(entry.getKey());
+		add(inviteButton = new InviteButton(this));
+		add(allyButton = new AllyButton(this));
 
-					if (p != null) {
-						add(new MemberButton(this, p, entry.getValue()));
-					}
-				}
+		add(memberPanel = new MemberPanel());
+		add(chatPanel = new ChatPanel());
+		add(chatBox = new ChatBox());
+	}
 
-				if (manager.selfTeam.getType() == TeamType.PLAYER) {
-					add(new CreatePartyButton(this));
-				}
+	@Override
+	public void alignWidgets() {
+		super.alignWidgets();
 
-				/*
-				add(new NordButton(this, new TextComponent("Add Ally"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
-					@Override
-					public void onClicked(MouseButton mouseButton) {
-					}
-				});
-
-				add(new NordButton(this, new TextComponent("Add Member"), Icon.getIcon(FTBTeams.MOD_ID + ":textures/add.png")) {
-					@Override
-					public void onClicked(MouseButton mouseButton) {
-					}
-				});
-				 */
-			}
-
-			@Override
-			public void alignWidgets() {
-				align(new WidgetLayout.Vertical(1, 2, 1));
-
-				width = 80;
-
-				for (Widget widget : widgets) {
-					width = Math.max(width, widget.width);
-				}
-
-				for (Widget widget : widgets) {
-					widget.setX(1);
-					widget.setWidth(width - 2);
-				}
-
-				chatPanel.setPosAndSize(width + 3, 23, MyTeamScreen.this.width - memberPanel.width - 5, MyTeamScreen.this.height - 40);
-				chatBox.setPosAndSize(chatPanel.posX, MyTeamScreen.this.height - 15, chatPanel.width, 13);
-			}
-		});
-
-		add(chatPanel = new Panel(this) {
-			@Override
-			public void addWidgets() {
-				UUID prev = null;
-
-				for (TeamMessage message : manager.selfTeam.messageHistory) {
-					if (!message.sender.equals(prev)) {
-						TextComponent name = new TextComponent("");
-						name.append(manager.getName(message.sender));
-						name.append(":");
-
-						add(new TextField(this).setMaxWidth(width).setText(name));
-						prev = message.sender;
-					}
-
-					add(new TextField(this).setMaxWidth(width).setText(new TextComponent("  ").append(message.text)));
-				}
-
-				if (!widgets.isEmpty()) {
-					add(new TextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
-				}
-
-				add(new TextField(this).setMaxWidth(width).setText(new TextComponent("This UI is WIP! Use /ftbteams for now!")));
-			}
-
-			@Override
-			public void alignWidgets() {
-				align(new WidgetLayout.Vertical(2, 1, 1));
-				movePanelScroll(0, getContentHeight());
-			}
-
-			@Override
-			public void drawBackground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-				NordColors.POLAR_NIGHT_2.draw(matrixStack, x, y, w, h);
-			}
-		});
-
-		add(chatBox = new TextBox(this) {
-			@Override
-			public void drawTextBox(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-				NordColors.POLAR_NIGHT_2.draw(matrixStack, x, y, w, h);
-			}
-
-			@Override
-			public void onEnterPressed() {
-				new SendMessageMessage(getText()).sendToServer();
-				setText("");
-				setFocused(true);
-			}
-		});
-
-		settingsButton.setPosAndSize(width - 19, 4, 14, 14);
 		colorButton.setPosAndSize(5, 5, 12, 12);
-		memberPanel.setPosAndSize(1, 22, 89, height - 23);
+		infoButton.setPosAndSize(20, 3, 16, 16);
+		if (missingDataButton != null) missingDataButton.setPosAndSize(40, 3, 16, 16);
+
+		settingsButton.setPosAndSize(width - 19, 3, 16, 16);
+		inviteButton.setPosAndSize(width - 37, 3, 16, 16);
+		allyButton.setPosAndSize(width - 55, 3, 16, 16);
+
+		memberPanel.setPosAndSize(1, 22, Math.max(memberPanel.width, MIN_MEMBER_PANEL_WIDTH), height - 23);
+	}
+
+	private void addTeamInfo(TooltipList list) {
+		ClientTeamManager manager = getManager();
+		if (manager != null) {
+			ClientTeam team = getManager().selfTeam;
+			list.add(new TranslatableComponent("ftbteams.team_type." + team.getType().getSerializedName()).withStyle(ChatFormatting.AQUA));
+			list.add(new TranslatableComponent("ftbteams.info.id", new TextComponent(team.getId().toString()).withStyle(ChatFormatting.YELLOW)));
+			list.add(new TranslatableComponent("ftbteams.info.short_id", new TextComponent(team.getStringID()).withStyle(ChatFormatting.YELLOW)));
+			if (!team.getOwnerID().equals(Util.NIL_UUID)) {
+				list.add(new TranslatableComponent("ftbteams.info.owner", getManager().getName(team.getOwnerID())));
+			}
+		}
 	}
 
 	@Override
@@ -207,6 +165,192 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	@Override
 	public void drawForeground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
 		super.drawForeground(matrixStack, theme, x, y, w, h);
-		theme.drawString(matrixStack, data.properties.get(Team.DISPLAY_NAME), x + w / 2F, y + 7, SNOW_STORM_1, Theme.CENTERED);
+		theme.drawString(matrixStack, properties.get(Team.DISPLAY_NAME), x + w / 2F, y + 7, SNOW_STORM_1, Theme.CENTERED);
+	}
+
+	@Override
+	public boolean keyPressed(Key key) {
+		if (key.is(GLFW.GLFW_KEY_TAB)) {
+			chatBox.setFocused(true);
+			return true;
+		}
+		return super.keyPressed(key);
+	}
+
+	private static class InviteButton extends SimpleButton {
+		public InviteButton(Panel panel) {
+			super(panel, new TranslatableComponent("ftbteams.gui.invite"), Icons.ADD, (w, mb) -> new InviteScreen().openGui());
+		}
+
+		@Override
+		public boolean isEnabled() {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+				return false;
+			}
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
+		}
+
+		@Override
+		public boolean shouldDraw() {
+			return isEnabled();
+		}
+	}
+
+	private static class AllyButton extends SimpleButton {
+		public AllyButton(Panel panel) {
+			super(panel, new TranslatableComponent("ftbteams.gui.manage_allies"), Icons.FRIENDS, (w, mb) -> new AllyScreen().openGui());
+		}
+
+		@Override
+		public boolean isEnabled() {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+				return false;
+			}
+			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
+			return knownPlayer != null && ClientTeamManager.INSTANCE.selfTeam.isOfficer(knownPlayer.uuid);
+		}
+
+		@Override
+		public boolean shouldDraw() {
+			return isEnabled();
+		}
+	}
+
+	private class ChatPanel extends Panel {
+		public ChatPanel() {
+			super(MyTeamScreen.this);
+		}
+
+		@Override
+		public void addWidgets() {
+			UUID prev = null;
+
+			ClientTeamManager manager = getManager();
+			if (manager == null) return;
+
+			for (TeamMessage message : manager.selfTeam.getMessageHistory()) {
+				if (!message.sender.equals(prev)) {
+					add(new VerticalSpaceWidget(this, 2));
+
+					Component name = manager.getName(message.sender).copy().append(":");
+					add(new TextField(this).setMaxWidth(width).setText(name));
+
+					prev = message.sender;
+				}
+
+				add(new TextField(this) {
+					@Override
+					public void addMouseOverText(TooltipList list) {
+						list.add(new TextComponent(DateFormat.getInstance().format(new Date(message.date))));
+					}
+				}.setMaxWidth(width).setText(new TextComponent("  ").append(message.text)));
+			}
+
+			if (!widgets.isEmpty()) {
+				add(new TextField(this).setMaxWidth(width).setText(TextComponent.EMPTY));
+			}
+		}
+
+		@Override
+		public void alignWidgets() {
+			align(new WidgetLayout.Vertical(2, 1, 1));
+			movePanelScroll(0, getContentHeight());
+		}
+
+		@Override
+		public void drawBackground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
+			NordColors.POLAR_NIGHT_2.draw(matrixStack, x, y, w, h);
+		}
+	}
+
+	private class ChatBox extends TextBox {
+		public ChatBox() {
+			super(MyTeamScreen.this);
+		}
+
+		@Override
+		public void drawTextBox(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
+			NordColors.POLAR_NIGHT_3.draw(matrixStack, x, y, w, h);
+		}
+
+		@Override
+		public void onEnterPressed() {
+			new SendMessageMessage(getText()).sendToServer();
+			setText("");
+			setFocused(true);
+		}
+	}
+
+	private class MemberPanel extends Panel {
+		public MemberPanel() {
+			super(MyTeamScreen.this);
+		}
+
+		@Override
+		public void addWidgets() {
+			ClientTeamManager manager = getManager();
+			if (manager == null || manager.isInvalid()) return;
+
+			PARTY_RANKS.stream()
+					.flatMap(rank -> manager.selfTeam.getRanked(rank).entrySet().stream()
+							.filter(e -> e.getValue() == rank)
+							.map(e -> manager.getKnownPlayer(e.getKey()))
+							.filter(Objects::nonNull)
+							.sorted(Comparator.comparing(kcp -> kcp.name))
+							.map(kcp -> new MemberButton(this, kcp, rank))
+					).forEach(this::add);
+
+			if (manager.selfTeam.getType() == TeamType.PLAYER) {
+				add(new CreatePartyButton(this));
+			}
+		}
+
+		@Override
+		public void alignWidgets() {
+			align(new WidgetLayout.Vertical(1, 2, 1));
+
+			width = MIN_MEMBER_PANEL_WIDTH;
+			for (Widget widget : widgets) {
+				width = Math.max(width, widget.width);
+			}
+
+			for (Widget widget : widgets) {
+				widget.setX(1);
+				widget.setWidth(width - 2);
+			}
+
+			chatPanel.setPosAndSize(width + 3, 23, MyTeamScreen.this.width - memberPanel.width - 5, MyTeamScreen.this.height - 40);
+			chatBox.setPosAndSize(chatPanel.posX, MyTeamScreen.this.height - 15, chatPanel.width, 13);
+		}
+	}
+
+	private class SettingsButton extends SimpleButton {
+		public SettingsButton() {
+			super(MyTeamScreen.this, new TranslatableComponent("gui.settings"), Icons.SETTINGS.withTint(NordColors.SNOW_STORM_2), (simpleButton, mouseButton) -> {
+				ConfigGroup config = new ConfigGroup("ftbteamsconfig");
+				Map<String,ConfigGroup> subGroups = new HashMap<>();
+
+				MyTeamScreen.this.properties.map.forEach((key, value) -> {
+					String groupName = key.id.getNamespace();
+					ConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getGroup(groupName));
+					key.config(cfg, value);
+				});
+
+				config.savedCallback = b -> {
+					if (b) {
+						new UpdateSettingsMessage(MyTeamScreen.this.properties).sendToServer();
+					}
+					MyTeamScreen.this.openGui();
+				};
+
+				new EditConfigScreen(config).openGui();
+			});
+		}
+
+		@Override
+		public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
+			drawIcon(matrixStack, theme, x, y, w, h);
+		}
 	}
 }

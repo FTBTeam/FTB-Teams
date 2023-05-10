@@ -4,13 +4,7 @@ import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
-import dev.ftb.mods.ftbteams.event.PlayerChangedTeamEvent;
-import dev.ftb.mods.ftbteams.event.PlayerJoinedPartyTeamEvent;
-import dev.ftb.mods.ftbteams.event.PlayerLeftPartyTeamEvent;
-import dev.ftb.mods.ftbteams.event.TeamCreatedEvent;
-import dev.ftb.mods.ftbteams.event.TeamEvent;
-import dev.ftb.mods.ftbteams.event.TeamInfoEvent;
-import dev.ftb.mods.ftbteams.event.TeamPropertiesChangedEvent;
+import dev.ftb.mods.ftbteams.event.*;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.property.TeamProperties;
 import dev.ftb.mods.ftbteams.property.TeamProperty;
@@ -27,11 +21,7 @@ import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author LatvianModder
@@ -57,52 +47,6 @@ public abstract class Team extends TeamBase {
 		manager.nameMap = null;
 	}
 
-	/*
-	public boolean delete() {
-		if (!manager.teamMap.containsKey(id)) {
-			return false;
-		}
-
-		Path directory = manager.getServer().getWorldPath(TeamManager.FOLDER_NAME);
-		Path deletedDirectory = directory.resolve("deleted");
-
-		try {
-			if (Files.notExists(deletedDirectory)) {
-				Files.createDirectories(deletedDirectory);
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-		try (OutputStream stream = Files.newOutputStream(deletedDirectory.resolve(getId() + ".nbt"))) {
-			NbtIo.writeCompressed(serializeNBT(), stream);
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-		Set<UUID> prevMembers = new HashSet<>();
-
-		if (!owner.equals(Util.NIL_UUID)) {
-			prevMembers.add(owner);
-		}
-
-		for (Map.Entry<UUID, TeamRank> entry : ranks.entrySet()) {
-			if (entry.getValue().is(TeamRank.MEMBER)) {
-				prevMembers.add(entry.getKey());
-			}
-		}
-
-		for (UUID id : prevMembers) {
-			removeMember(id, false);
-		}
-
-		TeamDeletedEvent.EVENT.invoker().accept(new TeamDeletedEvent(this, prevMembers));
-		manager.teamMap.remove(id);
-		directory.resolve(getId() + ".nbt").toFile().delete();
-		return true;
-	}
-	 */
-
 	public List<ServerPlayer> getOnlineRanked(TeamRank rank) {
 		List<ServerPlayer> list = new ArrayList<>();
 
@@ -121,8 +65,10 @@ public abstract class Team extends TeamBase {
 		return getOnlineRanked(TeamRank.MEMBER);
 	}
 
-	void created(ServerPlayer p) {
-		TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, p));
+	void onCreated(@Nullable ServerPlayer p) {
+		if (p != null) {
+			TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, p));
+		}
 		save();
 		manager.save();
 	}
@@ -168,7 +114,7 @@ public abstract class Team extends TeamBase {
 
 		ListTag messageHistoryTag = new ListTag();
 
-		for (TeamMessage m : messageHistory) {
+		for (TeamMessage m : getMessageHistory()) {
 			SNBTCompoundTag mt = new SNBTCompoundTag();
 			mt.singleLine();
 			mt.putString("from", m.sender.toString());
@@ -204,28 +150,13 @@ public abstract class Team extends TeamBase {
 
 		for (int i = 0; i < messageHistoryTag.size(); i++) {
 			CompoundTag mt = messageHistoryTag.getCompound(i);
-			messageHistory.add(new TeamMessage(UUID.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
+			addMessage(new TeamMessage(UUID.fromString(mt.getString("from")), mt.getLong("date"), Component.Serializer.fromJson(mt.getString("text"))));
 		}
 
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
 	}
 
-	// Commands //
-
-	/*
-
-	@Deprecated
-	public int delete(CommandSourceStack source) throws CommandSyntaxException {
-		if (delete()) {
-			source.sendSuccess(new TextComponent("Deleted " + getId()), true);
-		}
-
-		return Command.SINGLE_SUCCESS;
-	}
-
-	*/
-
-	public int settings(CommandSourceStack source, TeamProperty key, String value) throws CommandSyntaxException {
+	public <T> int settings(CommandSourceStack source, TeamProperty<T> key, String value) throws CommandSyntaxException {
 		if (value.isEmpty()) {
 			BaseComponent keyc = new TranslatableComponent("ftbteamsconfig." + key.id.getNamespace() + "." + key.id.getPath());
 			keyc.withStyle(ChatFormatting.YELLOW);
@@ -233,11 +164,11 @@ public abstract class Team extends TeamBase {
 			valuec.withStyle(ChatFormatting.AQUA);
 			source.sendSuccess(new TextComponent("").append(keyc).append(" is set to ").append(valuec), true);
 		} else {
-			Optional optional = key.fromString(value);
+			Optional<T> optional = key.fromString(value);
 
 			if (!optional.isPresent()) {
 				//throw CommandSyntaxException
-				source.sendSuccess(new TextComponent("Failed to parse value!"), true);
+				source.sendFailure(new TextComponent("Failed to parse value!"));
 				return 0;
 			}
 
@@ -255,21 +186,19 @@ public abstract class Team extends TeamBase {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int denyInvite(CommandSourceStack source) throws CommandSyntaxException {
 		ServerPlayer player = source.getPlayerOrException();
 
 		if (isInvited(player.getUUID()) && !isMember(player.getUUID())) {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
-			source.sendSuccess(new TextComponent("Invite denied"), true);
+			source.sendSuccess(new TranslatableComponent("ftbteams.message.declined"), true);
 			save();
-			manager.syncAll();
+			manager.syncTeamsToAll(this);
 		}
 
 		return Command.SINGLE_SUCCESS;
 	}
 
-	@Deprecated
 	public int info(CommandSourceStack source) throws CommandSyntaxException {
 		source.sendSuccess(TextComponent.EMPTY, false);
 
@@ -313,11 +242,7 @@ public abstract class Team extends TeamBase {
 	}
 
 	public void sendMessage(UUID from, Component text) {
-		messageHistory.add(new TeamMessage(from, System.currentTimeMillis(), text));
-
-		if (messageHistory.size() > 1000) {
-			messageHistory.remove(0);
-		}
+		addMessage(new TeamMessage(from, System.currentTimeMillis(), text));
 
 		TextComponent component = new TextComponent("<");
 		component.append(manager.getName(from));

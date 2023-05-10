@@ -12,7 +12,6 @@ import dev.ftb.mods.ftbteams.property.TeamPropertyArgument;
 import me.shedaniel.architectury.platform.Platform;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.HoverEvent;
@@ -146,8 +145,16 @@ public class FTBTeamsCommands {
 						)
 						.then(Commands.literal("transfer_ownership")
 								.requires(source -> hasParty(source, TeamRank.OWNER))
-								.then(Commands.argument("player", EntityArgument.player())
-										.executes(ctx -> team(ctx, TeamRank.OWNER).transferOwnership(ctx.getSource().getPlayerOrException(), EntityArgument.getPlayer(ctx, "player")))
+								.then(Commands.argument("player_id", GameProfileArgument.gameProfile())
+										.executes(ctx -> team(ctx, TeamRank.OWNER).transferOwnership(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player_id")))
+								)
+						)
+						.then(Commands.literal("transfer_ownership_for")
+								.requires(requiresOPorSP())
+								.then(teamArg()
+										.then(Commands.argument("player_id", GameProfileArgument.gameProfile())
+												.executes(ctx -> partyTeamArg(ctx, TeamRank.NONE).transferOwnership(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player_id")))
+										)
 								)
 						)
 						.then(Commands.literal("settings")

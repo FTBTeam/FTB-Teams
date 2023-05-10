@@ -191,26 +191,50 @@ public class PartyTeam extends Team {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	public int transferOwnership(ServerPlayer from, ServerPlayer to) throws CommandSyntaxException {
-		if (!getOnlineMembers().contains(to)) {
-			throw TeamArgument.NOT_MEMBER.create(to.getDisplayName(), getName());
+	public int transferOwnership(CommandSourceStack from, Collection<GameProfile> toProfiles) throws CommandSyntaxException {
+		Optional<GameProfile> first = toProfiles.stream().findFirst();
+		return first.isPresent() ? transferOwnership(from, first.get()) : 0;
+	}
+
+	public int transferOwnership(CommandSourceStack from, GameProfile toProfile) throws CommandSyntaxException {
+		// new owner must be in this party
+		UUID newOwnerID = toProfile.getId();
+		if (!getMembers().contains(newOwnerID)) {
+			throw TeamArgument.NOT_MEMBER.create(toProfile.toString(), getName());
 		}
 
-		if (from == to) {
-			from.sendMessage(new TextComponent("What."), Util.NIL_UUID);
+		if (getHighestRank(newOwnerID) == TeamRank.OWNER) {
+			from.sendFailure(new TextComponent("Already owner!").withStyle(ChatFormatting.RED));
 			return 0;
 		}
 
 		ranks.put(owner, TeamRank.OFFICER);
-		owner = to.getUUID();
+		owner = newOwnerID;
 		ranks.put(owner, TeamRank.OWNER);
 		save();
-		TeamEvent.OWNERSHIP_TRANSFERRED.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, from, to));
 
-		sendMessage(from.getUUID(), new TranslatableComponent("ftbteams.message.transfer_owner", to.getDisplayName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN));
-		updateCommands(from);
-		updateCommands(to);
+		ServerPlayer fromPlayer = from.getEntity() instanceof ServerPlayer ? (ServerPlayer) from.getEntity() : null;  // null if command run from console
+		if (fromPlayer != null) {
+			updateCommands(fromPlayer);
+		}
+
+		ServerPlayer toPlayer = from.getServer().getPlayerList().getPlayer(newOwnerID);
+		if (toPlayer != null) {
+			TeamEvent.OWNERSHIP_TRANSFERRED.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, fromPlayer, toPlayer));
+			updateCommands(toPlayer);
+		} else {
+			TeamEvent.OWNERSHIP_TRANSFERRED.invoker().accept(new PlayerTransferredTeamOwnershipEvent(this, fromPlayer, toProfile));
+		}
+
+		UUID fromId = fromPlayer == null ? Util.NIL_UUID : fromPlayer.getUUID();
+		Component msg = new TranslatableComponent("ftbteams.message.transfer_owner", new TextComponent(toProfile.getName()).withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GREEN);
+		sendMessage(fromId, msg);
+		if (fromPlayer == null) {
+			from.sendSuccess(msg, false);
+		}
+
 		manager.syncTeamsToAll(this);
+
 		return Command.SINGLE_SUCCESS;
 	}
 

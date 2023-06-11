@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1802.2.11]
+
+### Fixed
+* Fixed NPE issue in conjunction with FTB Team Dimensions
+  * Team creation event was being fired too early, leading to NPE when event listeners queried the player
+
 ## [1802.2.10]
 
 ### Added

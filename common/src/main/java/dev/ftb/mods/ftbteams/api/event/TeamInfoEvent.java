@@ -20,6 +20,6 @@ public class TeamInfoEvent extends TeamEvent {
 	}
 
 	public void add(Component component) {
-		source.sendSuccess(component, false);
+		source.sendSuccess(() -> component, false);
 	}
 }

@@ -278,7 +278,7 @@ public class FTBTeamsCommands {
 	}
 
 	private int info(CommandSourceStack source, Team team) {
-		team.getTeamInfo().forEach(line -> source.sendSuccess(line, false));
+		team.getTeamInfo().forEach(line -> source.sendSuccess(() -> line, false));
 
 		TeamEvent.INFO.invoker().accept(new TeamInfoEvent(team, source));
 
@@ -290,7 +290,7 @@ public class FTBTeamsCommands {
 		MutableComponent component = Component.literal("Server ID: " + managerId);
 		component.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Click to copy"))));
 		component.withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, managerId.toString())));
-		source.sendSuccess(component, false);
+		source.sendSuccess(() -> component, false);
 		return 1;
 	}
 
@@ -313,7 +313,8 @@ public class FTBTeamsCommands {
 			list.append(team.getName());
 		}
 
-		source.sendSuccess(Component.translatable("ftbteams.list", first ? Component.translatable("ftbteams.info.owner.none") : list), false);
+		final Component msg = Component.translatable("ftbteams.list", first ? Component.translatable("ftbteams.info.owner.none") : list);
+		source.sendSuccess(() -> msg, false);
 		return Command.SINGLE_SUCCESS;
 	}
 

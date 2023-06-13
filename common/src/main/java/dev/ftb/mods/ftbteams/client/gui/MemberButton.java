@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
@@ -16,6 +15,7 @@ import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
 import dev.ftb.mods.ftbteams.data.TeamType;
 import dev.ftb.mods.ftbteams.net.PlayerGUIOperationMessage.Operation;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -31,20 +31,20 @@ public class MemberButton extends NordButton {
 	}
 
 	@Override
-	public void drawIcon(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-		super.drawIcon(matrixStack, theme, x, y, w, h);
+	public void drawIcon(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+		super.drawIcon(graphics, theme, x, y, w, h);
 
 		if (player.online()) {
-			matrixStack.pushPose();
-			matrixStack.translate(x + w - 1.5D, y - 0.5D, 0);
-			Color4I.GREEN.draw(matrixStack, 0, 0, 2, 2);
-			matrixStack.popPose();
+			graphics.pose().pushPose();
+			graphics.pose().translate(x + w - 1.5D, y - 0.5D, 0);
+			Color4I.GREEN.draw(graphics, 0, 0, 2, 2);
+			graphics.pose().popPose();
 		}
 
 		ClientTeam selfTeam = ClientTeamManagerImpl.getInstance().selfTeam();
 		if (selfTeam.getType() == TeamType.PARTY) {
 			TeamRank tr = selfTeam.getRankForPlayer(player.id());
-			tr.getIcon().ifPresent(icon -> icon.draw(matrixStack, getX() + width - 14, getY() + 2, 12, 12));
+			tr.getIcon().ifPresent(icon -> icon.draw(graphics, getX() + width - 14, getY() + 2, 12, 12));
 		}
 	}
 

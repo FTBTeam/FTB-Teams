@@ -152,7 +152,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		MutableComponent keyc = Component.translatable(key.getTranslationKey("ftbteamsconfig")).withStyle(ChatFormatting.YELLOW);
 		if (value.isEmpty()) {
 			Component valuec = Component.literal(key.toString(getProperty(key))).withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(keyc.append(" is set to ").append(valuec), true);
+			source.sendSuccess(() -> keyc.append(" is set to ").append(valuec), true);
 		} else {
 			Optional<T> optional = key.fromString(value);
 
@@ -160,7 +160,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 				TeamPropertyCollection old = properties.copy();
 				setProperty(key, optional.get());
 				Component valuec = Component.literal(value).withStyle(ChatFormatting.AQUA);
-				source.sendSuccess(Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
+				source.sendSuccess(() -> Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
 
 				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
 			} else {
@@ -176,7 +176,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		if (getRankForPlayer(player.getUUID()) == TeamRank.INVITED) {
 			ranks.put(player.getUUID(), TeamRank.ALLY);
-			source.sendSuccess(Component.translatable("ftbteams.message.declined"), true);
+			source.sendSuccess(() -> Component.translatable("ftbteams.message.declined"), true);
 			markDirty();
 			manager.syncToAll(this);
 		} else {
@@ -213,31 +213,31 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	}
 
 	public int info(CommandSourceStack source) throws CommandSyntaxException {
-		source.sendSuccess(Component.empty(), false);
+		source.sendSuccess(Component::empty, false);
 
 		MutableComponent infoComponent = Component.literal("");
 		infoComponent.getStyle().withBold(true);
 		infoComponent.append("== ");
 		infoComponent.append(getName());
 		infoComponent.append(" ==");
-		source.sendSuccess(infoComponent, false);
+		source.sendSuccess(() -> infoComponent, false);
 
-		source.sendSuccess(Component.translatable("ftbteams.info.id", Component.literal(getId().toString()).withStyle(ChatFormatting.YELLOW)), false);
-		source.sendSuccess(Component.translatable("ftbteams.info.short_id", Component.literal(getShortName()).withStyle(ChatFormatting.YELLOW)).append(" [" + getType().getSerializedName() + "]"), false);
+		source.sendSuccess(() -> Component.translatable("ftbteams.info.id", Component.literal(getId().toString()).withStyle(ChatFormatting.YELLOW)), false);
+		source.sendSuccess(() -> Component.translatable("ftbteams.info.short_id", Component.literal(getShortName()).withStyle(ChatFormatting.YELLOW)).append(" [" + getType().getSerializedName() + "]"), false);
 
 		if (getOwner().equals(Util.NIL_UUID)) {
-			source.sendSuccess(Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none")), false);
+			source.sendSuccess(() -> Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none")), false);
 		} else {
-			source.sendSuccess(Component.translatable("ftbteams.info.owner", manager.getPlayerName(getOwner())), false);
+			source.sendSuccess(() -> Component.translatable("ftbteams.info.owner", manager.getPlayerName(getOwner())), false);
 		}
 
-		source.sendSuccess(Component.translatable("ftbteams.info.members"), false);
+		source.sendSuccess(() -> Component.translatable("ftbteams.info.members"), false);
 
 		if (getMembers().isEmpty()) {
-			source.sendSuccess(Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")), false);
+			source.sendSuccess(() -> Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")), false);
 		} else {
 			for (UUID member : getMembers()) {
-				source.sendSuccess(Component.literal("- ").append(manager.getPlayerName(member)), false);
+				source.sendSuccess(() -> Component.literal("- ").append(manager.getPlayerName(member)), false);
 			}
 		}
 

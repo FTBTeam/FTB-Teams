@@ -345,18 +345,18 @@ public class PartyTeam extends AbstractTeam {
 	}
 
 	public int listAllies(CommandSourceStack source) {
-		source.sendSuccess(Component.literal("Allies:"), false);
+		source.sendSuccess(() -> Component.literal("Allies:"), false);
 		boolean any = false;
 
 		for (Map.Entry<UUID, TeamRank> entry : getPlayersByRank(TeamRank.ALLY).entrySet()) {
 			if (!entry.getValue().isAtLeast(TeamRank.MEMBER)) {
-				source.sendSuccess(manager.getPlayerName(entry.getKey()), false);
+				source.sendSuccess(() -> manager.getPlayerName(entry.getKey()), false);
 				any = true;
 			}
 		}
 
 		if (!any) {
-			source.sendSuccess(Component.literal("None"), false);
+			source.sendSuccess(() -> Component.literal("None"), false);
 		}
 
 		return 1;
@@ -371,7 +371,7 @@ public class PartyTeam extends AbstractTeam {
 		// now make the owner leave too
 		leave(owner);
 
-		from.sendSuccess(Component.translatable("ftbteams.message.team_disbanded", getName(), getId()).withStyle(ChatFormatting.GOLD), false);
+		from.sendSuccess(() -> Component.translatable("ftbteams.message.team_disbanded", getName(), getId()).withStyle(ChatFormatting.GOLD), false);
 
 		return 1;
 	}

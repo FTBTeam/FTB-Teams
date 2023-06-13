@@ -11,6 +11,7 @@ import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
@@ -37,14 +38,14 @@ public class InvitedButton extends NordButton {
 	}
 
 	@Override
-	public void drawIcon(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-		super.drawIcon(matrixStack, theme, x, y, w, h);
+	public void drawIcon(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+		super.drawIcon(graphics, theme, x, y, w, h);
 
 		if (player.online()) {
-			matrixStack.pushPose();
-			matrixStack.translate(x + w - 1.5D, y - 0.5D, 0);
-			Color4I.GREEN.draw(matrixStack, 0, 0, 2, 2);
-			matrixStack.popPose();
+			graphics.pose().pushPose();
+			graphics.pose().translate(x + w - 1.5D, y - 0.5D, 0);
+			Color4I.GREEN.draw(graphics, 0, 0, 2, 2);
+			graphics.pose().popPose();
 		}
 	}
 

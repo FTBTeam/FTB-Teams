@@ -30,7 +30,7 @@ public class ServerTeam extends AbstractTeam {
 		manager.tryDeleteTeamFile(getId() + ".snbt", "server");
 		manager.syncToAll(this);
 
-		source.sendSuccess(Component.translatable("ftbteams.message.deleted_server_team", getShortName()), true);
+		source.sendSuccess(() -> Component.translatable("ftbteams.message.deleted_server_team", getShortName()), true);
 
 		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 

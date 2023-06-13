@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
@@ -26,6 +25,7 @@ import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
@@ -115,8 +115,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			new UpdatePropertiesRequestMessage(properties).sendToServer();
 		}) {
 			@Override
-			public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-				icon.draw(matrixStack, x, y, w, h);
+			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+				icon.draw(graphics, x, y, w, h);
 			}
 		});
 
@@ -157,17 +157,17 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	}
 
 	@Override
-	public void drawBackground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-		GuiHelper.drawHollowRect(matrixStack, x, y, w, h, POLAR_NIGHT_0, true);
-		POLAR_NIGHT_1.draw(matrixStack, x + 1, y + 1, w - 2, h - 2);
-		POLAR_NIGHT_0.draw(matrixStack, x + 1, y + 21, w - 2, 1);
-		POLAR_NIGHT_0.draw(matrixStack, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height);
+	public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+		GuiHelper.drawHollowRect(graphics, x, y, w, h, POLAR_NIGHT_0, true);
+		POLAR_NIGHT_1.draw(graphics, x + 1, y + 1, w - 2, h - 2);
+		POLAR_NIGHT_0.draw(graphics, x + 1, y + 21, w - 2, 1);
+		POLAR_NIGHT_0.draw(graphics, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height);
 	}
 
 	@Override
-	public void drawForeground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-		super.drawForeground(matrixStack, theme, x, y, w, h);
-		theme.drawString(matrixStack, properties.get(TeamProperties.DISPLAY_NAME), x + w / 2F, y + 7, SNOW_STORM_1, Theme.CENTERED);
+	public void drawForeground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+		super.drawForeground(graphics, theme, x, y, w, h);
+		theme.drawString(graphics, properties.get(TeamProperties.DISPLAY_NAME), x + w / 2, y + 7, SNOW_STORM_1, Theme.CENTERED);
 	}
 
 	@Override
@@ -266,8 +266,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 
 		@Override
-		public void drawBackground(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-			NordColors.POLAR_NIGHT_2.draw(matrixStack, x, y, w, h);
+		public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+			NordColors.POLAR_NIGHT_2.draw(graphics, x, y, w, h);
 		}
 	}
 
@@ -277,8 +277,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 
 		@Override
-		public void drawTextBox(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-			NordColors.POLAR_NIGHT_3.draw(matrixStack, x, y, w, h);
+		public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+			NordColors.POLAR_NIGHT_3.draw(graphics, x, y, w, h);
 		}
 
 		@Override
@@ -356,8 +356,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 
 		@Override
-		public void draw(PoseStack matrixStack, Theme theme, int x, int y, int w, int h) {
-			drawIcon(matrixStack, theme, x, y, w, h);
+		public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+			drawIcon(graphics, theme, x, y, w, h);
 		}
 	}
 }

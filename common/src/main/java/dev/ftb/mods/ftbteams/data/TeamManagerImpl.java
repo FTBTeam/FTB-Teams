@@ -404,7 +404,7 @@ public class TeamManagerImpl implements TeamManager {
 			throw TeamArgument.NAME_TOO_SHORT.create();
 		}
 		ServerTeam team = createServerTeam(source.getPlayerOrException(), name);
-		source.sendSuccess(Component.translatable("ftbteams.message.created_server_team", team.getName()), true);
+		source.sendSuccess(() -> Component.translatable("ftbteams.message.created_server_team", team.getName()), true);
 		syncToAll(team);
 		return Pair.of(Command.SINGLE_SUCCESS, team);
 	}

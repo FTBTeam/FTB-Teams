@@ -53,12 +53,29 @@ public interface TeamManager {
     Optional<Team> getTeamForPlayer(ServerPlayer player);
 
     /**
+     * Get the player's own team, given their player ID. This always returns the player's personal team, even if
+     * they are currently in a party team.
+     *
+     * @param uuid the player's UUID
+     * @return the player's personal team, or {@code Optional.empty()} if no team could be found
+     */
+    Optional<Team> getPlayerTeamForPlayerID(UUID uuid);
+
+    /**
      * Retrieve the given team by short (friendly) name. This is the name as returned by {@link Team#getShortName()}.
      *
      * @param teamName a team name
      * @return the team, or {@code Optional.empty()} if no team could be found
      */
     Optional<Team> getTeamByName(String teamName);
+
+    /**
+     * Retrieve the given team by its unique ID. This is the name as returned by {@link Team#getId()}.
+     *
+     * @param teamId unique team ID
+     * @return the team, or {@code Optional.empty()} if no team could be found
+     */
+    Optional<Team> getTeamByID(UUID teamId);
 
     /**
      * Convenience method to check if two player IDs are in the same team.

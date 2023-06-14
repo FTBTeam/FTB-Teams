@@ -25,6 +25,8 @@ public class ServerTeam extends AbstractTeam {
 	public int delete(CommandSourceStack source) {
 		markDirty();
 
+		invalidateTeam();
+
 		manager.deleteTeam(this);
 		manager.saveNow();
 		manager.tryDeleteTeamFile(getId() + ".snbt", "server");

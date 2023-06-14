@@ -99,14 +99,19 @@ public class TeamManagerImpl implements TeamManager {
 		return nameMap;
 	}
 
-	@Nullable
-	public AbstractTeam getTeamByID(UUID uuid) {
-		return uuid == Util.NIL_UUID ? null : teamMap.get(uuid);
+	@Override
+	public Optional<Team> getTeamByID(UUID teamId) {
+		return Optional.of(teamMap.get(teamId));
 	}
 
 	@Override
 	public Optional<Team> getTeamByName(String name) {
 		return Optional.ofNullable(getTeamNameMap().get(name));
+	}
+
+	@Override
+	public Optional<Team> getPlayerTeamForPlayerID(UUID uuid) {
+		return Optional.ofNullable(getPersonalTeamForPlayerID(uuid));
 	}
 
 	public PlayerTeam getPersonalTeamForPlayerID(UUID uuid) {

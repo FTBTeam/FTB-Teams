@@ -10,7 +10,9 @@ import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -84,6 +86,16 @@ public class ClientTeam extends AbstractTeamBase {
 	@Override
 	public boolean isClientTeam() {
 		return true;
+	}
+
+	@Override
+	public Collection<ServerPlayer> getOnlineMembers() {
+		return List.of();
+	}
+
+	@Override
+	public boolean isValid() {
+		return !toBeRemoved();
 	}
 
 	@Override

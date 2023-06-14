@@ -15,7 +15,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -274,6 +273,7 @@ public class PartyTeam extends AbstractTeam {
 		boolean deletingTeam = false;
 		if (getMembers().isEmpty()) {
 			deletingTeam = true;
+			invalidateTeam();
 			manager.deleteTeam(this);
 			manager.saveNow();
 			manager.tryDeleteTeamFile(getId() + ".snbt", "party");

@@ -61,6 +61,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		return list;
 	}
 
+	@Override
 	public List<ServerPlayer> getOnlineMembers() {
 		return getOnlineRanked(TeamRank.MEMBER);
 	}

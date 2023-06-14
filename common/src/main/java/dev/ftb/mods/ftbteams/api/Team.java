@@ -3,11 +3,11 @@ package dev.ftb.mods.ftbteams.api;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public interface Team {
     /**
@@ -152,6 +152,13 @@ public interface Team {
     Map<UUID,TeamRank> getPlayersByRank(TeamRank minRank);
 
     /**
+     * Get a set of the UUID's for all team members.
+     *
+     * @return UUID's of all team members
+     */
+    Set<UUID> getMembers();
+
+    /**
      * Get a translation key for this team's type (i.e. player, party or server), for display purposes.
      *
      * @return a translation key
@@ -167,4 +174,46 @@ public interface Team {
     default boolean isClientTeam() {
         return false;
     }
+
+    /**
+     * Get any extension data that may exist in this team manager. This is empty by default, but other mods can use
+     * this to store mod-specific data where necessary.
+     * <p>
+     * This data is serialized along with the rest of the team data so persists across server restarts, but if you change
+     * any data in the compound tag returned by this method, you should call {@link #markDirty()} to ensure your changes
+     * actually get saved.
+     *
+     * @return extension data for the team
+     */
+    CompoundTag getExtraData();
+
+    /**
+     * Mark the team as requiring serialization. The only time this should be necessary to call is if you change
+     * any data in the compound returned by {@link #getExtraData()}.
+     */
+    void markDirty();
+
+    /**
+     * Convenience method to retrieve a collection of all currently-online members of the team. This is not useful
+     * client-side; it will always return an empty collection.
+     *
+     * @return all the server players who are currently online
+     */
+    Collection<ServerPlayer> getOnlineMembers();
+
+    /**
+     * Retrieve a colored text component for the team's name (which is also clickable, and will display basic team
+     * info when clicked)
+     *
+     * @return a colored clickable text component
+     */
+    Component getColoredName();
+
+    /**
+     * Is this team still valid, i.e. hasn't been deleted (or on the client, overwritten by a sync from the server) ?
+     * If you cache a Team object for any reason, you should always use this to check team validity.
+     *
+     * @return true if the team object is still valid, false otherwise
+     */
+    boolean isValid();
 }

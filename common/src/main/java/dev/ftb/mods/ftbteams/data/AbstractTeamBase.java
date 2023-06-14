@@ -23,6 +23,7 @@ public abstract class AbstractTeamBase implements Team {
 	protected final Map<UUID, TeamRank> ranks;
 	protected CompoundTag extraData;
 	protected final List<TeamMessage> messageHistory;
+	private boolean valid;
 
 	public AbstractTeamBase(UUID id) {
 		this.id = id;
@@ -30,6 +31,7 @@ public abstract class AbstractTeamBase implements Team {
 		properties = new TeamPropertyCollectionImpl();
 		extraData = new CompoundTag();
 		messageHistory = new LinkedList<>();
+		valid = true;
 	}
 
 	@Override
@@ -70,6 +72,7 @@ public abstract class AbstractTeamBase implements Team {
 		return getShortName();
 	}
 
+	@Override
 	public CompoundTag getExtraData() {
 		return extraData;
 	}
@@ -127,12 +130,14 @@ public abstract class AbstractTeamBase implements Team {
 		return text;
 	}
 
+	@Override
 	public Component getColoredName() {
 		MutableComponent text = Component.literal(getDisplayName());
 		text.withStyle(getProperty(TeamProperties.COLOR).toStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getShortName())));
 		return text;
 	}
 
+	@Override
 	public void markDirty() {
 	}
 
@@ -172,6 +177,7 @@ public abstract class AbstractTeamBase implements Team {
 		return "ftbteams.team_type." + getType().getSerializedName();
 	}
 
+	@Override
 	public Set<UUID> getMembers() {
 		return getPlayersByRank(TeamRank.MEMBER).keySet();
 	}
@@ -211,5 +217,14 @@ public abstract class AbstractTeamBase implements Team {
 
 	public void removeMember(UUID id) {
 		ranks.remove(id);
+	}
+
+	@Override
+	public boolean isValid() {
+		return valid;
+	}
+
+	public void invalidateTeam() {
+		valid = false;
 	}
 }

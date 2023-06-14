@@ -43,6 +43,14 @@ public interface ClientTeamManager {
     Collection<Team> getTeams();
 
     /**
+     * Retrieve the given team by its unique ID. This is the name as returned by {@link Team#getId()}.
+     *
+     * @param teamId unique team ID
+     * @return the team, or {@code Optional.empty()} if no team could be found
+     */
+    Optional<Team> getTeamByID(UUID teamId);
+
+    /**
      * Get the client team data for this client player (i.e. {@link net.minecraft.client.Minecraft#player})
      *
      * @return this player's own team

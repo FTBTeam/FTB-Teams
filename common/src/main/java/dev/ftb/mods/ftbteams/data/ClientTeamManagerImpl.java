@@ -115,6 +115,11 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 	}
 
 	@Override
+	public Optional<Team> getTeamByID(UUID teamId) {
+		return Optional.ofNullable(teamMap.get(teamId));
+	}
+
+	@Override
 	public ClientTeam selfTeam() {
 		return selfTeam;
 	}

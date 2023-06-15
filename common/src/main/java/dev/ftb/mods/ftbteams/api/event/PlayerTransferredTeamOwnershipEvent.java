@@ -4,8 +4,7 @@ import dev.ftb.mods.ftbteams.api.Team;
 import com.mojang.authlib.GameProfile;
 import dev.ftb.mods.ftbteams.data.PartyTeam;
 import net.minecraft.server.level.ServerPlayer;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * @author LatvianModder

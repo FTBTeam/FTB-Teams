@@ -2,8 +2,7 @@ package dev.ftb.mods.ftbteams.api.event;
 
 import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.server.level.ServerPlayer;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author LatvianModder
@@ -33,7 +32,7 @@ public class PlayerJoinedPartyTeamEvent extends TeamEvent {
 	 *
 	 * @return the player
 	 */
-	@Nonnull
+	@NotNull
 	public ServerPlayer getPlayer() {
 		return player;
 	}

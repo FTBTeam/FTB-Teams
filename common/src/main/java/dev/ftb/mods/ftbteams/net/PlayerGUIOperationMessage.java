@@ -6,11 +6,10 @@ import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
 import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.data.KnownClientPlayer;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.TeamRank;
+import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.PartyTeam;
-import dev.ftb.mods.ftbteams.data.Team;
-import dev.ftb.mods.ftbteams.data.TeamRank;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -61,18 +60,18 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
         if (!(context.getPlayer() instanceof ServerPlayer serverPlayer)) return;
 
         UUID senderId = context.getPlayer().getUUID();
-        Team team = FTBTeamsAPI.getManager().getPlayerTeam(senderId);
-
-        if (team instanceof PartyTeam partyTeam) {
-            TeamRank senderRank = partyTeam.getHighestRank(serverPlayer.getUUID());
-            targets.forEach(target -> processTarget(serverPlayer, senderRank, partyTeam, target));
-        }
+        FTBTeamsAPI.api().getManager().getTeamForPlayerID(senderId).ifPresent(team -> {
+            if (team instanceof PartyTeam partyTeam) {
+                TeamRank senderRank = partyTeam.getRankForPlayer(serverPlayer.getUUID());
+                targets.forEach(target -> processTarget(serverPlayer, senderRank, partyTeam, target));
+            }
+        });
     }
 
     private void processTarget(ServerPlayer sourcePlayer, TeamRank senderRank, PartyTeam partyTeam, UUID targetId) {
-        if (op.requireSameTeam() && !FTBTeamsAPI.arePlayersInSameTeam(sourcePlayer.getUUID(), targetId)) return;
+        if (op.requireSameTeam() && !FTBTeamsAPI.api().getManager().arePlayersInSameTeam(sourcePlayer.getUUID(), targetId)) return;
 
-        TeamRank targetRank = partyTeam.getHighestRank(targetId);
+        TeamRank targetRank = partyTeam.getRankForPlayer(targetId);
 
         FTBTeams.LOGGER.debug("received teams operation msg {} from {} (rank {}), team {}, target {} (rank {})", op, sourcePlayer.getUUID(), senderRank, partyTeam.getName().getString(), targetId, targetRank);
 
@@ -81,31 +80,31 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
             switch (op) {
                 case KICK -> {
                     if (senderRank.getPower() > targetRank.getPower()) {
-                        partyTeam.kick(sourcePlayer, targetProfile);
+                        partyTeam.kick(sourcePlayer.createCommandSourceStack(), targetProfile);
                     }
                 }
                 case PROMOTE -> {
-                    if (senderRank.is(TeamRank.OWNER) && targetRank.is(TeamRank.MEMBER)) {
+                    if (senderRank.isAtLeast(TeamRank.OWNER) && targetRank.isAtLeast(TeamRank.MEMBER)) {
                         partyTeam.promote(sourcePlayer, targetProfile);
                     }
                 }
                 case DEMOTE -> {
-                    if (senderRank.is(TeamRank.OWNER) && targetRank.is(TeamRank.OFFICER)) {
+                    if (senderRank.isAtLeast(TeamRank.OWNER) && targetRank.isAtLeast(TeamRank.OFFICER)) {
                         partyTeam.demote(sourcePlayer, targetProfile);
                     }
                 }
                 case TRANSFER_OWNER -> {
-                    if (senderRank.is(TeamRank.OWNER)) {
-                        ServerPlayer p = partyTeam.manager.server.getPlayerList().getPlayer(targetId);
+                    if (senderRank.isAtLeast(TeamRank.OWNER)) {
+                        ServerPlayer p = sourcePlayer.getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
-                            partyTeam.transferOwnership(sourcePlayer, p);
+                            partyTeam.transferOwnership(sourcePlayer.createCommandSourceStack(), p.getGameProfile());
                         }
                     }
                 }
-                case LEAVE -> partyTeam.leave(sourcePlayer);
+                case LEAVE -> partyTeam.leave(sourcePlayer.getUUID());
                 case INVITE -> {
-                    if (senderRank.is(TeamRank.OFFICER)) {
-                        ServerPlayer p = partyTeam.manager.server.getPlayerList().getPlayer(targetId);
+                    if (senderRank.isAtLeast(TeamRank.OFFICER)) {
+                        ServerPlayer p = sourcePlayer.getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
                             // need the player to be online to receive an invitation
                             partyTeam.invite(sourcePlayer, List.of(p.getGameProfile()));
@@ -113,12 +112,12 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
                     }
                 }
                 case ADD_ALLY -> {
-                    if (senderRank.is(TeamRank.OFFICER) && targetRank.is(TeamRank.NONE)) {
+                    if (senderRank.isAtLeast(TeamRank.OFFICER) && targetRank.isAtLeast(TeamRank.NONE)) {
                         partyTeam.addAlly(sourcePlayer.createCommandSourceStack(), targetProfile);
                     }
                 }
                 case REMOVE_ALLY -> {
-                    if (senderRank.is(TeamRank.OFFICER) && targetRank.is(TeamRank.ALLY)) {
+                    if (senderRank.isAtLeast(TeamRank.OFFICER) && targetRank.isAtLeast(TeamRank.ALLY)) {
                         partyTeam.removeAlly(sourcePlayer.createCommandSourceStack(), targetProfile);
                     }
                 }
@@ -150,7 +149,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
         }
 
         public void sendMessage(KnownClientPlayer target) {
-            new PlayerGUIOperationMessage(this, target.uuid).sendToServer();
+            new PlayerGUIOperationMessage(this, target.id()).sendToServer();
         }
     }
 }

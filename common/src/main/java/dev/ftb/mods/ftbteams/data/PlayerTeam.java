@@ -3,6 +3,8 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
+import dev.ftb.mods.ftbteams.api.TeamRank;
+import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
@@ -15,21 +17,56 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public class PlayerTeam extends Team {
-	public String playerName;
-	public boolean online;
-	public Team actualTeam;
+public class PlayerTeam extends AbstractTeam {
+	private String playerName;
+	private boolean online;
+	private AbstractTeam effectiveTeam;
 
-	public PlayerTeam(TeamManager m) {
-		super(m);
+	public PlayerTeam(TeamManagerImpl manager, UUID id) {
+		super(manager, id);
+
 		playerName = "";
 		online = false;
-		actualTeam = this;
+		effectiveTeam = this;
+	}
+
+	@Override
+	public UUID getTeamId() {
+		return effectiveTeam.getId();
 	}
 
 	@Override
 	public TeamType getType() {
 		return TeamType.PLAYER;
+	}
+
+	@Override
+	public boolean isPlayerTeam() {
+		return true;
+	}
+
+	public String getPlayerName() {
+		return playerName;
+	}
+
+	public void setPlayerName(String playerName) {
+		this.playerName = playerName;
+	}
+
+	public boolean isOnline() {
+		return online;
+	}
+
+	public void setOnline(boolean online) {
+		this.online = online;
+	}
+
+	public AbstractTeam getEffectiveTeam() {
+		return effectiveTeam;
+	}
+
+	public void setEffectiveTeam(AbstractTeam effectiveTeam) {
+		this.effectiveTeam = effectiveTeam;
 	}
 
 	@Override
@@ -45,16 +82,12 @@ public class PlayerTeam extends Team {
 
 	@Nullable
 	public ServerPlayer getPlayer() {
-		return FTBTUtils.getPlayerByUUID(manager.server, id);
+		return FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 	}
 
 	@Override
-	public TeamRank getHighestRank(UUID playerId) {
-		if (playerId.equals(id)) {
-			return TeamRank.OWNER;
-		}
-
-		return super.getHighestRank(playerId);
+	public TeamRank getRankForPlayer(UUID playerId) {
+		return playerId.equals(id) ? TeamRank.OWNER : super.getRankForPlayer(playerId);
 	}
 
 	@Override
@@ -64,7 +97,7 @@ public class PlayerTeam extends Team {
 	}
 
 	public void updatePresence() {
-		new UpdatePresenceMessage(new KnownClientPlayer(this)).sendToAll(manager.server);
+		new UpdatePresenceMessage(createClientPlayer()).sendToAll(manager.getServer());
 	}
 
 	public void createParty(ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {
@@ -77,6 +110,17 @@ public class PlayerTeam extends Team {
 	}
 
 	public boolean hasTeam() {
-		return actualTeam != this;
+		return effectiveTeam != this;
+	}
+
+	public KnownClientPlayer createClientPlayer() {
+		return new KnownClientPlayer(
+				getId(),
+				getPlayerName(),
+				isOnline(),
+				getTeamId(),
+				new GameProfile(getId(), getPlayerName()),
+				getExtraData()
+		);
 	}
 }

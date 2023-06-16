@@ -2,17 +2,17 @@ package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.simple.MessageType;
 import dev.architectury.networking.simple.SimpleNetworkManager;
-import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 
 public interface FTBTeamsNet {
-	SimpleNetworkManager NET = SimpleNetworkManager.create(FTBTeams.MOD_ID);
+	SimpleNetworkManager NET = SimpleNetworkManager.create(FTBTeamsAPI.MOD_ID);
 
 	MessageType SYNC_TEAMS = NET.registerS2C("sync_teams", SyncTeamsMessage::new);
 	MessageType SYNC_MESSAGE_HISTORY = NET.registerS2C("sync_message_history", SyncMessageHistoryMessage::new);
 	MessageType OPEN_GUI = NET.registerC2S("open_gui", OpenGUIMessage::new);
 	MessageType OPEN_MY_TEAM_GUI = NET.registerS2C("open_my_team_gui", OpenMyTeamGUIMessage::new);
-	MessageType UPDATE_SETTINGS = NET.registerC2S("update_settings", UpdateSettingsMessage::new);
-	MessageType UPDATE_SETTINGS_RESPONSE = NET.registerS2C("update_settings_response", UpdateSettingsResponseMessage::new);
+	MessageType UPDATE_SETTINGS = NET.registerC2S("update_settings", UpdatePropertiesRequestMessage::new);
+	MessageType UPDATE_SETTINGS_RESPONSE = NET.registerS2C("update_settings_response", UpdatePropertiesResponseMessage::new);
 	MessageType SEND_MESSAGE = NET.registerC2S("send_message", SendMessageMessage::new);
 	MessageType SEND_MESSAGE_RESPONSE = NET.registerS2C("send_message_response", SendMessageResponseMessage::new);
 	MessageType UPDATE_PRESENCE = NET.registerS2C("update_presence", UpdatePresenceMessage::new);

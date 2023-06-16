@@ -24,8 +24,6 @@ dependencies {
 	modApi "dev.architectury:architectury-forge:${rootProject.architectury_version}"
 	modApi("dev.ftb.mods:ftb-library-forge:${rootProject.ftb_library_version}") { transitive false }
 
-	//modRuntime("dev.ftb.mods:ftb-chunks-forge:${rootProject.ftb_chunks_version}") { transitive false }
-
 	common(project(path: ":common", configuration: "namedElements")) { transitive false }
 	shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive false }
 }
@@ -41,7 +39,7 @@ processResources {
 				"forgeversion": project.forge_version,
 				"forgeshortversion": project.forge_version.split("\\.")[0],
 				"mcversion": project.minecraft_version,
-				"libraryversion": project.ftb_library_version
+				"libraryversion": project.ftb_library_version.replaceAll("-SNAPSHOT", "")
 	}
 }
 
@@ -49,7 +47,7 @@ shadowJar {
 	exclude "fabric.mod.json"
 
 	configurations = [project.configurations.shadowCommon]
-	classifier "dev-shadow"
+	setArchiveClassifier("dev-shadow")
 }
 
 remapJar {
@@ -72,7 +70,7 @@ jar {
 		])
 	}
 
-	classifier "dev"
+	setArchiveClassifier("dev")
 }
 
 components.java {
@@ -81,52 +79,53 @@ components.java {
 	}
 }
 
-if (ENV.CURSEFORGE_KEY) {
-	curseforge {
-		apiKey = ENV.CURSEFORGE_KEY
-		project {
-			id = project.curseforge_id_forge
-			releaseType = project.curseforge_type
-			addGameVersion "Forge"
-			addGameVersion "1.19.2"
-			mainArtifact(remapJar.archivePath)
-			relations {
-				requiredDependency 'architectury-api'
-				requiredDependency 'ftb-library-forge'
-			}
-			changelog = getGitChangelog
-			changelogType = 'markdown'
-		}
-	}
-}
-
 publishing {
 	publications {
 		mavenForge(MavenPublication) {
 			artifactId = "${rootProject.archives_base_name}-${project.name}"
+			version ftbPublishing.mavenVersion
 			from components.java
 		}
 	}
 
 	repositories {
-		if (ENV.FTB_MAVEN_TOKEN) {
+		if (ftbPublishing.ftbToken) {
 			maven {
-				url "https://maven.ftb.dev/release"
+				url ftbPublishing.ftbURL
 				credentials {
-					username = "ftb"
-					password = "${ENV.FTB_MAVEN_TOKEN}"
+					username = ftbPublishing.ftbUser
+					password = ftbPublishing.ftbToken
 				}
 			}
 		}
 
-		if (ENV.SAPS_TOKEN) {
+		if (ftbPublishing.sapsToken) {
 			maven {
-				url "https://maven.saps.dev/minecraft"
+				url ftbPublishing.sapsURL
 				credentials {
-					username = "ftb"
-					password = "${ENV.SAPS_TOKEN}"
+					username = ftbPublishing.sapsUser
+					password = ftbPublishing.sapsToken
 				}
 			}
+		}
+	}
+}
+
+if (ENV.CURSEFORGE_KEY) {
+	curseforge {
+		apiKey = ENV.CURSEFORGE_KEY
+		project {
+			id = project.curseforge_id_forge
+			releaseType = ftbPublishing.relType
+			addGameVersion "Forge"
+			addGameVersion rootProject.minecraft_version
+			mainArtifact(remapJar.archiveFile)
+			relations {
+				requiredDependency 'architectury-api'
+				requiredDependency 'ftb-library-forge'
+			}
+			changelog = ENV.CHANGELOG  // expected to exist if ENV.CURSEFORGE does
+			changelogType = 'markdown'
 		}
 	}
 }

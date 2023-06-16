@@ -4,14 +4,16 @@ import com.mojang.brigadier.CommandDispatcher;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
+import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.event.TeamCollectPropertiesEvent;
+import dev.ftb.mods.ftbteams.api.event.TeamEvent;
+import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
+import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.FTBTeamsCommands;
-import dev.ftb.mods.ftbteams.data.TeamBase;
-import dev.ftb.mods.ftbteams.data.TeamManager;
-import dev.ftb.mods.ftbteams.event.TeamCollectPropertiesEvent;
-import dev.ftb.mods.ftbteams.event.TeamEvent;
-import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
+import dev.ftb.mods.ftbteams.data.TeamManagerImpl;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -23,12 +25,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class FTBTeams {
-	public static final String MOD_ID = "ftbteams";
-	public static final String MOD_NAME = "FTB Teams";
-	public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
-	public static FTBTeamsCommon PROXY;
+	public static final Logger LOGGER = LogManager.getLogger(FTBTeamsAPI.MOD_NAME);
 
 	public FTBTeams() {
+		FTBTeamsAPI._init(FTBTeamsAPIImpl.INSTANCE);
+
 		LifecycleEvent.SERVER_BEFORE_START.register(this::serverAboutToStart);
 		CommandRegistrationEvent.EVENT.register(this::registerCommands);
 		LifecycleEvent.SERVER_STOPPED.register(this::serverStopped);
@@ -36,15 +37,16 @@ public class FTBTeams {
 		TeamEvent.COLLECT_PROPERTIES.register(this::teamConfig);
 		PlayerEvent.PLAYER_JOIN.register(this::playerLoggedIn);
 		PlayerEvent.PLAYER_QUIT.register(this::playerLoggedOut);
+
+		EnvExecutor.runInEnv(Env.CLIENT, () -> FTBTeamsClient::init);
+
 		FTBTeamsNet.init();
-		PROXY = EnvExecutor.getEnvSpecific(() -> FTBTeamsClient::new, () -> FTBTeamsCommon::new);
 	}
 
-
 	private void serverAboutToStart(MinecraftServer server) {
-		TeamManager.INSTANCE = new TeamManager(server);
-		TeamManagerEvent.CREATED.invoker().accept(new TeamManagerEvent(TeamManager.INSTANCE));
-		TeamManager.INSTANCE.load();
+		TeamManagerImpl.INSTANCE = new TeamManagerImpl(server);
+		TeamManagerEvent.CREATED.invoker().accept(new TeamManagerEvent(TeamManagerImpl.INSTANCE));
+		TeamManagerImpl.INSTANCE.load();
 	}
 
 	private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext, Commands.CommandSelection selection) {
@@ -52,33 +54,33 @@ public class FTBTeams {
 	}
 
 	private void serverStopped(MinecraftServer server) {
-		TeamManagerEvent.DESTROYED.invoker().accept(new TeamManagerEvent(TeamManager.INSTANCE));
-		TeamManager.INSTANCE = null;
+		TeamManagerEvent.DESTROYED.invoker().accept(new TeamManagerEvent(TeamManagerImpl.INSTANCE));
+		TeamManagerImpl.INSTANCE = null;
 	}
 
 	private void worldSaved(ServerLevel level) {
-		if (TeamManager.INSTANCE != null) {
-			TeamManager.INSTANCE.saveNow();
+		if (TeamManagerImpl.INSTANCE != null) {
+			TeamManagerImpl.INSTANCE.saveNow();
 		}
 	}
 
 	private void teamConfig(TeamCollectPropertiesEvent event) {
-		event.add(TeamBase.DISPLAY_NAME);
-		event.add(TeamBase.DESCRIPTION);
-		event.add(TeamBase.COLOR);
-		event.add(TeamBase.FREE_TO_JOIN);
-		event.add(TeamBase.MAX_MSG_HISTORY_SIZE);
+		event.add(TeamProperties.DISPLAY_NAME);
+		event.add(TeamProperties.DESCRIPTION);
+		event.add(TeamProperties.COLOR);
+		event.add(TeamProperties.FREE_TO_JOIN);
+		event.add(TeamProperties.MAX_MSG_HISTORY_SIZE);
 	}
 
 	private void playerLoggedIn(ServerPlayer player) {
-		if (TeamManager.INSTANCE != null) {
-			TeamManager.INSTANCE.playerLoggedIn(player, player.getUUID(), player.getScoreboardName());
+		if (TeamManagerImpl.INSTANCE != null) {
+			TeamManagerImpl.INSTANCE.playerLoggedIn(player, player.getUUID(), player.getScoreboardName());
 		}
 	}
 
 	private void playerLoggedOut(ServerPlayer player) {
-		if (TeamManager.INSTANCE != null) {
-			TeamManager.INSTANCE.playerLoggedOut(player);
+		if (TeamManagerImpl.INSTANCE != null) {
+			TeamManagerImpl.INSTANCE.playerLoggedOut(player);
 		}
 	}
 

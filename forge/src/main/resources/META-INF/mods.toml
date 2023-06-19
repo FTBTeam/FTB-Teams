@@ -22,7 +22,7 @@ side = "BOTH"
 [[dependencies.ftbteams]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[${mcversion},)"
+versionRange = "[1.20,)"
 ordering = "NONE"
 side = "BOTH"
 
@@ -36,6 +36,6 @@ side = "BOTH"
 [[dependencies.ftbteams]]
 modId = "ftblibrary"
 mandatory = true
-versionRange = "[${libraryversion},)"
+versionRange = "[${ftblibraryversion},)"
 ordering = "AFTER"
 side = "BOTH"

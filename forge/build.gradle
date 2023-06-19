@@ -39,7 +39,7 @@ processResources {
 				"forgeversion": project.forge_version,
 				"forgeshortversion": project.forge_version.split("\\.")[0],
 				"mcversion": project.minecraft_version,
-				"libraryversion": project.ftb_library_version.replaceAll("-SNAPSHOT", "")
+				"ftblibraryversion": project.ftb_library_version
 	}
 }
 

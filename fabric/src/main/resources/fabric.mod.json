@@ -19,7 +19,7 @@
 	},
 	"depends": {
 		"fabric": ">=${fabricapiversion}",
-		"minecraft": "~${mcversion}",
+		"minecraft": "~1.20",
 		"architectury": ">=${archversion}",
 		"ftblibrary": ">=${ftblibraryversion}"
 	}

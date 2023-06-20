@@ -88,6 +88,10 @@ public class PartyTeam extends Team {
 	}
 
 	public int invite(ServerPlayer from, Collection<GameProfile> players) throws CommandSyntaxException {
+		if (!FTBTUtils.canPlayerUseCommand(from, "ftbteams.party.invite")) {
+			throw TeamArgument.NO_PERMISSION.create();
+		}
+
 		for (GameProfile player : players) {
 			if (FTBTeamsAPI.getManager().getPlayerTeam(player.getId()) instanceof PartyTeam) {
 				throw TeamArgument.PLAYER_IN_PARTY.create(player.getName());
@@ -290,6 +294,10 @@ public class PartyTeam extends Team {
 	}
 
 	public int addAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
+		if (source.getPlayer() != null && !FTBTUtils.canPlayerUseCommand(source.getPlayer(), "ftbteams.party.allies.add")) {
+			throw TeamArgument.NO_PERMISSION.create();
+		}
+
 		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
 
 		List<GameProfile> addedPlayers = new ArrayList<>();

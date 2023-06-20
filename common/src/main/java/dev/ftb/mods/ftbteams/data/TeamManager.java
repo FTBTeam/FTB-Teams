@@ -12,8 +12,8 @@ import dev.ftb.mods.ftbteams.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import dev.ftb.mods.ftbteams.event.TeamManagerEvent;
-import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
+import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -393,6 +393,10 @@ public class TeamManager {
 	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
 		if (FTBTeamsAPI.partyCreationOverride != null) {
 			throw TeamArgument.API_OVERRIDE.create();
+		}
+
+		if (!FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.create")) {
+			throw TeamArgument.NO_PERMISSION.create();
 		}
 
 		UUID id = player.getUUID();

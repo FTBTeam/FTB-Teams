@@ -378,6 +378,10 @@ public class TeamManagerImpl implements TeamManager {
 			throw TeamArgument.API_OVERRIDE.create();
 		}
 
+		if (!FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.create")) {
+			throw TeamArgument.NO_PERMISSION.create();
+		}
+
 		UUID id = player.getUUID();
 		Team oldTeam = getTeamForPlayer(player).orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(player.getUUID()));
 

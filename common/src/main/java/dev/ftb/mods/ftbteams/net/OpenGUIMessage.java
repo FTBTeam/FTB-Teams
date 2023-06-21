@@ -28,7 +28,7 @@ public class OpenGUIMessage extends BaseC2SMessage {
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
-		OpenMyTeamGUIMessage res = new OpenMyTeamGUIMessage();
+		OpenMyTeamGUIMessage res = new OpenMyTeamGUIMessage(player);
 		res.properties = team.properties.copy();
 		res.sendTo(player);
 	}

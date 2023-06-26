@@ -110,7 +110,7 @@ public class PartyTeam extends AbstractTeam {
 						Component acceptButton = makeInviteButton("ftbteams.accept", ChatFormatting.GREEN,
 								"/ftbteams party join " + getShortName());
 						Component declineButton = makeInviteButton("ftbteams.decline", ChatFormatting.RED,
-								"/ftbteams party decline_invite " + getShortName());
+								"/ftbteams party decline " + getShortName());
 						invitee.displayClientMessage(Component.literal("[")
 								.append(acceptButton).append("] [")
 								.append(declineButton).append("]"),

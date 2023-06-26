@@ -25,6 +25,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -84,13 +85,16 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 
 		@Override
 		public Team getTeam(CommandSourceStack source) throws CommandSyntaxException {
-			return FTBTeamsAPI.api().getManager().getTeamByName(id)
-					.orElse(source.getServer().getProfileCache().get(id)
+			Optional<Team> t = FTBTeamsAPI.api().getManager().getTeamByName(id);
+			if (t.isPresent()) {
+				return t.get();
+			}
+
+			return source.getServer().getProfileCache().get(id)
 							.map(GameProfile::getId)
 							.map(FTBTeamsAPI.api().getManager()::getTeamForPlayerID)
 							.orElseThrow()
-							.orElseThrow(this::error)
-					);
+							.orElseThrow(this::error);
 		}
 	}
 

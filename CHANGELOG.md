@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * `command.ftbteams.party.invite`
   * `command.ftbteams.allies.add`
   * This may be useful for specific servers, who wish to prevent parties being formed for gameplay reasons
+* Added `/ftbteams transfer_ownership_for` command, which can be used on the console
+  * Allows server ops to transfer ownership for any team
+  * Both `ftbteams transfer_ownership_for` and `/ftbteams transfer_ownership` can now transfer ownership to an offline player
+  * Minor API breakage: `PlayerTransferredTeamOwnershipEvent#getFrom() and #getTo()` can now return null, if the player is offline
 
 ## [1902.2.13]
 

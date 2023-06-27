@@ -59,7 +59,7 @@ public class FTBTeamsClient extends FTBTeamsCommon {
 
 	@Override
 	public void openMyTeamGui(OpenMyTeamGUIMessage res) {
-		new MyTeamScreen(res.properties).openGui();
+		new MyTeamScreen(res.properties, res.permissions).openGui();
 	}
 
 	@Override

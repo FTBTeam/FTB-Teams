@@ -24,6 +24,7 @@ import java.util.*;
 
 public class MyTeamScreen extends BaseScreen implements NordColors {
 	private final TeamProperties properties;
+	private final PlayerPermissions permissions;
 	private final UUID teamID;
 	public Button settingsButton;
 	public Button infoButton;
@@ -40,8 +41,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	private static final int MIN_MEMBER_PANEL_WIDTH = 80;
 
-	public MyTeamScreen(TeamProperties props) {
-		properties = props;
+	public MyTeamScreen(TeamProperties properties, PlayerPermissions permissions) {
+		this.properties = properties;
+		this.permissions = permissions;
 		teamID = getManager().selfTeam.getId();
 	}
 
@@ -169,14 +171,14 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		return super.keyPressed(key);
 	}
 
-	private static class InviteButton extends SimpleButton {
+	private class InviteButton extends SimpleButton {
 		public InviteButton(Panel panel) {
 			super(panel, Component.translatable("ftbteams.gui.invite"), Icons.ADD, (w, mb) -> new InviteScreen().openGui());
 		}
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY || !permissions.canInvitePlayer()) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
@@ -190,14 +192,14 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	}
 
 
-	private static class AllyButton extends SimpleButton {
+	private class AllyButton extends SimpleButton {
 		public AllyButton(Panel panel) {
 			super(panel, Component.translatable("ftbteams.gui.manage_allies"), Icons.FRIENDS, (w, mb) -> new AllyScreen().openGui());
 		}
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY) {
+			if (ClientTeamManager.INSTANCE.selfTeam.getType() != TeamType.PARTY || !permissions.canAddAlly()) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManager.INSTANCE.selfKnownPlayer;
@@ -295,7 +297,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					).forEach(this::add);
 
 			if (manager.selfTeam.getType() == TeamType.PLAYER) {
-				add(new CreatePartyButton(this));
+				add(new CreatePartyButton(this, permissions.canCreateParty()));
 			}
 		}
 

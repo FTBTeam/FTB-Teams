@@ -98,7 +98,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
                     if (senderRank.is(TeamRank.OWNER)) {
                         ServerPlayer p = partyTeam.manager.server.getPlayerList().getPlayer(targetId);
                         if (p != null) {
-                            partyTeam.transferOwnership(sourcePlayer, p);
+                            partyTeam.transferOwnership(sourcePlayer.createCommandSourceStack(), p.getGameProfile());
                         }
                     }
                 }

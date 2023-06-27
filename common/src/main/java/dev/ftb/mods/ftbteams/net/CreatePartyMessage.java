@@ -61,8 +61,8 @@ public class CreatePartyMessage extends BaseC2SMessage {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		Team team = FTBTeamsAPI.getPlayerTeam(player);
 
-		if (team instanceof PlayerTeam) {
-			((PlayerTeam) team).createParty(player, name, description, color, invited);
+		if (team instanceof PlayerTeam pt) {
+			pt.createParty(player, name, description, color, invited);
 		}
 	}
 }

@@ -12,6 +12,7 @@ import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.client.gui.MyTeamScreen;
 import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
+import dev.ftb.mods.ftbteams.data.PlayerPermissions;
 import dev.ftb.mods.ftbteams.net.OpenGUIMessage;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -52,8 +53,8 @@ public class FTBTeamsClient {
 		return EventResult.pass();
 	}
 
-	public static void openMyTeamGui(TeamPropertyCollection properties) {
-		new MyTeamScreen(properties).openGui();
+	public static void openMyTeamGui(TeamPropertyCollection properties, PlayerPermissions permissions) {
+		new MyTeamScreen(properties, permissions).openGui();
 	}
 
 	public static void updateSettings(UUID id, TeamPropertyCollection properties) {

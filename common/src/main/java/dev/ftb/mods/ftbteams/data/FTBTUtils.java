@@ -1,14 +1,18 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.util.UUIDTypeAdapter;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
 import net.minecraft.Util;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 public class FTBTUtils {
@@ -56,5 +60,11 @@ public class FTBTUtils {
 
 	public static Color4I randomColor() {
 		return Color4I.hsb(MathUtils.RAND.nextFloat(), 0.65F, 1F);
+	}
+
+	public static boolean canPlayerUseCommand(ServerPlayer player, String command) {
+		List<String> parts = Arrays.asList(command.split("\\."));
+		CommandNode<CommandSourceStack> node = player.getServer().getCommands().getDispatcher().findNode(parts);
+		return node != null && node.canUse(player.createCommandSourceStack());
 	}
 }

@@ -16,10 +16,7 @@ import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
-import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
-import dev.ftb.mods.ftbteams.data.FTBTUtils;
-import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
-import dev.ftb.mods.ftbteams.data.TeamType;
+import dev.ftb.mods.ftbteams.data.*;
 import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
 import net.minecraft.ChatFormatting;
@@ -34,6 +31,7 @@ import java.util.*;
 
 public class MyTeamScreen extends BaseScreen implements NordColors {
 	private final TeamPropertyCollection properties;
+	private final PlayerPermissions permissions;
 	private final UUID teamID;
 	private Button settingsButton;
 	private Button infoButton;
@@ -50,8 +48,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	private static final int MIN_MEMBER_PANEL_WIDTH = 80;
 
-	public MyTeamScreen(TeamPropertyCollection props) {
-		properties = props;
+	public MyTeamScreen(TeamPropertyCollection properties, PlayerPermissions permissions) {
+		this.properties = properties;
+		this.permissions = permissions;
 		teamID = getManager().selfTeam().getId();
 	}
 
@@ -183,14 +182,14 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		chatPanel.refreshWidgets();
 	}
 
-	private static class InviteButton extends SimpleButton {
+	private class InviteButton extends SimpleButton {
 		public InviteButton(Panel panel) {
 			super(panel, Component.translatable("ftbteams.gui.invite"), Icons.ADD, (w, mb) -> new InviteScreen().openGui());
 		}
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY) {
+			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.canInvitePlayer()) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
@@ -203,15 +202,14 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 	}
 
-
-	private static class AllyButton extends SimpleButton {
+	private class AllyButton extends SimpleButton {
 		public AllyButton(Panel panel) {
 			super(panel, Component.translatable("ftbteams.gui.manage_allies"), Icons.FRIENDS, (w, mb) -> new AllyScreen().openGui());
 		}
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY) {
+			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.canAddAlly()) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
@@ -311,7 +309,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 
 			if (manager.selfTeam().isPlayerTeam()) {
-				add(new CreatePartyButton(this));
+				add(new CreatePartyButton(this, permissions.canCreateParty()));
 			}
 		}
 

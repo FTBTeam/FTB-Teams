@@ -87,7 +87,11 @@ public class PartyTeam extends AbstractTeam {
 		return Command.SINGLE_SUCCESS;
 	}
 
-	public int invite(ServerPlayer inviter, Collection<GameProfile> profiles) {
+	public int invite(ServerPlayer inviter, Collection<GameProfile> profiles) throws CommandSyntaxException {
+		if (!FTBTUtils.canPlayerUseCommand(inviter, "ftbteams.party.invite")) {
+			throw TeamArgument.NO_PERMISSION.create();
+		}
+
 		for (GameProfile profile : profiles) {
 			FTBTeamsAPI.api().getManager().getTeamForPlayerID(profile.getId()).ifPresent(team -> {
 				if (!(team instanceof PartyTeam)) {
@@ -106,7 +110,7 @@ public class PartyTeam extends AbstractTeam {
 						Component acceptButton = makeInviteButton("ftbteams.accept", ChatFormatting.GREEN,
 								"/ftbteams party join " + getShortName());
 						Component declineButton = makeInviteButton("ftbteams.decline", ChatFormatting.RED,
-								"/ftbteams party decline_invite " + getShortName());
+								"/ftbteams party decline " + getShortName());
 						invitee.displayClientMessage(Component.literal("[")
 								.append(acceptButton).append("] [")
 								.append(declineButton).append("]"),
@@ -287,6 +291,10 @@ public class PartyTeam extends AbstractTeam {
 	}
 
 	public int addAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
+		if (source.getPlayer() != null && !FTBTUtils.canPlayerUseCommand(source.getPlayer(), "ftbteams.party.allies.add")) {
+			throw TeamArgument.NO_PERMISSION.create();
+		}
+
 		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
 
 		List<GameProfile> addedPlayers = new ArrayList<>();

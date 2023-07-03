@@ -274,10 +274,10 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		markDirty();
 	}
 
-	public void updatePropertiesFrom(TeamPropertyCollection properties) {
-		TeamPropertyCollection old = properties.copy();
-		properties.updateFrom(properties);
-		TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
+	public void updatePropertiesFrom(TeamPropertyCollection newProperties) {
+		TeamPropertyCollection oldProperties = properties.copy();
+		properties.updateFrom(newProperties);
+		TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, oldProperties));
 		markDirty();
 	}
 

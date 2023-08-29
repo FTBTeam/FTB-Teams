@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2001.1.5]
+
+### Changed
+* Technical addition: property defaults are now initialised lazily, via supplier
+  * No player-visible change to this right now, but it makes it easier for mods to define config-based defaults, e.g. FTB Chunks team properties
+  * Technically there is an API break, but only if you were trying to construct property objects yourself using the from-network constructor (and there was no good reason to do that!)
+
+### Added
+* Added fr_fr translation (thanks @HollishKid and @K0LALA)
+
 ## [2001.1.4]
 
 ### Fixed

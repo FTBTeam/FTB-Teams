@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 * Added fr_fr translation (thanks @HollishKid and @K0LALA)
 
+### Fixed
+* Fixed the `/ftbteams party info` command always showing your own party info, regardless of team that was passed to the command
+
 ## [2001.1.4]
 
 ### Fixed

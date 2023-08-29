@@ -14,7 +14,7 @@ public final class TeamPropertyValue<T> {
 	}
 
 	public TeamPropertyValue(TeamProperty<T> k) {
-		this(k, k.defaultValue);
+		this(k, k.getDefaultValue());
 	}
 
 	public TeamProperty<T> getProperty() {

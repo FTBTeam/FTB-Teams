@@ -9,45 +9,33 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
+import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class EnumProperty extends TeamProperty<String> {
 	private final List<String> values;
 	private final Map<String, Component> names;
 
-	public EnumProperty(ResourceLocation id, String def, List<String> v, Map<String, Component> n) {
+	public EnumProperty(ResourceLocation id, Supplier<String> def, List<String> values, Map<String,Component> names) {
 		super(id, def);
-		values = v;
-		names = n;
+		this.values = values;
+		this.names = names;
 	}
 
 	public <T> EnumProperty(ResourceLocation id, NameMap<T> nameMap) {
-		super(id, nameMap.getName(nameMap.defaultValue));
-		values = nameMap.keys;
-		names = new HashMap<>();
-
-		for (T val : nameMap) {
-			names.put(nameMap.getName(val), nameMap.getDisplayName(val));
-		}
+		this(id, () -> nameMap.getName(nameMap.defaultValue), nameMap.keys, buildMap(nameMap));
 	}
 
-	public EnumProperty(ResourceLocation id, FriendlyByteBuf buf) {
-		super(id, buf.readUtf(Short.MAX_VALUE));
-		int sv = buf.readVarInt();
-		values = new ArrayList<>(sv);
+	private static <T> Map<String,Component> buildMap(NameMap<T> nameMap) {
+		Map<String,Component> res = new HashMap<>();
+		nameMap.forEach(val -> res.put(nameMap.getName(val), nameMap.getDisplayName(val)));
+		return res;
+	}
 
-		for (int i = 0; i < sv; i++) {
-			values.add(buf.readUtf(Short.MAX_VALUE));
-		}
-
-		int sn = buf.readVarInt();
-		names = new HashMap<>(sn);
-
-		for (int i = 0; i < sn; i++) {
-			names.put(buf.readUtf(Short.MAX_VALUE), buf.readComponent());
-		}
+	static EnumProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+		String def = buf.readUtf(Short.MAX_VALUE);
+		List<String> values = buf.readList(b -> b.readUtf(Short.MAX_VALUE));
+		Map<String,Component> names = buf.readMap(b -> b.readUtf(Short.MAX_VALUE), FriendlyByteBuf::readComponent);
+		return new EnumProperty(id, () -> def, values, names);
 	}
 
 	@Override
@@ -62,24 +50,14 @@ public class EnumProperty extends TeamProperty<String> {
 
 	@Override
 	public void write(FriendlyByteBuf buf) {
-		buf.writeUtf(defaultValue, Short.MAX_VALUE);
-		buf.writeVarInt(values.size());
-
-		for (String s : values) {
-			buf.writeUtf(s, Short.MAX_VALUE);
-		}
-
-		buf.writeVarInt(names.size());
-
-		for (Map.Entry<String, Component> s : names.entrySet()) {
-			buf.writeUtf(s.getKey(), Short.MAX_VALUE);
-			buf.writeComponent(s.getValue());
-		}
+		buf.writeUtf(getDefaultValue(), Short.MAX_VALUE);
+		buf.writeCollection(values, FriendlyByteBuf::writeUtf);
+		buf.writeMap(names, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeComponent);
 	}
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<String> value) {
-		config.addEnum(id.getPath(), value.value, value.consumer, NameMap.of(defaultValue, values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
+		config.addEnum(id.getPath(), value.value, value.consumer, NameMap.of(getDefaultValue(), values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
 	}
 
 	@Override

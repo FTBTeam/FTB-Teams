@@ -12,14 +12,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public class StringListProperty extends TeamProperty<List<String>> {
-    public StringListProperty(ResourceLocation id, List<String> def) {
+    public StringListProperty(ResourceLocation id, Supplier<List<String>> def) {
         super(id, def);
     }
 
-    public StringListProperty(ResourceLocation id, FriendlyByteBuf buf) {
-        this(id, buf.readList(b -> b.readUtf(Short.MAX_VALUE)));
+    public StringListProperty(ResourceLocation id, List<String> def) {
+        this(id, () -> def);
+    }
+
+    static StringListProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        return new StringListProperty(id, buf.readList(b -> b.readUtf(Short.MAX_VALUE)));
     }
 
     @Override
@@ -37,7 +42,7 @@ public class StringListProperty extends TeamProperty<List<String>> {
 
     @Override
     public void write(FriendlyByteBuf buf) {
-        buf.writeCollection(defaultValue, FriendlyByteBuf::writeUtf);
+        buf.writeCollection(getDefaultValue(), FriendlyByteBuf::writeUtf);
     }
 
     @Override

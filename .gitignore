@@ -22,3 +22,6 @@ build
 eclipse
 run
 /classes
+
+.DS_Store
+.architectury-transformer

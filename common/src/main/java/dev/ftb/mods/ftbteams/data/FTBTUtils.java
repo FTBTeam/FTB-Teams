@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.util.UUIDTypeAdapter;
+import com.mojang.util.UndashedUuid;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
 import net.minecraft.Util;
@@ -40,7 +41,7 @@ public class FTBTUtils {
 			return "";
 		}
 
-		return UUIDTypeAdapter.fromUUID(profile.getId()) + ":" + profile.getName();
+		return UndashedUuid.toString(profile.getId()) + ":" + profile.getName();
 	}
 
 	public static GameProfile deserializeProfile(String string) {
@@ -50,7 +51,7 @@ public class FTBTUtils {
 
 		try {
 			String[] s = string.split(":", 2);
-			UUID uuid = UUIDTypeAdapter.fromString(s[0]);
+			UUID uuid = UndashedUuid.fromString(s[0]);
 			String name = s[1];
 			return normalize(new GameProfile(uuid, name));
 		} catch (Exception ex) {

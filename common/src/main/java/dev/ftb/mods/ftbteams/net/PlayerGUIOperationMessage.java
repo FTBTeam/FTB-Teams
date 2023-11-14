@@ -76,7 +76,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
         FTBTeams.LOGGER.debug("received teams operation msg {} from {} (rank {}), team {}, target {} (rank {})", op, sourcePlayer.getUUID(), senderRank, partyTeam.getName().getString(), targetId, targetRank);
 
         try {
-            final List<GameProfile> targetProfile = List.of(new GameProfile(targetId, null));
+            final List<GameProfile> targetProfile = List.of(new GameProfile(targetId, ""));
             switch (op) {
                 case KICK -> {
                     if (senderRank.getPower() > targetRank.getPower()) {

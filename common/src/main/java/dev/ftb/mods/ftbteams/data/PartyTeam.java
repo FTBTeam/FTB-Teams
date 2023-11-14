@@ -374,7 +374,7 @@ public class PartyTeam extends AbstractTeam {
 		// kick all non-owner members
 		Set<UUID> members = new HashSet<>(getMembers());
 		members.remove(owner);
-		kick(from, members.stream().map(id -> new GameProfile(id, null)).toList());
+		kick(from, members.stream().map(id -> new GameProfile(id, "")).toList());
 
 		// now make the owner leave too
 		leave(owner);

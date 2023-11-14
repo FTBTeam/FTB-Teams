@@ -105,7 +105,7 @@ public class MemberButton extends NordButton {
 
 		if (!items0.isEmpty()) {
 			List<ContextMenuItem> items = new ArrayList<>(List.of(
-					new ContextMenuItem(playerRank.getDisplayName(), FaceIcon.getFace(new GameProfile(player.id(), null)), () -> {}).setCloseMenu(false),
+					new ContextMenuItem(playerRank.getDisplayName(), FaceIcon.getFace(new GameProfile(player.id(), "")), () -> {}).setCloseMenu(false),
 					ContextMenuItem.SEPARATOR
 			));
 			items.addAll(items0);

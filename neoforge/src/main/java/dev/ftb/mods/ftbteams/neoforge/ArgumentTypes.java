@@ -1,4 +1,4 @@
-package dev.ftb.mods.ftbteams.forge;
+package dev.ftb.mods.ftbteams.neoforge;
 
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;

@@ -367,6 +367,12 @@ public class TeamManagerImpl implements TeamManager {
 		}
 	}
 
+	@Override
+	public Team createPartyTeam(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
+		var res = createParty(player, name, description, color);
+		return res.getRight();
+	}
+
 	// Command Handlers //
 
 	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name) throws CommandSyntaxException {

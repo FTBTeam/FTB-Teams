@@ -4,12 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2001.1.5]
+## [2001.2.0]
 
 ### Changed
 * Technical addition: property defaults are now initialised lazily, via supplier
   * No player-visible change to this right now, but it makes it easier for mods to define config-based defaults, e.g. FTB Chunks team properties
   * Technically there is an API break, but only if you were trying to construct property objects yourself using the from-network constructor (and there was no good reason to do that!)
+* Deprecated the `CustomPartyCreationHandler` object and related API methods
+  * Replaced with simpler `FTBTeamsAPI#setPartyCreationFromAPIOnly(boolean)` method
+  * Intended for use in custom modpacks where players shouldn't create teams directly themselves (either via CLI or GUI)
+* Updated party team creation API to work without requiring the party-owning player to be online
 
 ### Added
 * Added fr_fr translation (thanks @HollishKid and @K0LALA)

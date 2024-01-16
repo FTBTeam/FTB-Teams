@@ -1,11 +1,13 @@
 package dev.ftb.mods.ftbteams.api;
 
+import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -216,4 +218,14 @@ public interface Team {
      * @return true if the team object is still valid, false otherwise
      */
     boolean isValid();
+
+    /**
+     * Create a party team from this team, which must be an individual player's team. The player must not be in an
+     * existing team.
+     *
+     * @param description the long description text (an empty string is acceptable)
+     * @param color the color for the new team; if null, then a random color is chosen
+     * @return the newly-created party team
+     */
+    Team createParty(String description, @Nullable Color4I color);
 }

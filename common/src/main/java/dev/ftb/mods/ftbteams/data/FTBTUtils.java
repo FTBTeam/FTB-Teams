@@ -10,6 +10,7 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.GameProfileCache;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -67,5 +68,20 @@ public class FTBTUtils {
 		List<String> parts = Arrays.asList(command.split("\\."));
 		CommandNode<CommandSourceStack> node = player.getServer().getCommands().getDispatcher().findNode(parts);
 		return node != null && node.canUse(player.createCommandSourceStack());
+	}
+
+	public static String getDefaultPartyName(MinecraftServer server, UUID playerId, @Nullable ServerPlayer player) {
+		String playerName;
+		if (player != null) {
+			playerName = player.getGameProfile().getName();
+		} else {
+			GameProfileCache profileCache = server.getProfileCache();
+			if (profileCache == null) {
+				playerName = playerId.toString();
+			} else {
+				playerName = profileCache.get(playerId).orElse(new GameProfile(playerId, playerId.toString())).getName();
+			}
+		}
+		return playerName + "'s Party";
 	}
 }

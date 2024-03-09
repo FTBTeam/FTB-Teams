@@ -65,28 +65,28 @@ public class MemberButton extends NordButton {
 			if (selfRank.isAtLeast(TeamRank.OWNER)) {
 				if (selfTeam.getMembers().size() == 1) {
 					items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.disband"), Icons.CLOSE,
-							() -> Operation.LEAVE.sendMessage(player))
+							(b) -> Operation.LEAVE.sendMessage(player))
 							.setYesNoText(Component.translatable("ftbteams.gui.disband.confirm")));
 				}
 			} else {
 				items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.leave"), Icons.CLOSE,
-						() -> Operation.LEAVE.sendMessage(player))
+						(b) -> Operation.LEAVE.sendMessage(player))
 						.setYesNoText(Component.translatable("ftbteams.gui.leave.confirm")));
 			}
 		} else {
 			if (selfRank.isAtLeast(TeamRank.OWNER)) {
 				if (playerRank == TeamRank.MEMBER) {
 					items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.promote", player.name()), Icons.SHIELD,
-							() -> Operation.PROMOTE.sendMessage(player))
+							(b) -> Operation.PROMOTE.sendMessage(player))
 							.setYesNoText(Component.translatable("ftbteams.gui.promote.confirm", player.name())));
 				} else if (playerRank == TeamRank.OFFICER) {
 					items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.demote", player.name()), Icons.ACCEPT_GRAY,
-							() -> Operation.DEMOTE.sendMessage(player))
+							(b) -> Operation.DEMOTE.sendMessage(player))
 							.setYesNoText(Component.translatable("ftbteams.gui.demote.confirm", player.name())));
 				}
 				if (playerRank.isMemberOrBetter()) {
 					items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.transfer_ownership", player.name()), Icons.DIAMOND,
-							() -> Operation.TRANSFER_OWNER.sendMessage(player))
+							(b) -> Operation.TRANSFER_OWNER.sendMessage(player))
 							.setYesNoText(Component.translatable("ftbteams.gui.transfer_ownership.confirm", player.name())));
 				}
 			}
@@ -94,18 +94,18 @@ public class MemberButton extends NordButton {
 		if (selfRank.getPower() > playerRank.getPower()) {
 			if (playerRank.isMemberOrBetter()) {
 				items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.kick", player.name()), Icons.CLOSE,
-						() -> Operation.KICK.sendMessage(player))
+						(b) -> Operation.KICK.sendMessage(player))
 						.setYesNoText(Component.translatable("ftbteams.gui.kick.confirm", player.name())));
 			} else if (selfRank.isOfficerOrBetter() && playerRank.isAllyOrBetter()) {
 				items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.remove_ally", player.name()), Icons.CANCEL,
-						() -> Operation.REMOVE_ALLY.sendMessage(player))
+						(b) -> Operation.REMOVE_ALLY.sendMessage(player))
 						.setYesNoText(Component.translatable("ftbteams.gui.remove_ally.confirm", player.name())));
 				}
 		}
 
 		if (!items0.isEmpty()) {
 			List<ContextMenuItem> items = new ArrayList<>(List.of(
-					new ContextMenuItem(playerRank.getDisplayName(), FaceIcon.getFace(new GameProfile(player.id(), "")), () -> {}).setCloseMenu(false),
+					new ContextMenuItem(playerRank.getDisplayName(), FaceIcon.getFace(new GameProfile(player.id(), "")), (b) -> {}).setCloseMenu(false),
 					ContextMenuItem.SEPARATOR
 			));
 			items.addAll(items0);

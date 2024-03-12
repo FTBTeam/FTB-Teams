@@ -8,6 +8,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.architectury.platform.Platform;
+import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
@@ -28,9 +29,6 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.function.Predicate;
 
-/**
- * @author LatvianModder
- */
 public class FTBTeamsCommands {
 	private Predicate<CommandSourceStack> requiresOPorSP() {
 		return source -> source.getServer().isSingleplayer() || source.hasPermission(2);
@@ -115,15 +113,22 @@ public class FTBTeamsCommands {
 		return team;
 	}
 
+	private int tryCreateParty(CommandSourceStack source, String partyName) throws CommandSyntaxException {
+		if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
+			throw TeamArgument.API_OVERRIDE.create();
+		}
+		return TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName).getLeft();
+	}
+
 	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal("ftbteams")
 				.then(Commands.literal("party")
 						.then(Commands.literal("create")
 								.requires(this::hasNoParty)
 								.then(Commands.argument("name", StringArgumentType.greedyString())
-										.executes(ctx -> TeamManagerImpl.INSTANCE.createParty(ctx.getSource().getPlayerOrException(), string(ctx, "name")).getLeft())
+										.executes(ctx -> tryCreateParty(ctx.getSource(), StringArgumentType.getString(ctx, "name")))
 								)
-								.executes(ctx -> TeamManagerImpl.INSTANCE.createParty(ctx.getSource().getPlayerOrException(), "").getLeft())
+								.executes(ctx -> tryCreateParty(ctx.getSource(), ""))
 						)
 						.then(Commands.literal("join")
 								.requires(this::hasNoParty)
@@ -244,7 +249,8 @@ public class FTBTeamsCommands {
 						)
 						.then(teamArg()
 								.executes(ctx -> info(ctx.getSource(), teamArg(ctx)))
-								.executes(ctx -> info(ctx.getSource(), getTeam(ctx))))
+						)
+						.executes(ctx -> info(ctx.getSource(), getTeam(ctx)))
 				)
 				.then(Commands.literal("list")
 						.executes(ctx -> list(ctx.getSource(), null))

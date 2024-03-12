@@ -7,15 +7,18 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
- * @author LatvianModder
+ * Represents an individual property; the combination of a unique ID, and the default value for the property.
+ *
+ * @param <T> the type of value that the property holds
  */
 public abstract class TeamProperty<T> {
 	protected final ResourceLocation id;
-	protected final T defaultValue;
+	private final Supplier<T> defaultValue;
 
-	public TeamProperty(ResourceLocation _id, T def) {
+	protected TeamProperty(ResourceLocation _id, Supplier<T> def) {
 		id = _id;
 		defaultValue = def;
 	}
@@ -25,7 +28,7 @@ public abstract class TeamProperty<T> {
 	}
 
 	public T getDefaultValue() {
-		return defaultValue;
+		return defaultValue.get();
 	}
 
 	public String getTranslationKey(String prefix) {
@@ -65,7 +68,7 @@ public abstract class TeamProperty<T> {
 	}
 
 	public T readValue(FriendlyByteBuf buf) {
-		return fromString(buf.readUtf(Short.MAX_VALUE)).orElse(defaultValue);
+		return fromString(buf.readUtf(Short.MAX_VALUE)).orElse(getDefaultValue());
 	}
 
 	public void config(ConfigGroup config, TeamPropertyValue<T> value) {
@@ -80,7 +83,7 @@ public abstract class TeamProperty<T> {
 	}
 
 	public TeamPropertyValue<T> createDefaultValue() {
-		return new TeamPropertyValue<>(this, this.defaultValue);
+		return new TeamPropertyValue<>(this, getDefaultValue());
 	}
 
 	public TeamPropertyValue<T> createValueFromNetwork(FriendlyByteBuf buf) {
@@ -88,6 +91,6 @@ public abstract class TeamProperty<T> {
 	}
 
 	public TeamPropertyValue<T> createValueFromNBT(Tag tag) {
-		return new TeamPropertyValue<>(this, fromNBT(tag).orElse(defaultValue));
+		return new TeamPropertyValue<>(this, fromNBT(tag).orElse(getDefaultValue()));
 	}
 }

@@ -8,20 +8,23 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class BooleanProperty extends TeamProperty<Boolean> {
 	private static final Optional<Boolean> TRUE = Optional.of(Boolean.TRUE);
 	private static final Optional<Boolean> FALSE = Optional.of(Boolean.FALSE);
 
-	public BooleanProperty(ResourceLocation id, Boolean def) {
+	public BooleanProperty(ResourceLocation id, Supplier<Boolean> def) {
 		super(id, def);
 	}
 
-	public BooleanProperty(ResourceLocation id, FriendlyByteBuf buf) {
-		super(id, buf.readBoolean());
+	public BooleanProperty(ResourceLocation id, Boolean def) {
+		this(id, () -> def);
+	}
+
+	static BooleanProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+		boolean val = buf.readBoolean();
+		return new BooleanProperty(id, () -> val);
 	}
 
 	@Override
@@ -42,12 +45,12 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 
 	@Override
 	public void write(FriendlyByteBuf buf) {
-		buf.writeBoolean(defaultValue);
+		buf.writeBoolean(getDefaultValue());
 	}
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<Boolean> value) {
-		config.addBool(id.getPath(), value.value, value.consumer, defaultValue);
+		config.addBool(id.getPath(), value.value, value.consumer, getDefaultValue());
 	}
 
 	@Override

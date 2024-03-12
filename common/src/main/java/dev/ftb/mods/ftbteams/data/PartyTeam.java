@@ -266,7 +266,8 @@ public class PartyTeam extends AbstractTeam {
 		PlayerTeam playerTeam = manager.getPersonalTeamForPlayerID(id);
 		playerTeam.setEffectiveTeam(playerTeam);
 		playerTeam.ranks.put(id, TeamRank.OWNER);
-		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.left_party", player.getName().copy().withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
+		String playerName = player == null ? id.toString() : player.getGameProfile().getName();
+		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.left_party", Component.literal(playerName).withStyle(ChatFormatting.YELLOW)).withStyle(ChatFormatting.GOLD));
 		playerTeam.markDirty();
 
 		// remove the player from this party team

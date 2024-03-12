@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
+import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
@@ -100,12 +101,18 @@ public class PlayerTeam extends AbstractTeam {
 		new UpdatePresenceMessage(createClientPlayer()).sendToAll(manager.getServer());
 	}
 
-	public void createParty(ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {
+	public Team createParty(UUID playerId, @Nullable ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {
 		try {
-			PartyTeam team = manager.createParty(player, name, description, Color4I.rgb(color)).getRight();
-			team.invite(player, invited);
+			PartyTeam team = manager.createParty(playerId, player, name, description, Color4I.rgb(color)).getRight();
+			if (player != null) {
+				team.invite(player, invited);
+			}
+			return team;
 		} catch (CommandSyntaxException ex) {
-			player.displayClientMessage(Component.literal(ex.getMessage()).withStyle(ChatFormatting.RED), false);
+			if (player != null) {
+				player.displayClientMessage(Component.literal(ex.getMessage()).withStyle(ChatFormatting.RED), false);
+			}
+			return null;
 		}
 	}
 

@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -16,7 +17,8 @@ public class PlayerPermissions {
 
     public PlayerPermissions(ServerPlayer player) {
         this(
-                FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.create"),
+                FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.create")
+                        && !FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly(),
                 FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.invite"),
                 FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.allies.add")
         );

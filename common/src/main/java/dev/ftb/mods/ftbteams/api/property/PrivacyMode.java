@@ -3,9 +3,6 @@ package dev.ftb.mods.ftbteams.api.property;
 import dev.ftb.mods.ftblibrary.config.NameMap;
 import net.minecraft.util.StringRepresentable;
 
-/**
- * @author LatvianModder
- */
 public enum PrivacyMode implements StringRepresentable {
 	ALLIES("allies"),
 	PRIVATE("private"),

@@ -5,17 +5,19 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class PrivacyProperty extends TeamProperty<PrivacyMode> {
-	public PrivacyProperty(ResourceLocation id, PrivacyMode def) {
+	public PrivacyProperty(ResourceLocation id, Supplier<PrivacyMode> def) {
 		super(id, def);
 	}
 
-	public PrivacyProperty(ResourceLocation id, FriendlyByteBuf buf) {
-		super(id, PrivacyMode.VALUES[buf.readVarInt()]);
+	public PrivacyProperty(ResourceLocation id, PrivacyMode def) {
+		this(id, () -> def);
+	}
+
+	static PrivacyProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+		return new PrivacyProperty(id, buf.readEnum(PrivacyMode.class));
 	}
 
 	@Override
@@ -35,7 +37,7 @@ public class PrivacyProperty extends TeamProperty<PrivacyMode> {
 
 	@Override
 	public void write(FriendlyByteBuf buf) {
-		buf.writeVarInt(defaultValue.ordinal());
+		buf.writeEnum(getDefaultValue());
 	}
 
 	@Override

@@ -9,28 +9,28 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class DoubleProperty extends TeamProperty<Double> {
 	public final double minValue;
 	public final double maxValue;
 
-	public DoubleProperty(ResourceLocation id, double def, double min, double max) {
+	public DoubleProperty(ResourceLocation id, Supplier<Double> def, double min, double max) {
 		super(id, def);
 		minValue = min;
 		maxValue = max;
 	}
 
-	public DoubleProperty(ResourceLocation id, double def) {
+	public DoubleProperty(ResourceLocation id, double def, double min, double max) {
+		this(id, () -> def, min, max);
+	}
+
+	public DoubleProperty(ResourceLocation id, Supplier<Double> def) {
 		this(id, def, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 
-	public DoubleProperty(ResourceLocation id, FriendlyByteBuf buf) {
-		super(id, buf.readDouble());
-		minValue = buf.readDouble();
-		maxValue = buf.readDouble();
+	static DoubleProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+		return new DoubleProperty(id, buf.readDouble(), buf.readDouble(), buf.readDouble());
 	}
 
 	@Override
@@ -50,14 +50,14 @@ public class DoubleProperty extends TeamProperty<Double> {
 
 	@Override
 	public void write(FriendlyByteBuf buf) {
-		buf.writeDouble(defaultValue);
+		buf.writeDouble(getDefaultValue());
 		buf.writeDouble(minValue);
 		buf.writeDouble(maxValue);
 	}
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<Double> value) {
-		config.addDouble(id.getPath(), value.value, value.consumer, defaultValue, minValue, maxValue);
+		config.addDouble(id.getPath(), value.value, value.consumer, getDefaultValue(), minValue, maxValue);
 	}
 
 	@Override

@@ -6,29 +6,36 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
-/**
- * @author LatvianModder
- */
 public class StringProperty extends TeamProperty<String> {
 	private final Pattern pattern;
 
-	public StringProperty(ResourceLocation id, String def, @Nullable Pattern p) {
+	public StringProperty(ResourceLocation id, Supplier<String> def, @Nullable Pattern pattern) {
 		super(id, def);
-		pattern = p;
+		this.pattern = pattern;
 	}
 
-	public StringProperty(ResourceLocation id, String def) {
+	public StringProperty(ResourceLocation id, Supplier<String> def) {
 		this(id, def, null);
 	}
 
-	public StringProperty(ResourceLocation id, FriendlyByteBuf buf) {
-		super(id, buf.readUtf(Short.MAX_VALUE));
-		int f = buf.readVarInt();
-		String s = buf.readUtf(Short.MAX_VALUE);
+	public StringProperty(ResourceLocation id, String def, @Nullable Pattern pattern) {
+		this(id, () -> def, pattern);
+	}
+
+	public StringProperty(ResourceLocation id, String def) {
+		this(id, () -> def);
+	}
+
+	static StringProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+		String def = buf.readUtf(Short.MAX_VALUE);
+		int flags = buf.readVarInt();
+		String patVal = buf.readUtf(Short.MAX_VALUE);
+
 		//noinspection MagicConstant
-		pattern = s.isEmpty() ? null : Pattern.compile(s, f);
+		return new StringProperty(id, def, patVal.isEmpty() ? null : Pattern.compile(patVal, flags));
 	}
 
 	@Override
@@ -47,13 +54,13 @@ public class StringProperty extends TeamProperty<String> {
 
 	@Override
 	public void write(FriendlyByteBuf buf) {
-		buf.writeUtf(defaultValue, Short.MAX_VALUE);
+		buf.writeUtf(getDefaultValue(), Short.MAX_VALUE);
 		buf.writeVarInt(pattern == null ? 0 : pattern.flags());
 		buf.writeUtf(pattern == null ? "" : pattern.pattern(), Short.MAX_VALUE);
 	}
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<String> value) {
-		config.addString(id.getPath(), value.value, value.consumer, defaultValue, pattern);
+		config.addString(id.getPath(), value.value, value.consumer, getDefaultValue(), pattern);
 	}
 }

@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import java.util.function.BiConsumer;
 
 /**
- * Represents the collection of properties that a team has. All teams will have the same properties, but of course
+ * Represents the collection of properties that a team has. All teams have the same properties, but of course
  * the values of each property will vary from team to team.
  * <p>
  * Instances of this class can be retrieved via {@link dev.ftb.mods.ftbteams.api.Team#getProperties()}.
@@ -60,7 +60,7 @@ public interface TeamPropertyCollection {
 	void write(FriendlyByteBuf buffer);
 
 	/**
-	 * Read value from the network buffer into this property collection, erasing any existing property values.
+	 * Read value from the network buffer into this property collection, replacing any existing property values.
 	 *
 	 * @param buffer the network buffer
 	 */

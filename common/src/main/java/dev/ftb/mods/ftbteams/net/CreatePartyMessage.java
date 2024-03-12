@@ -4,9 +4,13 @@ import com.mojang.authlib.GameProfile;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseC2SMessage;
 import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.PlayerTeam;
+import dev.ftb.mods.ftbteams.data.TeamManagerImpl;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.HashSet;
@@ -59,8 +63,10 @@ public class CreatePartyMessage extends BaseC2SMessage {
 	public void handle(NetworkManager.PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.getPlayer();
 		FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
-			if (team instanceof PlayerTeam playerTeam) {
-				playerTeam.createParty(player, name, description, color, invited);
+			if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
+				player.displayClientMessage(Component.translatable("ftbteams.party_api_only").withStyle(ChatFormatting.RED), false);
+			} else if (team instanceof PlayerTeam playerTeam) {
+				playerTeam.createParty(player.getUUID(), player, name, description, color, invited);
 			}
 		});
 	}

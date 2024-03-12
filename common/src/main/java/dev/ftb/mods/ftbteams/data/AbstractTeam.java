@@ -23,6 +23,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
@@ -66,9 +67,9 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		return getOnlineRanked(TeamRank.MEMBER);
 	}
 
-	void onCreated(@Nullable ServerPlayer p) {
-		if (p != null) {
-			TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, p));
+	void onCreated(@Nullable ServerPlayer player, @NotNull UUID playerId) {
+		if (player != null) {
+			TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, player, playerId));
 		}
 		markDirty();
 		manager.markDirty();

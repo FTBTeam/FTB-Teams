@@ -130,7 +130,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	@Override
 	public void alignWidgets() {
 		super.alignWidgets();
-		
+
 		colorButton.setPosAndSize(5, 5, 12, 12);
 		infoButton.setPosAndSize(20, 3, 16, 16);
 		if (missingDataButton != null) missingDataButton.setPosAndSize(40, 3, 16, 16);
@@ -157,10 +157,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-		GuiHelper.drawHollowRect(graphics, x, y, w, h, POLAR_NIGHT_0, true);
-		POLAR_NIGHT_1.draw(graphics, x + 1, y + 1, w - 2, h - 2);
-		POLAR_NIGHT_0.draw(graphics, x + 1, y + 21, w - 2, 1);
-		POLAR_NIGHT_0.draw(graphics, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height);
+		super.drawBackground(graphics, theme, x, y, w, h);
+		POLAR_NIGHT_0.draw(graphics, x, y + 21, w, 1);
+		POLAR_NIGHT_0.draw(graphics, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height + 1);
 	}
 
 	@Override

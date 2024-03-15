@@ -44,6 +44,6 @@ public class ColorProperty extends TeamProperty<Color4I> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<Color4I> value) {
-		config.addString(id.getPath(), value.value.toString(), s -> value.consumer.accept(Color4I.fromString(s)), getDefaultValue().toString());
+		config.addColor(id.getPath(), value.value, value.consumer, getDefaultValue());
 	}
 }

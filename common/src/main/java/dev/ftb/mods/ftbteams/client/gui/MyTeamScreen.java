@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
+import dev.ftb.mods.ftblibrary.config.ColorConfig;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
@@ -111,12 +112,18 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 
 		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), properties.get(TeamProperties.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
-			Color4I c = FTBTUtils.randomColor();
-			properties.set(TeamProperties.COLOR, c);
-			simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
-			TeamPropertyCollection properties = new TeamPropertyCollectionImpl();
-			properties.set(TeamProperties.COLOR, c);
-			new UpdatePropertiesRequestMessage(properties).sendToServer();
+			ColorConfig config = new ColorConfig();
+			config.setValue(properties.get(TeamProperties.COLOR));
+			ColorSelectorPanel.popupAtMouse(getGui(), config, accepted -> {
+				if (accepted) {
+					Color4I c = config.getValue();
+					properties.set(TeamProperties.COLOR, c);
+					simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
+					TeamPropertyCollection properties = new TeamPropertyCollectionImpl();
+					properties.set(TeamProperties.COLOR, c);
+					new UpdatePropertiesRequestMessage(properties).sendToServer();
+				}
+			});
 		}) {
 			@Override
 			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {

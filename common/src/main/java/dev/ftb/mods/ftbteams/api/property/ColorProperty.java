@@ -6,17 +6,19 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 
-/**
- * @author LatvianModder
- */
 public class ColorProperty extends TeamProperty<Color4I> {
-	public ColorProperty(ResourceLocation id, Color4I def) {
+	public ColorProperty(ResourceLocation id, Supplier<Color4I> def) {
 		super(id, def);
 	}
 
-	public ColorProperty(ResourceLocation id, FriendlyByteBuf def) {
-		super(id, Color4I.rgb(def.readVarInt()));
+	public ColorProperty(ResourceLocation id, Color4I def) {
+		this(id, () -> def);
+	}
+
+	static ColorProperty fromNetwork(ResourceLocation id, FriendlyByteBuf def) {
+		return new ColorProperty(id, Color4I.rgb(def.readVarInt()));
 	}
 
 	@Override
@@ -32,7 +34,7 @@ public class ColorProperty extends TeamProperty<Color4I> {
 
 	@Override
 	public void write(FriendlyByteBuf buf) {
-		buf.writeVarInt(defaultValue.rgb());
+		buf.writeVarInt(getDefaultValue().rgb());
 	}
 
 	@Override
@@ -42,6 +44,6 @@ public class ColorProperty extends TeamProperty<Color4I> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<Color4I> value) {
-		config.addString(id.getPath(), value.value.toString(), s -> value.consumer.accept(Color4I.fromString(s)), defaultValue.toString());
+		config.addColor(id.getPath(), value.value, value.consumer, getDefaultValue());
 	}
 }

@@ -1,0 +1,41 @@
+modLoader = "javafml"
+loaderVersion = "[${neoforgeloaderversion},)"
+issueTrackerURL = "https://go.ftb.team/support-mod-issues"
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "ftbteams"
+version = "${version}"
+displayName = "FTB Teams"
+authors = "FTB Team"
+description = '''
+FTB Teams adds ability to create your own teams that can be used for quests etc.
+'''
+
+[[dependencies.ftbteams]]
+modId = "neoforge"
+type  = "required"
+versionRange = "[${neoforgeversion},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.ftbteams]]
+modId = "minecraft"
+type  = "required"
+versionRange = "[${mcversion},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.ftbteams]]
+modId = "architectury"
+type  = "required"
+versionRange = "[${archversion},)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.ftbteams]]
+modId = "ftblibrary"
+type  = "required"
+versionRange = "[${ftblibraryversion},)"
+ordering = "AFTER"
+side = "BOTH"

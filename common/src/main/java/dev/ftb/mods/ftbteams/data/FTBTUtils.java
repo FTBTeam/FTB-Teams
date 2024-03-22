@@ -3,12 +3,14 @@ package dev.ftb.mods.ftbteams.data;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.tree.CommandNode;
 import com.mojang.util.UUIDTypeAdapter;
+import com.mojang.util.UndashedUuid;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.GameProfileCache;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -40,7 +42,7 @@ public class FTBTUtils {
 			return "";
 		}
 
-		return UUIDTypeAdapter.fromUUID(profile.getId()) + ":" + profile.getName();
+		return UndashedUuid.toString(profile.getId()) + ":" + profile.getName();
 	}
 
 	public static GameProfile deserializeProfile(String string) {
@@ -50,7 +52,7 @@ public class FTBTUtils {
 
 		try {
 			String[] s = string.split(":", 2);
-			UUID uuid = UUIDTypeAdapter.fromString(s[0]);
+			UUID uuid = UndashedUuid.fromString(s[0]);
 			String name = s[1];
 			return normalize(new GameProfile(uuid, name));
 		} catch (Exception ex) {
@@ -66,5 +68,20 @@ public class FTBTUtils {
 		List<String> parts = Arrays.asList(command.split("\\."));
 		CommandNode<CommandSourceStack> node = player.getServer().getCommands().getDispatcher().findNode(parts);
 		return node != null && node.canUse(player.createCommandSourceStack());
+	}
+
+	public static String getDefaultPartyName(MinecraftServer server, UUID playerId, @Nullable ServerPlayer player) {
+		String playerName;
+		if (player != null) {
+			playerName = player.getGameProfile().getName();
+		} else {
+			GameProfileCache profileCache = server.getProfileCache();
+			if (profileCache == null) {
+				playerName = playerId.toString();
+			} else {
+				playerName = profileCache.get(playerId).orElse(new GameProfile(playerId, playerId.toString())).getName();
+			}
+		}
+		return playerName + "'s Party";
 	}
 }

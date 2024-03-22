@@ -22,9 +22,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * @author LatvianModder
- */
 public class TeamPropertyArgument implements ArgumentType<TeamProperty<?>> {
 	private static final SimpleCommandExceptionType PROPERTY_NOT_FOUND = new SimpleCommandExceptionType(Component.translatable("ftbteams.property_not_found"));
 

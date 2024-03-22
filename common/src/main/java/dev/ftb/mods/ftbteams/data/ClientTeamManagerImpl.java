@@ -143,7 +143,7 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 
 	public void initSelfDetails(UUID selfTeamID) {
 		selfTeam = teamMap.get(selfTeamID);
-		UUID userId = Minecraft.getInstance().getUser().getGameProfile().getId();
+		UUID userId = Minecraft.getInstance().getUser().getProfileId();
 		selfKnownPlayer = knownPlayers.get(userId);
 		if (selfKnownPlayer == null) {
 			FTBTeams.LOGGER.error("Local player id {} was not found in the known players list [{}]! FTB Teams will not be able to function correctly!",

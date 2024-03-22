@@ -92,16 +92,32 @@ public class FTBTeamsAPI {
 		 *
 		 * @param handler the new handler to use
 		 * @return the previous handler
+		 * @deprecated use {@link #setPartyCreationFromAPIOnly(boolean)}
 		 */
+		@Deprecated
 		@Nullable
 		CustomPartyCreationHandler setCustomPartyCreationHandler(@Nullable CustomPartyCreationHandler handler);
 
 		/**
 		 * Get the custom party creation handler in effect, if any
 		 * @return the current custom handler, or null if none is in effect
+		 * @deprecated see {@link #setPartyCreationFromAPIOnly(boolean)}
 		 */
+		@Deprecated
 		@Nullable
 		CustomPartyCreationHandler getCustomPartyCreationHandler();
+
+		/**
+		 * By setting api-only team creation to true, this prevents players from creating teams using either the
+		 * command interface or GUI interface of FTB Teams. Parties will only be creatable by other mods via the
+		 * FTB Teams API. This is intended for use with custom modpacks which link team creation with e.g. base
+		 * creation.
+		 * <p>
+		 * By default, FTB Teams allows party creation via all methods.
+		 *
+		 * @param apiOnly true to allow party creation via API only, false to allow normal creation
+		 */
+		void setPartyCreationFromAPIOnly(boolean apiOnly);
 
 		TeamMessage createMessage(UUID sender, Component text);
 	}

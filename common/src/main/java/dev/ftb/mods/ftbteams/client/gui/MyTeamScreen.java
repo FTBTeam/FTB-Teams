@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
+import dev.ftb.mods.ftblibrary.config.ColorConfig;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
@@ -106,12 +107,18 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 
 		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), properties.get(TeamProperties.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
-			Color4I c = FTBTUtils.randomColor();
-			properties.set(TeamProperties.COLOR, c);
-			simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
-			TeamPropertyCollection properties = new TeamPropertyCollectionImpl();
-			properties.set(TeamProperties.COLOR, c);
-			new UpdatePropertiesRequestMessage(properties).sendToServer();
+			ColorConfig config = new ColorConfig();
+			config.setValue(properties.get(TeamProperties.COLOR));
+			ColorSelectorPanel.popupAtMouse(getGui(), config, accepted -> {
+				if (accepted) {
+					Color4I c = config.getValue();
+					properties.set(TeamProperties.COLOR, c);
+					simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
+					TeamPropertyCollection properties = new TeamPropertyCollectionImpl();
+					properties.set(TeamProperties.COLOR, c);
+					new UpdatePropertiesRequestMessage(properties).sendToServer();
+				}
+			});
 		}) {
 			@Override
 			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
@@ -130,7 +137,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	@Override
 	public void alignWidgets() {
 		super.alignWidgets();
-		
+
 		colorButton.setPosAndSize(5, 5, 12, 12);
 		infoButton.setPosAndSize(20, 3, 16, 16);
 		if (missingDataButton != null) missingDataButton.setPosAndSize(40, 3, 16, 16);
@@ -157,10 +164,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-		GuiHelper.drawHollowRect(graphics, x, y, w, h, POLAR_NIGHT_0, true);
-		POLAR_NIGHT_1.draw(graphics, x + 1, y + 1, w - 2, h - 2);
-		POLAR_NIGHT_0.draw(graphics, x + 1, y + 21, w - 2, 1);
-		POLAR_NIGHT_0.draw(graphics, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height);
+		super.drawBackground(graphics, theme, x, y, w, h);
+		POLAR_NIGHT_0.draw(graphics, x, y + 21, w, 1);
+		POLAR_NIGHT_0.draw(graphics, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height + 1);
 	}
 
 	@Override

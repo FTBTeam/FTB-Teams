@@ -15,7 +15,7 @@ import java.util.UUID;
 public enum FTBTeamsAPIImpl implements FTBTeamsAPI.API {
     INSTANCE;
 
-    private CustomPartyCreationHandler partyCreationOverride = null;
+    private boolean partyCreationFromAPIOnly = false;
 
     @Override
     public boolean isManagerLoaded() {
@@ -38,21 +38,26 @@ public enum FTBTeamsAPIImpl implements FTBTeamsAPI.API {
     }
 
     @Override
+    public CustomPartyCreationHandler setCustomPartyCreationHandler(CustomPartyCreationHandler partyCreationOverride) {
+        return null;
+    }
+
+    @Override
     public CustomPartyCreationHandler getCustomPartyCreationHandler() {
-        return partyCreationOverride;
+        return null;
+    }
+
+    @Override
+    public void setPartyCreationFromAPIOnly(boolean apiOnly) {
+        partyCreationFromAPIOnly = apiOnly;
+    }
+
+    public boolean isPartyCreationFromAPIOnly() {
+        return partyCreationFromAPIOnly;
     }
 
     @Override
     public TeamMessage createMessage(UUID sender, Component text) {
         return new TeamMessageImpl(sender, System.currentTimeMillis(), text);
     }
-
-    @Override
-    public CustomPartyCreationHandler setCustomPartyCreationHandler(CustomPartyCreationHandler partyCreationOverride) {
-        CustomPartyCreationHandler prev = this.partyCreationOverride;
-        this.partyCreationOverride = partyCreationOverride;
-        return prev;
-    }
-
-
 }

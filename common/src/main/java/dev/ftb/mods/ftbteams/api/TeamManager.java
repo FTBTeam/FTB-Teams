@@ -1,8 +1,11 @@
 package dev.ftb.mods.ftbteams.api;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.ftb.mods.ftblibrary.icon.Color4I;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Map;
@@ -111,4 +114,16 @@ public interface TeamManager {
      * any data in the compound returned by {@link #getExtraData()}.
      */
     void markDirty();
+
+    /**
+     * Attempt to create a party team for the given player
+     * @param player the player to create the team for
+     * @param name the human-readable team name (something like "{player}'s team" is suggested)
+     * @param description a text description of the team, may be null
+     * @param color a color definition; if null, a random color will be picked
+     * @return the new party team
+     * @throws CommandSyntaxException if there was any kind of failure creating the team,
+     * most commonly that the player is already in a party
+     */
+    Team createPartyTeam(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException;
 }

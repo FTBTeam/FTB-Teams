@@ -129,8 +129,9 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			add(new VerticalSpaceWidget(this, 2));
 
 			User self = Minecraft.getInstance().getUser();
+			var profile = Minecraft.getInstance().getGameProfile();
 
-			add(new NordButton(this, Component.literal("✦ ").withStyle(ChatFormatting.GOLD).append(self.getName()), FaceIcon.getFace(self.getGameProfile())) {
+			add(new NordButton(this, Component.literal("✦ ").withStyle(ChatFormatting.GOLD).append(self.getName()), FaceIcon.getFace(profile)) {
 				@Override
 				public void onClicked(MouseButton mouseButton) {
 				}

@@ -13,7 +13,7 @@ public class KnownClientPlayerNet {
         String name = buf.readUtf(Short.MAX_VALUE);
         boolean online = buf.readBoolean();
         UUID teamId = buf.readUUID();
-        CompoundTag extraData = buf.readAnySizeNbt();
+        CompoundTag extraData = buf.readNbt();
 
         return new KnownClientPlayer(id, name, online, teamId, new GameProfile(id, name), extraData);
     }

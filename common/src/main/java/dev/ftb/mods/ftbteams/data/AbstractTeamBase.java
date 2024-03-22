@@ -1,5 +1,7 @@
 package dev.ftb.mods.ftbteams.data;
 
+import dev.ftb.mods.ftblibrary.icon.Color4I;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamMessage;
 import dev.ftb.mods.ftbteams.api.TeamRank;
@@ -11,6 +13,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -180,6 +185,25 @@ public abstract class AbstractTeamBase implements Team {
 	@Override
 	public Set<UUID> getMembers() {
 		return getPlayersByRank(TeamRank.MEMBER).keySet();
+	}
+
+	@Override
+	public Team createParty(String description, @Nullable Color4I color) {
+		if (!(this instanceof PlayerTeam playerTeam)) {
+			throw new IllegalStateException("team is not a player team: " + getTeamId());
+		}
+
+		UUID playerId = playerTeam.getId();
+		FTBTeamsAPI.api().getManager().getTeamForPlayerID(playerId).ifPresent(team -> {
+			if (team instanceof PartyTeam) {
+				throw new IllegalStateException("player " + playerId + " is already in a party team: " + team.getTeamId());
+			}
+		});
+
+		if (color == null) color = FTBTUtils.randomColor();
+		MinecraftServer server = TeamManagerImpl.INSTANCE.getServer();
+		ServerPlayer player = server.getPlayerList().getPlayer(playerId);
+		return playerTeam.createParty(playerId, player, FTBTUtils.getDefaultPartyName(server, playerId, player), description, color.rgb(), Set.of());
 	}
 
 	public boolean isAllyOrBetter(UUID profile) {

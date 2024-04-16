@@ -1,10 +1,9 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.event.TeamEvent;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,8 +19,7 @@ public class ServerTeam extends Team {
 		return TeamType.SERVER;
 	}
 
-	@Deprecated
-	public int delete(CommandSourceStack source) throws CommandSyntaxException {
+	public int delete(CommandSourceStack source) {
 		save();
 		manager.saveNow();
 		manager.teamMap.remove(getId());
@@ -45,9 +43,9 @@ public class ServerTeam extends Team {
 			}
 		}
 
-		source.sendSuccess(new TextComponent("Team deleted"), true);
+		source.sendSuccess(new TranslatableComponent("ftbteams.message.deleted_server_team", getStringID()), true);
 		manager.save();
-		manager.syncAll();
+		manager.syncTeamsToAll(this);
 		TeamEvent.DELETED.invoker().accept(new TeamEvent(this));
 		return Command.SINGLE_SUCCESS;
 	}

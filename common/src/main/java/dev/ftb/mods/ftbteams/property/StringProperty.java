@@ -53,6 +53,6 @@ public class StringProperty extends TeamProperty<String> {
 
 	@Override
 	public void config(ConfigGroup config, TeamPropertyValue<String> value) {
-		config.addString(id.getNamespace() + "." + id.getPath(), value.value, value.consumer, defaultValue, pattern);
+		config.addString(id.getPath(), value.value, value.consumer, defaultValue, pattern);
 	}
 }

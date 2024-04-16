@@ -8,13 +8,13 @@ import java.util.function.Consumer;
  * @author LatvianModder
  */
 public class TeamCollectPropertiesEvent {
-	private final Consumer<TeamProperty> callback;
+	private final Consumer<TeamProperty<?>> callback;
 
-	public TeamCollectPropertiesEvent(Consumer<TeamProperty> c) {
+	public TeamCollectPropertiesEvent(Consumer<TeamProperty<?>> c) {
 		callback = c;
 	}
 
-	public void add(TeamProperty property) {
+	public void add(TeamProperty<?> property) {
 		callback.accept(property);
 	}
 }

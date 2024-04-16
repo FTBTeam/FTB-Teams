@@ -22,8 +22,5 @@
 		"minecraft": "~1.20",
 		"architectury": ">=${archversion}",
 		"ftblibrary": ">=${ftblibraryversion}"
-	},
-	"breaks": {
-		"ftblibrary": ">=2001.2.0"
 	}
 }

@@ -30,10 +30,14 @@ public abstract class AbstractTeamBase implements Team {
 	protected final List<TeamMessage> messageHistory;
 	private boolean valid;
 
-	public AbstractTeamBase(UUID id) {
+	protected AbstractTeamBase(UUID id) {
+		this(id, new TeamPropertyCollectionImpl());
+	}
+
+	protected AbstractTeamBase(UUID id, TeamPropertyCollection properties) {
 		this.id = id;
+		this.properties = properties instanceof TeamPropertyCollectionImpl p ? p : new TeamPropertyCollectionImpl();
 		ranks = new HashMap<>();
-		properties = new TeamPropertyCollectionImpl();
 		extraData = new CompoundTag();
 		messageHistory = new LinkedList<>();
 		valid = true;

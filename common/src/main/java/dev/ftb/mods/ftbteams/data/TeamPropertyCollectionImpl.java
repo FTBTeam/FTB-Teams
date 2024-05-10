@@ -9,7 +9,8 @@ import dev.ftb.mods.ftbteams.api.property.TeamPropertyValue;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
@@ -18,11 +19,29 @@ import java.util.function.BiConsumer;
 public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	private final PropertyMap map = new PropertyMap();
 
-	public static TeamPropertyCollectionImpl fromNetwork(FriendlyByteBuf buf) {
-		TeamPropertyCollectionImpl properties = new TeamPropertyCollectionImpl();
-		properties.read(buf);
-		return properties;
-	}
+	public static StreamCodec<RegistryFriendlyByteBuf, TeamPropertyCollection> STREAM_CODEC = new StreamCodec<>() {
+        @Override
+        public TeamPropertyCollectionImpl decode(RegistryFriendlyByteBuf buffer) {
+			TeamPropertyCollectionImpl props = new TeamPropertyCollectionImpl();
+
+			int nProperties = buffer.readVarInt();
+			for (int i = 0; i < nProperties; i++) {
+				TeamProperty<?> tp = TeamPropertyType.read(buffer);
+				props.map.putNetworkProperty(tp, buffer);
+			}
+            return props;
+        }
+
+        @Override
+        public void encode(RegistryFriendlyByteBuf buffer, TeamPropertyCollection props) {
+			buffer.writeVarInt(props.size());
+
+			props.forEach((prop, value) -> {
+				TeamPropertyType.write(buffer, prop);
+				prop.writeValue(buffer, value.getValue());
+			});
+        }
+    };
 
 	public void collectProperties() {
 		map.clear();
@@ -64,27 +83,15 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	}
 
 	@Override
-	public void read(FriendlyByteBuf buffer) {
-		int nProperties = buffer.readVarInt();
-		map.clear();
-
-		for (int i = 0; i < nProperties; i++) {
-			TeamProperty<?> tp = TeamPropertyType.read(buffer);
-			map.putNetworkProperty(tp, buffer);
-		}
+	public int size() {
+		return map.size();
 	}
 
-	@Override
-	public void write(FriendlyByteBuf buffer) {
-		buffer.writeVarInt(map.size());
-
-		map.forEachProperty((prop, value) -> {
-			TeamPropertyType.write(buffer, prop);
-			prop.writeValue(buffer, value.getValue());
-		});
+	public void write(RegistryFriendlyByteBuf buffer) {
+		TeamPropertyCollectionImpl.STREAM_CODEC.encode(buffer, this);
 	}
 
-	public void writeSyncableOnly(FriendlyByteBuf buffer, List<TeamProperty<?>> syncableProps) {
+	public void writeSyncableOnly(RegistryFriendlyByteBuf buffer, List<TeamProperty<?>> syncableProps) {
 		// this is used when sync'ing team data for a different team
 		// player A only needs to know limited info (display name, color...) about team B if A isn't a member of B
 		PropertyMap subMap = new PropertyMap();
@@ -138,7 +145,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 			byId.put(prop.getId(), prop);
 		}
 
-		void putNetworkProperty(TeamProperty<?> prop, FriendlyByteBuf buffer) {
+		void putNetworkProperty(TeamProperty<?> prop, RegistryFriendlyByteBuf buffer) {
 			backingMap.put(prop, prop.createValueFromNetwork(buffer));
 			byId.put(prop.getId(), prop);
 		}

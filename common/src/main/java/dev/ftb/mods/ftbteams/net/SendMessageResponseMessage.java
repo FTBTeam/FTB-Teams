@@ -1,41 +1,32 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseS2CMessage;
-import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.util.UUID;
 
-public class SendMessageResponseMessage extends BaseS2CMessage {
-	private final UUID senderId;
-	private final Component text;
+public record SendMessageResponseMessage(UUID senderId, Component text) implements CustomPacketPayload {
+	public static final Type<SendMessageResponseMessage> TYPE = new Type<>(FTBTeamsAPI.rl("send_message_response"));
 
-	SendMessageResponseMessage(FriendlyByteBuf buffer) {
-		senderId = buffer.readUUID();
-		text = buffer.readComponent();
-	}
+	public static StreamCodec<RegistryFriendlyByteBuf, SendMessageResponseMessage> STREAM_CODEC = StreamCodec.composite(
+			UUIDUtil.STREAM_CODEC, SendMessageResponseMessage::senderId,
+			ComponentSerialization.STREAM_CODEC, SendMessageResponseMessage::text,
+			SendMessageResponseMessage::new
+	);
 
-	public SendMessageResponseMessage(UUID senderId, Component text) {
-		this.senderId = senderId;
-		this.text = text;
-	}
-
-	@Override
-	public MessageType getType() {
-		return FTBTeamsNet.SEND_MESSAGE_RESPONSE;
+	public static void handle(SendMessageResponseMessage message, NetworkManager.PacketContext context) {
+		FTBTeamsClient.sendMessage(message.senderId, message.text);
 	}
 
 	@Override
-	public void write(FriendlyByteBuf buffer) {
-		buffer.writeUUID(senderId);
-		buffer.writeComponent(text);
-	}
-
-	@Override
-	public void handle(NetworkManager.PacketContext context) {
-		FTBTeamsClient.sendMessage(senderId, text);
+	public Type<SendMessageResponseMessage> type() {
+		return TYPE;
 	}
 }

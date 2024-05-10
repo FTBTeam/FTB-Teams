@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
+import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
@@ -76,7 +77,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			@Override
 			public void onClicked(MouseButton mouseButton) {
 				closeGui(false);
-				new CreatePartyMessage(nameTextBox.getText(), descriptionTextBox.getText(), teamColor.rgb(), invitedMembers).sendToServer();
+				NetworkManager.sendToServer(new CreatePartyMessage(nameTextBox.getText(), descriptionTextBox.getText(), teamColor.rgb(), invitedMembers));
 			}
 		});
 

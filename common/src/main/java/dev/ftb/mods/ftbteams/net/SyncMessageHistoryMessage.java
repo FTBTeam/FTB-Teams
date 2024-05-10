@@ -1,55 +1,44 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseS2CMessage;
-import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamMessage;
 import dev.ftb.mods.ftbteams.client.gui.MyTeamScreen;
 import dev.ftb.mods.ftbteams.data.ClientTeam;
 import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
 import dev.ftb.mods.ftbteams.data.TeamMessageImpl;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class SyncMessageHistoryMessage extends BaseS2CMessage {
-    private final List<TeamMessage> messages;
+public record SyncMessageHistoryMessage(List<TeamMessage> messages) implements CustomPacketPayload {
+    public static final Type<SyncMessageHistoryMessage> TYPE = new Type<>(FTBTeamsAPI.rl("sync_msg_history"));
 
-    public SyncMessageHistoryMessage(FriendlyByteBuf buf) {
-        long now = System.currentTimeMillis();
-        int nMessages = buf.readVarInt();
-        messages = new ArrayList<>(nMessages);
-        for (int i = 0; i < nMessages; i++) {
-            messages.add(TeamMessageImpl.fromNetwork(now, buf));
-        }
+    public static StreamCodec<RegistryFriendlyByteBuf, SyncMessageHistoryMessage> STREAM_CODEC = StreamCodec.composite(
+            TeamMessageImpl.STREAM_CODEC.apply(ByteBufCodecs.list()), SyncMessageHistoryMessage::messages,
+            SyncMessageHistoryMessage::new
+    );
+
+    public static SyncMessageHistoryMessage forTeam(Team team) {
+        return new SyncMessageHistoryMessage(team.getMessageHistory());
     }
 
-    public SyncMessageHistoryMessage(Team team) {
-        messages = team.getMessageHistory();
-    }
-
-    @Override
-    public MessageType getType() {
-        return FTBTeamsNet.SYNC_MESSAGE_HISTORY;
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        long now = System.currentTimeMillis();
-        buf.writeVarInt(messages.size());
-        for (TeamMessage msg : messages) {
-            TeamMessageImpl.toNetwork(msg, now, buf);
-        }
+    public static void handle(SyncMessageHistoryMessage message, NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            ClientTeam team = ClientTeamManagerImpl.getInstance().selfTeam();
+            if (team != null) {
+                team.setMessageHistory(message.messages);
+                MyTeamScreen.refreshIfOpen();
+            }
+        });
     }
 
     @Override
-    public void handle(NetworkManager.PacketContext context) {
-        ClientTeam team = ClientTeamManagerImpl.getInstance().selfTeam();
-        if (team != null) {
-            team.setMessageHistory(messages);
-            MyTeamScreen.refreshIfOpen();
-        }
+    public Type<SyncMessageHistoryMessage> type() {
+        return TYPE;
     }
 }

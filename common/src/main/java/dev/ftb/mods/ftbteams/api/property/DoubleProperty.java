@@ -5,6 +5,7 @@ import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -49,7 +50,7 @@ public class DoubleProperty extends TeamProperty<Double> {
 	}
 
 	@Override
-	public void write(FriendlyByteBuf buf) {
+	public void write(RegistryFriendlyByteBuf buf) {
 		buf.writeDouble(getDefaultValue());
 		buf.writeDouble(minValue);
 		buf.writeDouble(maxValue);

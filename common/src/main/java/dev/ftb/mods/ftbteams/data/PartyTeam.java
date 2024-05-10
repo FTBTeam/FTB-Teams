@@ -12,6 +12,7 @@ import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -39,8 +40,8 @@ public class PartyTeam extends AbstractTeam {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
-		super.deserializeNBT(tag);
+	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
+		super.deserializeNBT(tag, provider);
 		owner = UUID.fromString(tag.getString("owner"));
 	}
 

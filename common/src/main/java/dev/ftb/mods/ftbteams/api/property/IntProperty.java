@@ -5,6 +5,7 @@ import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
@@ -53,7 +54,7 @@ public class IntProperty extends TeamProperty<Integer> {
 	}
 
 	@Override
-	public void write(FriendlyByteBuf buf) {
+	public void write(RegistryFriendlyByteBuf buf) {
 		buf.writeVarInt(getDefaultValue());
 		buf.writeVarInt(minValue);
 		buf.writeVarInt(maxValue);

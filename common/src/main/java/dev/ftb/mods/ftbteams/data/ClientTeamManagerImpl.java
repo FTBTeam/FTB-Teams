@@ -8,8 +8,11 @@ import dev.ftb.mods.ftbteams.client.KnownClientPlayerNet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -23,10 +26,18 @@ import java.util.*;
 public class ClientTeamManagerImpl implements ClientTeamManager {
 	private static ClientTeamManagerImpl INSTANCE;  // instantiated whenever the client receives a full team sync from server
 
+	public static StreamCodec<RegistryFriendlyByteBuf, ClientTeamManagerImpl> STREAM_CODEC = StreamCodec.composite(
+			UUIDUtil.STREAM_CODEC, m -> m.managerId,
+			ByteBufCodecs.map(HashMap::new, UUIDUtil.STREAM_CODEC, ClientTeam.STREAM_CODEC), m -> m.teamMap,
+			ByteBufCodecs.map(HashMap::new, UUIDUtil.STREAM_CODEC, KnownClientPlayerNet.STREAM_CODEC), m -> m.knownPlayers,
+			ClientTeamManagerImpl::new
+	);
+	
 	private final UUID managerId;
 	private final Map<UUID, ClientTeam> teamMap;
 	private final Map<UUID, KnownClientPlayer> knownPlayers;
 
+	private UUID selfTeamId = Util.NIL_UUID;
 	private boolean valid;
 	private ClientTeam selfTeam;
 	private KnownClientPlayer selfKnownPlayer;
@@ -36,34 +47,23 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 	}
 
 	private ClientTeamManagerImpl(UUID managerId) {
-		this.managerId = managerId;
-		valid = true;
-		teamMap = new HashMap<>();
-		knownPlayers = new HashMap<>();
+		this(managerId, new HashMap<>(), new HashMap<>());
 	}
 
-	/**
-	 * Called client-side when a sync packet is received from the server. The sync may not necessarily contain
-	 * all teams.
-	 *
-	 * @param buffer the network buffer
-	 */
-	public static ClientTeamManagerImpl fromNetwork(FriendlyByteBuf buffer) {
-		ClientTeamManagerImpl manager = new ClientTeamManagerImpl(buffer.readUUID());
+	private ClientTeamManagerImpl(UUID managerId, Map<UUID,ClientTeam> teamMap, Map<UUID,KnownClientPlayer> knownPlayers) {
+		this.managerId = managerId;
+        this.teamMap = teamMap;
+        this.knownPlayers = knownPlayers;
+        valid = true;
+	}
 
-		int nTeams = buffer.readVarInt();
-		for (int i = 0; i < nTeams; i++) {
-			ClientTeam t = ClientTeam.fromNetwork(buffer);
-			manager.teamMap.put(t.getId(), t);
-		}
+	public UUID getSelfTeamId() {
+		return selfTeamId;
+	}
 
-		int nPlayers = buffer.readVarInt();
-		for (int i = 0; i < nPlayers; i++) {
-			KnownClientPlayer knownClientPlayer = KnownClientPlayerNet.fromNetwork(buffer);
-			manager.knownPlayers.put(knownClientPlayer.id(), knownClientPlayer);
-		}
-
-		return manager;
+	public ClientTeamManagerImpl setSelfTeamId(UUID selfTeamId) {
+		this.selfTeamId = selfTeamId;
+		return this;
 	}
 
 	/**
@@ -83,6 +83,7 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 				ClientTeam clientTeam = manager.getTeamMap().containsKey(team.getId()) ?
 						ClientTeam.copyOf(abstractTeam) :
 						ClientTeam.invalidTeam(abstractTeam);
+				clientTeam.setSyncTypeChecker(() -> clientManager.getSelfTeamId().equals(clientTeam.getId()));
 				clientManager.addTeam(clientTeam);
 			}
 
@@ -127,18 +128,6 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 	@Override
 	public KnownClientPlayer self() {
 		return selfKnownPlayer;
-	}
-
-	public void write(FriendlyByteBuf buffer, UUID selfTeamID) {
-		buffer.writeUUID(getManagerId());
-
-		buffer.writeVarInt(teamMap.size());
-		teamMap.values().forEach(clientTeam -> clientTeam.write(buffer, selfTeamID.equals(clientTeam.getId())));
-
-		buffer.writeVarInt(knownPlayers.size());
-		for (KnownClientPlayer knownClientPlayer : knownPlayers.values()) {
-			KnownClientPlayerNet.write(knownClientPlayer, buffer);
-		}
 	}
 
 	public void initSelfDetails(UUID selfTeamID) {

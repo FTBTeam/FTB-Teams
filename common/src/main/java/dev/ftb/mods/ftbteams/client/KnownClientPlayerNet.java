@@ -2,12 +2,25 @@ package dev.ftb.mods.ftbteams.client;
 
 import com.mojang.authlib.GameProfile;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 import java.util.UUID;
 
 public class KnownClientPlayerNet {
+    public static StreamCodec<FriendlyByteBuf, KnownClientPlayer> STREAM_CODEC = StreamCodec.composite(
+            UUIDUtil.STREAM_CODEC, KnownClientPlayer::id,
+            ByteBufCodecs.STRING_UTF8, KnownClientPlayer::name,
+            ByteBufCodecs.BOOL, KnownClientPlayer::online,
+            UUIDUtil.STREAM_CODEC, KnownClientPlayer::teamId,
+            ByteBufCodecs.GAME_PROFILE, KnownClientPlayer::profile,
+            ByteBufCodecs.COMPOUND_TAG, KnownClientPlayer::extraData,
+            KnownClientPlayer::new
+    );
+
     public static KnownClientPlayer fromNetwork(FriendlyByteBuf buf) {
         UUID id = buf.readUUID();
         String name = buf.readUtf(Short.MAX_VALUE);

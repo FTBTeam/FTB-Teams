@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.data;
 import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
@@ -164,7 +165,7 @@ public class TeamManagerImpl implements TeamManager {
 						if (nbt != null) {
 							AbstractTeam team = type.createTeam(this, UUID.fromString(nbt.getString("id")));
 							teamMap.put(team.id, team);
-							team.deserializeNBT(nbt);
+							team.deserializeNBT(nbt, server.registryAccess());
 						}
 					});
 				} catch (Exception ex) {
@@ -228,7 +229,7 @@ public class TeamManagerImpl implements TeamManager {
 		}
 
 		for (AbstractTeam team : teamMap.values()) {
-			team.saveIfNeeded(directory);
+			team.saveIfNeeded(directory, server.registryAccess());
 		}
 	}
 
@@ -340,8 +341,8 @@ public class TeamManagerImpl implements TeamManager {
 	public void syncAllToPlayer(ServerPlayer player, AbstractTeam selfTeam) {
 		ClientTeamManagerImpl manager = ClientTeamManagerImpl.forSyncing(this, teamMap.values());
 
-		new SyncTeamsMessage(manager, selfTeam, true).sendTo(player);
-		new SyncMessageHistoryMessage(selfTeam).sendTo(player);
+		NetworkManager.sendToPlayer(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.id), selfTeam.getTeamId(), true));
+		NetworkManager.sendToPlayer(player, SyncMessageHistoryMessage.forTeam(selfTeam));
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
@@ -358,9 +359,9 @@ public class TeamManagerImpl implements TeamManager {
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			getTeamForPlayer(player).ifPresent(selfTeam -> {
-				new SyncTeamsMessage(manager, selfTeam, false).sendTo(player);
+				NetworkManager.sendToPlayer(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.getTeamId()), selfTeam.getTeamId(), false));
 				if (teams.length > 1) {
-					new SyncMessageHistoryMessage(selfTeam).sendTo(player);
+					NetworkManager.sendToPlayer(player, SyncMessageHistoryMessage.forTeam(selfTeam));
 				}
 			});
 		}

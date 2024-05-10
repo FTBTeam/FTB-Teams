@@ -1,36 +1,28 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseS2CMessage;
-import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.client.KnownClientPlayerNet;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
-public class UpdatePresenceMessage extends BaseS2CMessage {
-	private final KnownClientPlayer update;
+public record UpdatePresenceMessage(KnownClientPlayer update) implements CustomPacketPayload {
+	public static final Type<UpdatePresenceMessage> TYPE = new Type<>(FTBTeamsAPI.rl("update_presence"));
 
-	UpdatePresenceMessage(FriendlyByteBuf buffer) {
-		update = KnownClientPlayerNet.fromNetwork(buffer);
-	}
+	public static StreamCodec<FriendlyByteBuf, UpdatePresenceMessage> STREAM_CODEC = StreamCodec.composite(
+			KnownClientPlayerNet.STREAM_CODEC, UpdatePresenceMessage::update,
+			UpdatePresenceMessage::new
+	);
 
-	public UpdatePresenceMessage(KnownClientPlayer p) {
-		update = p;
-	}
-
-	@Override
-	public MessageType getType() {
-		return FTBTeamsNet.UPDATE_PRESENCE;
-	}
-
-	@Override
-	public void write(FriendlyByteBuf buffer) {
-		KnownClientPlayerNet.write(update, buffer);
+	public static void handle(UpdatePresenceMessage message, NetworkManager.PacketContext context) {
+		context.queue(() -> FTBTeamsClient.updatePresence(message.update));
 	}
 
 	@Override
-	public void handle(NetworkManager.PacketContext context) {
-		FTBTeamsClient.updatePresence(update);
+	public Type<UpdatePresenceMessage> type() {
+		return TYPE;
 	}
 }

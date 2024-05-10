@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbteams.api.property;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
@@ -39,7 +39,7 @@ public abstract class TeamProperty<T> {
 
 	public abstract Optional<T> fromString(String string);
 
-	public abstract void write(FriendlyByteBuf buf);
+	public abstract void write(RegistryFriendlyByteBuf buf);
 
 	public String toString(T value) {
 		return value.toString();
@@ -63,11 +63,11 @@ public abstract class TeamProperty<T> {
 		return false;
 	}
 
-	public void writeValue(FriendlyByteBuf buf, T value) {
+	public void writeValue(RegistryFriendlyByteBuf buf, T value) {
 		buf.writeUtf(toString(value), Short.MAX_VALUE);
 	}
 
-	public T readValue(FriendlyByteBuf buf) {
+	public T readValue(RegistryFriendlyByteBuf buf) {
 		return fromString(buf.readUtf(Short.MAX_VALUE)).orElse(getDefaultValue());
 	}
 
@@ -86,7 +86,7 @@ public abstract class TeamProperty<T> {
 		return new TeamPropertyValue<>(this, getDefaultValue());
 	}
 
-	public TeamPropertyValue<T> createValueFromNetwork(FriendlyByteBuf buf) {
+	public TeamPropertyValue<T> createValueFromNetwork(RegistryFriendlyByteBuf buf) {
 		return new TeamPropertyValue<>(this, readValue(buf));
 	}
 

@@ -1,45 +1,40 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseC2SMessage;
-import dev.architectury.networking.simple.MessageType;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.data.AbstractTeam;
 import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
-public class UpdatePropertiesRequestMessage extends BaseC2SMessage {
-	private final TeamPropertyCollection properties;
+public record UpdatePropertiesRequestMessage(TeamPropertyCollection properties) implements CustomPacketPayload {
+	public static final Type<UpdatePropertiesRequestMessage> TYPE = new Type<>(FTBTeamsAPI.rl("update_propeties_request"));
 
-	public UpdatePropertiesRequestMessage(TeamPropertyCollection properties) {
-		this.properties = properties;
-	}
+	public static StreamCodec<RegistryFriendlyByteBuf, UpdatePropertiesRequestMessage> STREAM_CODEC = StreamCodec.composite(
+			TeamPropertyCollectionImpl.STREAM_CODEC, UpdatePropertiesRequestMessage::properties,
+			UpdatePropertiesRequestMessage::new
+	);
 
-	UpdatePropertiesRequestMessage(FriendlyByteBuf buffer) {
-		this.properties = TeamPropertyCollectionImpl.fromNetwork(buffer);
-	}
+	public static void handle(UpdatePropertiesRequestMessage message, NetworkManager.PacketContext context) {
+		context.queue(() -> {
+			ServerPlayer player = (ServerPlayer) context.getPlayer();
 
-	@Override
-	public MessageType getType() {
-		return FTBTeamsNet.UPDATE_SETTINGS;
-	}
-
-	@Override
-	public void write(FriendlyByteBuf buffer) {
-		properties.write(buffer);
-	}
-
-	@Override
-	public void handle(NetworkManager.PacketContext context) {
-		ServerPlayer player = (ServerPlayer) context.getPlayer();
-
-		FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
-			if (team instanceof AbstractTeam abstractTeam && abstractTeam.isOfficerOrBetter(player.getUUID())) {
-				abstractTeam.updatePropertiesFrom(properties);
-				new UpdatePropertiesResponseMessage(team.getId(), abstractTeam.getProperties()).sendToAll(player.server);
-			}
+			FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
+				if (team instanceof AbstractTeam abstractTeam && abstractTeam.isOfficerOrBetter(player.getUUID())) {
+					abstractTeam.updatePropertiesFrom(message.properties);
+					NetworkManager.sendToPlayers(player.server.getPlayerList().getPlayers(),
+							new UpdatePropertiesResponseMessage(team.getId(), abstractTeam.getProperties()));
+				}
+			});
 		});
+	}
+
+	@Override
+	public Type<UpdatePropertiesRequestMessage> type() {
+		return TYPE;
 	}
 }

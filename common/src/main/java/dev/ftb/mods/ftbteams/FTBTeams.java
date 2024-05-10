@@ -40,7 +40,7 @@ public class FTBTeams {
 
 		EnvExecutor.runInEnv(Env.CLIENT, () -> FTBTeamsClient::init);
 
-		FTBTeamsNet.init();
+		FTBTeamsNet.register();
 	}
 
 	private void serverAboutToStart(MinecraftServer server) {

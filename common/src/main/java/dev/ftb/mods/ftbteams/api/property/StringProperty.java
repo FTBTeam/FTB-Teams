@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +54,7 @@ public class StringProperty extends TeamProperty<String> {
 	}
 
 	@Override
-	public void write(FriendlyByteBuf buf) {
+	public void write(RegistryFriendlyByteBuf buf) {
 		buf.writeUtf(getDefaultValue(), Short.MAX_VALUE);
 		buf.writeVarInt(pattern == null ? 0 : pattern.flags());
 		buf.writeUtf(pattern == null ? "" : pattern.pattern(), Short.MAX_VALUE);

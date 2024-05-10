@@ -1,9 +1,11 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
+import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.net.PlayerGUIOperationMessage;
+import dev.ftb.mods.ftbteams.net.PlayerGUIOperationMessage.Operation;
 import net.minecraft.network.chat.Component;
 
 public class InviteScreen extends BaseInvitationScreen {
@@ -20,7 +22,7 @@ public class InviteScreen extends BaseInvitationScreen {
     @Override
     protected ExecuteButton makeExecuteButton() {
         return new ExecuteButton(Component.translatable("ftbteams.gui.send_invite"), Icons.ADD, () -> {
-            new PlayerGUIOperationMessage(PlayerGUIOperationMessage.Operation.INVITE, invites).sendToServer();
+            NetworkManager.sendToServer(PlayerGUIOperationMessage.forGameProfiles(Operation.INVITE, invites));
             closeGui();
         }) {
             @Override

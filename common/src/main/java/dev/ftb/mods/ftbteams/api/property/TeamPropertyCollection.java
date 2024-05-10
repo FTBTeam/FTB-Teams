@@ -52,17 +52,18 @@ public interface TeamPropertyCollection {
 	 */
 	<T> void set(TeamProperty<T> key, T value);
 
-	/**
-	 * Write this property collection to the network buffer.
-	 *
-	 * @param buffer the network buffer
-	 */
-	void write(FriendlyByteBuf buffer);
-
-	/**
-	 * Read value from the network buffer into this property collection, replacing any existing property values.
-	 *
-	 * @param buffer the network buffer
-	 */
-	void read(FriendlyByteBuf buffer);
+	int size();
+//	/**
+//	 * Write this property collection to the network buffer.
+//	 *
+//	 * @param buffer the network buffer
+//	 */
+//	void write(FriendlyByteBuf buffer);
+//
+//	/**
+//	 * Read value from the network buffer into this property collection, replacing any existing property values.
+//	 *
+//	 * @param buffer the network buffer
+//	 */
+//	void read(FriendlyByteBuf buffer);
 }

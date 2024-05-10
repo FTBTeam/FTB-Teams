@@ -1,34 +1,34 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseC2SMessage;
-import dev.architectury.networking.simple.MessageType;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.data.AbstractTeam;
+import dev.ftb.mods.ftbteams.data.PlayerPermissions;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
-public class OpenGUIMessage extends BaseC2SMessage {
-	OpenGUIMessage(FriendlyByteBuf buffer) {
-	}
+public record OpenGUIMessage() implements CustomPacketPayload {
+	public static final Type<OpenGUIMessage> TYPE = new Type<>(FTBTeamsAPI.rl("open_gui"));
 
-	public OpenGUIMessage() {
-	}
+	private static final OpenGUIMessage INSTANCE = new OpenGUIMessage();
 
-	@Override
-	public MessageType getType() {
-		return FTBTeamsNet.OPEN_GUI;
-	}
+	public static StreamCodec<FriendlyByteBuf, OpenGUIMessage> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
-	@Override
-	public void write(FriendlyByteBuf buffer) {
-	}
-
-	@Override
-	public void handle(NetworkManager.PacketContext context) {
-		ServerPlayer player = (ServerPlayer) context.getPlayer();
-		FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
-			new OpenMyTeamGUIMessage(player, team.getProperties()).sendTo(player);
+	public static void handle(@SuppressWarnings("unused") OpenGUIMessage message, NetworkManager.PacketContext context) {
+		context.queue(() -> {
+			ServerPlayer player = (ServerPlayer) context.getPlayer();
+			FTBTeamsAPI.api().getManager().getTeamForPlayer(player)
+					.ifPresent(team -> NetworkManager.sendToPlayer(player, new OpenMyTeamGUIMessage(team.getProperties(), PlayerPermissions.forPlayer(player))));
 		});
+	}
+
+	public static void sendToServer() {
+		NetworkManager.sendToServer(INSTANCE);
+	}
+
+	@Override
+	public Type<OpenGUIMessage> type() {
+		return TYPE;
 	}
 }

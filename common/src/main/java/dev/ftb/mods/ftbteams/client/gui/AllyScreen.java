@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.client.gui;
 
 import com.google.common.collect.Sets;
 import com.mojang.authlib.GameProfile;
+import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
@@ -45,10 +46,10 @@ public class AllyScreen extends BaseInvitationScreen {
     protected ExecuteButton makeExecuteButton() {
         return new ExecuteButton(Component.translatable("gui.accept"), Icons.ADD, () -> {
             if (!toAdd.isEmpty()) {
-                new PlayerGUIOperationMessage(PlayerGUIOperationMessage.Operation.ADD_ALLY, toAdd).sendToServer();
+                NetworkManager.sendToServer(PlayerGUIOperationMessage.forGameProfiles(PlayerGUIOperationMessage.Operation.ADD_ALLY, toAdd));
             }
             if (!toRemove.isEmpty()) {
-                new PlayerGUIOperationMessage(PlayerGUIOperationMessage.Operation.REMOVE_ALLY, toRemove).sendToServer();
+                NetworkManager.sendToServer(PlayerGUIOperationMessage.forGameProfiles(PlayerGUIOperationMessage.Operation.REMOVE_ALLY, toRemove));
             }
             closeGui();
         }) {

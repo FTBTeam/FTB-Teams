@@ -5,7 +5,9 @@ import dev.ftb.mods.ftblibrary.config.NameMap;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
@@ -31,10 +33,14 @@ public class EnumProperty extends TeamProperty<String> {
 		return res;
 	}
 
-	static EnumProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+	static EnumProperty fromNetwork(ResourceLocation id, RegistryFriendlyByteBuf buf) {
 		String def = buf.readUtf(Short.MAX_VALUE);
 		List<String> values = buf.readList(b -> b.readUtf(Short.MAX_VALUE));
-		Map<String,Component> names = buf.readMap(b -> b.readUtf(Short.MAX_VALUE), FriendlyByteBuf::readComponent);
+		int len = buf.readVarInt();
+		Map<String,Component> names = new HashMap<>();
+		for (int i = 0; i < len; i++) {
+			names.put(buf.readUtf(), ComponentSerialization.STREAM_CODEC.decode(buf));
+		}
 		return new EnumProperty(id, () -> def, values, names);
 	}
 
@@ -49,10 +55,15 @@ public class EnumProperty extends TeamProperty<String> {
 	}
 
 	@Override
-	public void write(FriendlyByteBuf buf) {
+	public void write(RegistryFriendlyByteBuf buf) {
 		buf.writeUtf(getDefaultValue(), Short.MAX_VALUE);
 		buf.writeCollection(values, FriendlyByteBuf::writeUtf);
-		buf.writeMap(names, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeComponent);
+
+		buf.writeVarInt(names.size());
+		names.forEach((k, v) -> {
+			buf.writeUtf(k);
+			ComponentSerialization.STREAM_CODEC.encode(buf, v);
+		});
 	}
 
 	@Override

@@ -2,12 +2,14 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -76,8 +78,8 @@ public class PlayerTeam extends AbstractTeam {
 	}
 
 	@Override
-	public void deserializeNBT(CompoundTag tag) {
-		super.deserializeNBT(tag);
+	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
+		super.deserializeNBT(tag, provider);
 		playerName = tag.getString("player_name");
 	}
 
@@ -98,7 +100,7 @@ public class PlayerTeam extends AbstractTeam {
 	}
 
 	public void updatePresence() {
-		new UpdatePresenceMessage(createClientPlayer()).sendToAll(manager.getServer());
+		NetworkManager.sendToPlayers(manager.getServer().getPlayerList().getPlayers(), new UpdatePresenceMessage(createClientPlayer()));
 	}
 
 	public Team createParty(UUID playerId, @Nullable ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {

@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
+import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.config.ColorConfig;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
@@ -116,7 +117,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 					simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
 					TeamPropertyCollection properties = new TeamPropertyCollectionImpl();
 					properties.set(TeamProperties.COLOR, c);
-					new UpdatePropertiesRequestMessage(properties).sendToServer();
+					NetworkManager.sendToServer(new UpdatePropertiesRequestMessage(properties));
 				}
 			});
 		}) {
@@ -195,7 +196,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.canInvitePlayer()) {
+			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.invitePlayer()) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
@@ -215,7 +216,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.canAddAlly()) {
+			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.addAlly()) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
@@ -287,7 +288,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public void onEnterPressed() {
-			new SendMessageMessage(getText()).sendToServer();
+			NetworkManager.sendToServer(new SendMessageMessage(getText()));
 			setText("");
 			setFocused(true);
 		}
@@ -315,7 +316,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 
 			if (manager.selfTeam().isPlayerTeam()) {
-				add(new CreatePartyButton(this, permissions.canCreateParty()));
+				add(new CreatePartyButton(this, permissions.createParty()));
 			}
 		}
 
@@ -343,7 +344,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			super(MyTeamScreen.this, Component.translatable("gui.settings"), Icons.SETTINGS.withTint(NordColors.SNOW_STORM_2), (simpleButton, mouseButton) -> {
 				ConfigGroup config = new ConfigGroup("ftbteamsconfig", accepted -> {
 					if (accepted) {
-						new UpdatePropertiesRequestMessage(MyTeamScreen.this.properties).sendToServer();
+						NetworkManager.sendToServer(new UpdatePropertiesRequestMessage(MyTeamScreen.this.properties));
 					}
 					MyTeamScreen.this.openGui();
 				});

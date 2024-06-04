@@ -3,72 +3,57 @@ package dev.ftb.mods.ftbteams.net;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseC2SMessage;
-import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.PartyTeam;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public class PlayerGUIOperationMessage extends BaseC2SMessage {
-    private final Operation op;
-    private final List<UUID> targets;
+public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implements CustomPacketPayload {
+    public static final Type<PlayerGUIOperationMessage> TYPE = new Type<>(FTBTeamsAPI.rl("player_gui_operation"));
 
-    public PlayerGUIOperationMessage(Operation op, UUID target) {
-        this.op = op;
-        this.targets = List.of(target);
+    public static StreamCodec<FriendlyByteBuf, PlayerGUIOperationMessage> STREAM_CODEC = StreamCodec.composite(
+            NetworkHelper.enumStreamCodec(Operation.class), PlayerGUIOperationMessage::op,
+            UUIDUtil.STREAM_CODEC.apply(ByteBufCodecs.list()), PlayerGUIOperationMessage::targets,
+            PlayerGUIOperationMessage::new
+    );
+
+    public static PlayerGUIOperationMessage forUUID(Operation op, UUID target) {
+        return new PlayerGUIOperationMessage(op, List.of(target));
     }
 
-    public PlayerGUIOperationMessage(Operation op, Collection<GameProfile> targets) {
-        this.op = op;
-        this.targets = targets.stream().map(GameProfile::getId).toList();
+    public static PlayerGUIOperationMessage forGameProfiles(Operation op, Collection<GameProfile> targets) {
+        return new PlayerGUIOperationMessage(op, targets.stream().map(GameProfile::getId).toList());
     }
 
-    public PlayerGUIOperationMessage(FriendlyByteBuf buf) {
-        op = buf.readEnum(Operation.class);
-        targets = new ArrayList<>();
-        int n = buf.readVarInt();
-        for (int i = 0; i < n; i++) {
-            targets.add(buf.readUUID());
-        }
-    }
+    public static void handle(PlayerGUIOperationMessage message, NetworkManager.PacketContext context) {
+        context.queue(() -> {
+            if (!(context.getPlayer() instanceof ServerPlayer serverPlayer)) return;
 
-    @Override
-    public MessageType getType() {
-        return FTBTeamsNet.PLAYER_GUI_OPERATION;
-    }
-
-    @Override
-    public void write(FriendlyByteBuf buf) {
-        buf.writeEnum(op);
-        buf.writeVarInt(targets.size());
-        targets.forEach(buf::writeUUID);
-    }
-
-    @Override
-    public void handle(NetworkManager.PacketContext context) {
-        if (!(context.getPlayer() instanceof ServerPlayer serverPlayer)) return;
-
-        UUID senderId = context.getPlayer().getUUID();
-        FTBTeamsAPI.api().getManager().getTeamForPlayerID(senderId).ifPresent(team -> {
-            if (team instanceof PartyTeam partyTeam) {
-                TeamRank senderRank = partyTeam.getRankForPlayer(serverPlayer.getUUID());
-                targets.forEach(target -> processTarget(serverPlayer, senderRank, partyTeam, target));
-            }
+            UUID senderId = context.getPlayer().getUUID();
+            FTBTeamsAPI.api().getManager().getTeamForPlayerID(senderId).ifPresent(team -> {
+                if (team instanceof PartyTeam partyTeam) {
+                    TeamRank senderRank = partyTeam.getRankForPlayer(serverPlayer.getUUID());
+                    message.targets.forEach(target -> processTarget(serverPlayer, senderRank, partyTeam, message.op, target));
+                }
+            });
         });
     }
 
-    private void processTarget(ServerPlayer sourcePlayer, TeamRank senderRank, PartyTeam partyTeam, UUID targetId) {
+    private static void processTarget(ServerPlayer sourcePlayer, TeamRank senderRank, PartyTeam partyTeam, Operation op, UUID targetId) {
         if (op.requireSameTeam() && !FTBTeamsAPI.api().getManager().arePlayersInSameTeam(sourcePlayer.getUUID(), targetId)) return;
 
         TeamRank targetRank = partyTeam.getRankForPlayer(targetId);
@@ -128,6 +113,11 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
         }
     }
 
+    @Override
+    public Type<PlayerGUIOperationMessage> type() {
+        return TYPE;
+    }
+
     public enum Operation {
         PROMOTE(true),
         DEMOTE(true),
@@ -149,7 +139,7 @@ public class PlayerGUIOperationMessage extends BaseC2SMessage {
         }
 
         public void sendMessage(KnownClientPlayer target) {
-            new PlayerGUIOperationMessage(this, target.id()).sendToServer();
+            NetworkManager.sendToServer(PlayerGUIOperationMessage.forUUID(this, target.id()));
         }
     }
 }

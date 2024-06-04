@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.icon.Color4I;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
@@ -28,11 +28,11 @@ public class TeamPropertyType<T> {
 		this.deserializer = deserializer;
 	}
 
-	public static TeamProperty<?> read(FriendlyByteBuf buf) {
+	public static TeamProperty<?> read(RegistryFriendlyByteBuf buf) {
 		return MAP.get(buf.readUtf(Short.MAX_VALUE)).deserializer.apply(buf.readResourceLocation(), buf);
 	}
 
-	public static void write(FriendlyByteBuf buf, TeamProperty<?> p) {
+	public static void write(RegistryFriendlyByteBuf buf, TeamProperty<?> p) {
 		buf.writeUtf(p.getType().id, Short.MAX_VALUE);
 		buf.writeResourceLocation(p.id);
 		p.write(buf);
@@ -45,6 +45,6 @@ public class TeamPropertyType<T> {
 	}
 
 	public interface FromNet<Y> {
-		TeamProperty<Y> apply(ResourceLocation id, FriendlyByteBuf buf);
+		TeamProperty<Y> apply(ResourceLocation id, RegistryFriendlyByteBuf buf);
 	}
 }

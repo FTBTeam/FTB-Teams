@@ -1,43 +1,32 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseS2CMessage;
-import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.util.UUID;
 
-public class UpdatePropertiesResponseMessage extends BaseS2CMessage {
-	private final UUID teamId;
-	private final TeamPropertyCollection properties;
+public record UpdatePropertiesResponseMessage(UUID teamId, TeamPropertyCollection properties) implements CustomPacketPayload {
+	public static final Type<UpdatePropertiesResponseMessage> TYPE = new Type<>(FTBTeamsAPI.rl("update_properties_response"));
 
-	UpdatePropertiesResponseMessage(FriendlyByteBuf buffer) {
-		teamId = buffer.readUUID();
-		properties = new TeamPropertyCollectionImpl();
-		properties.read(buffer);
-	}
+	public static StreamCodec<RegistryFriendlyByteBuf, UpdatePropertiesResponseMessage> STREAM_CODEC = StreamCodec.composite(
+			UUIDUtil.STREAM_CODEC, UpdatePropertiesResponseMessage::teamId,
+			TeamPropertyCollectionImpl.STREAM_CODEC, UpdatePropertiesResponseMessage::properties,
+			UpdatePropertiesResponseMessage::new
+	);
 
-	public UpdatePropertiesResponseMessage(UUID id, TeamPropertyCollection p) {
-		teamId = id;
-		properties = p;
-	}
-
-	@Override
-	public MessageType getType() {
-		return FTBTeamsNet.UPDATE_SETTINGS_RESPONSE;
+	public static void handle(UpdatePropertiesResponseMessage message, NetworkManager.PacketContext context) {
+		context.queue(() -> FTBTeamsClient.updateSettings(message.teamId, message.properties));
 	}
 
 	@Override
-	public void write(FriendlyByteBuf buffer) {
-		buffer.writeUUID(teamId);
-		properties.write(buffer);
-	}
-
-	@Override
-	public void handle(NetworkManager.PacketContext context) {
-		FTBTeamsClient.updateSettings(teamId, properties);
+	public Type<UpdatePropertiesResponseMessage> type() {
+		return TYPE;
 	}
 }

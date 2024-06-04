@@ -1,24 +1,20 @@
 package dev.ftb.mods.ftbteams.net;
 
-import dev.architectury.networking.simple.MessageType;
-import dev.architectury.networking.simple.SimpleNetworkManager;
-import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 
-public interface FTBTeamsNet {
-	SimpleNetworkManager NET = SimpleNetworkManager.create(FTBTeamsAPI.MOD_ID);
+public class FTBTeamsNet {
+	public static void register() {
+		NetworkHelper.registerS2C(SyncTeamsMessage.TYPE, SyncTeamsMessage.STREAM_CODEC, SyncTeamsMessage::handle);
+		NetworkHelper.registerS2C(SyncMessageHistoryMessage.TYPE, SyncMessageHistoryMessage.STREAM_CODEC, SyncMessageHistoryMessage::handle);
+		NetworkHelper.registerS2C(OpenMyTeamGUIMessage.TYPE, OpenMyTeamGUIMessage.STREAM_CODEC, OpenMyTeamGUIMessage::handle);
+		NetworkHelper.registerS2C(UpdatePropertiesResponseMessage.TYPE, UpdatePropertiesResponseMessage.STREAM_CODEC, UpdatePropertiesResponseMessage::handle);
+		NetworkHelper.registerS2C(SendMessageResponseMessage.TYPE, SendMessageResponseMessage.STREAM_CODEC, SendMessageResponseMessage::handle);
+		NetworkHelper.registerS2C(UpdatePresenceMessage.TYPE, UpdatePresenceMessage.STREAM_CODEC, UpdatePresenceMessage::handle);
 
-	MessageType SYNC_TEAMS = NET.registerS2C("sync_teams", SyncTeamsMessage::new);
-	MessageType SYNC_MESSAGE_HISTORY = NET.registerS2C("sync_message_history", SyncMessageHistoryMessage::new);
-	MessageType OPEN_GUI = NET.registerC2S("open_gui", OpenGUIMessage::new);
-	MessageType OPEN_MY_TEAM_GUI = NET.registerS2C("open_my_team_gui", OpenMyTeamGUIMessage::new);
-	MessageType UPDATE_SETTINGS = NET.registerC2S("update_settings", UpdatePropertiesRequestMessage::new);
-	MessageType UPDATE_SETTINGS_RESPONSE = NET.registerS2C("update_settings_response", UpdatePropertiesResponseMessage::new);
-	MessageType SEND_MESSAGE = NET.registerC2S("send_message", SendMessageMessage::new);
-	MessageType SEND_MESSAGE_RESPONSE = NET.registerS2C("send_message_response", SendMessageResponseMessage::new);
-	MessageType UPDATE_PRESENCE = NET.registerS2C("update_presence", UpdatePresenceMessage::new);
-	MessageType CREATE_PARTY = NET.registerC2S("create_party", CreatePartyMessage::new);
-	MessageType PLAYER_GUI_OPERATION = NET.registerC2S("player_gui_operation", PlayerGUIOperationMessage::new);
-
-	static void init() {
+		NetworkHelper.registerC2S(OpenGUIMessage.TYPE, OpenGUIMessage.STREAM_CODEC, OpenGUIMessage::handle);
+		NetworkHelper.registerC2S(UpdatePropertiesRequestMessage.TYPE, UpdatePropertiesRequestMessage.STREAM_CODEC, UpdatePropertiesRequestMessage::handle);
+		NetworkHelper.registerC2S(SendMessageMessage.TYPE, SendMessageMessage.STREAM_CODEC, SendMessageMessage::handle);
+		NetworkHelper.registerC2S(CreatePartyMessage.TYPE, CreatePartyMessage.STREAM_CODEC, CreatePartyMessage::handle);
+		NetworkHelper.registerC2S(PlayerGUIOperationMessage.TYPE, PlayerGUIOperationMessage.STREAM_CODEC, PlayerGUIOperationMessage::handle);
 	}
 }

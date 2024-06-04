@@ -31,7 +31,7 @@ public class FTBTeamsClient {
 
 		CustomClickEvent.EVENT.register(event -> {
 			if (event.id().equals(OPEN_GUI_ID)) {
-				new OpenGUIMessage().sendToServer();
+				OpenGUIMessage.sendToServer();
 				return EventResult.interruptTrue();
 			}
 			return EventResult.pass();
@@ -47,7 +47,7 @@ public class FTBTeamsClient {
 
 	private static EventResult keyPressed(Minecraft client, int keyCode, int scanCode, int action, int modifiers) {
 		if (openTeamsKey.isDown()) {
-			new OpenGUIMessage().sendToServer();
+			OpenGUIMessage.sendToServer();
 			return EventResult.interruptTrue();
 		}
 		return EventResult.pass();

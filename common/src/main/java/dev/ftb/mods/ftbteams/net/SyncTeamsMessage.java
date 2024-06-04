@@ -3,45 +3,38 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseS2CMessage;
 import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.client.gui.MyTeamScreen;
 import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 import java.util.UUID;
 
-public class SyncTeamsMessage extends BaseS2CMessage {
-	private final ClientTeamManagerImpl manager;
-	private final UUID selfTeamID;
-	private final boolean fullSync;
+public record SyncTeamsMessage(ClientTeamManagerImpl manager, UUID selfTeamID, boolean fullSync) implements CustomPacketPayload {
+	public static final Type<SyncTeamsMessage> TYPE = new Type<>(FTBTeamsAPI.rl("sync_teams"));
 
-	SyncTeamsMessage(FriendlyByteBuf buffer) {
-		manager = ClientTeamManagerImpl.fromNetwork(buffer);
-		selfTeamID = buffer.readUUID();
-		fullSync = buffer.readBoolean();
-	}
+	public static StreamCodec<RegistryFriendlyByteBuf, SyncTeamsMessage> STREAM_CODEC = StreamCodec.composite(
+			ClientTeamManagerImpl.STREAM_CODEC, SyncTeamsMessage::manager,
+			UUIDUtil.STREAM_CODEC, SyncTeamsMessage::selfTeamID,
+			ByteBufCodecs.BOOL, SyncTeamsMessage::fullSync,
+			SyncTeamsMessage::new
+	);
 
-	public SyncTeamsMessage(ClientTeamManagerImpl manager, Team selfTeam, boolean fullSync) {
-		this.manager = manager;
-		this.selfTeamID = selfTeam.getId();
-		this.fullSync = fullSync;
-	}
-
-	@Override
-	public MessageType getType() {
-		return FTBTeamsNet.SYNC_TEAMS;
+	public static void handle(SyncTeamsMessage message, NetworkManager.PacketContext context) {
+		context.queue(() -> {
+			ClientTeamManagerImpl.syncFromServer(message.manager, message.selfTeamID, message.fullSync);
+			MyTeamScreen.refreshIfOpen();
+		});
 	}
 
 	@Override
-	public void write(FriendlyByteBuf buffer) {
-		manager.write(buffer, selfTeamID);
-		buffer.writeUUID(selfTeamID);
-		buffer.writeBoolean(fullSync);
-	}
-
-	@Override
-	public void handle(NetworkManager.PacketContext context) {
-		ClientTeamManagerImpl.syncFromServer(manager, selfTeamID, fullSync);
-		MyTeamScreen.refreshIfOpen();
+	public Type<SyncTeamsMessage> type() {
+		return TYPE;
 	}
 }

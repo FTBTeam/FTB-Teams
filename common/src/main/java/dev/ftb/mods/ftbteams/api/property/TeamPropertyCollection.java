@@ -1,7 +1,5 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import net.minecraft.network.FriendlyByteBuf;
-
 import java.util.function.BiConsumer;
 
 /**
@@ -53,16 +51,9 @@ public interface TeamPropertyCollection {
 	<T> void set(TeamProperty<T> key, T value);
 
 	/**
-	 * Write this property collection to the network buffer.
+	 * Get the number of properties in this collection.
 	 *
-	 * @param buffer the network buffer
+	 * @return the number of properties
 	 */
-	void write(FriendlyByteBuf buffer);
-
-	/**
-	 * Read value from the network buffer into this property collection, replacing any existing property values.
-	 *
-	 * @param buffer the network buffer
-	 */
-	void read(FriendlyByteBuf buffer);
+	int size();
 }

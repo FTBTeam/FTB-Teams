@@ -1,37 +1,31 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
-import dev.architectury.networking.simple.BaseC2SMessage;
-import dev.architectury.networking.simple.MessageType;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
-public class SendMessageMessage extends BaseC2SMessage {
-	private final String text;
+public record SendMessageMessage(String msg) implements CustomPacketPayload {
+	public static final Type<SendMessageMessage> TYPE = new Type<>(FTBTeamsAPI.rl("send_message"));
 
-	SendMessageMessage(FriendlyByteBuf buffer) {
-		text = buffer.readUtf(Short.MAX_VALUE);
-	}
+	public static StreamCodec<FriendlyByteBuf, SendMessageMessage> STREAM_CODEC = StreamCodec.composite(
+			ByteBufCodecs.STRING_UTF8, SendMessageMessage::msg,
+			SendMessageMessage::new
+	);
 
-	public SendMessageMessage(String s) {
-		text = s.length() > 5000 ? s.substring(0, 5000) : s;
-	}
-
-	@Override
-	public MessageType getType() {
-		return FTBTeamsNet.SEND_MESSAGE;
-	}
-
-	@Override
-	public void write(FriendlyByteBuf buffer) {
-		buffer.writeUtf(text, Short.MAX_VALUE);
+	public static void handle(SendMessageMessage message, NetworkManager.PacketContext context) {
+		context.queue(() -> {
+			ServerPlayer player = (ServerPlayer) context.getPlayer();
+			FTBTeamsAPI.api().getManager().getTeamForPlayer(player)
+					.ifPresent(team -> team.sendMessage(player.getUUID(), message.msg));
+		});
 	}
 
 	@Override
-	public void handle(NetworkManager.PacketContext context) {
-		ServerPlayer player = (ServerPlayer) context.getPlayer();
-		FTBTeamsAPI.api().getManager().getTeamForPlayer(player)
-				.ifPresent(team -> team.sendMessage(player.getUUID(), text));
+	public Type<SendMessageMessage> type() {
+		return TYPE;
 	}
 }

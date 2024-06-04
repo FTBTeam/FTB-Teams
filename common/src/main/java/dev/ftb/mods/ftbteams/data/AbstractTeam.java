@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
@@ -17,6 +18,7 @@ import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -100,7 +102,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	// Data IO //
 
-	public SNBTCompoundTag serializeNBT() {
+	public SNBTCompoundTag serializeNBT(HolderLookup.Provider provider) {
 		SNBTCompoundTag tag = new SNBTCompoundTag();
 		tag.putString("id", getId().toString());
 		tag.putString("type", getType().getSerializedName());
@@ -117,7 +119,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		ListTag messageHistoryTag = new ListTag();
 		for (TeamMessage msg : getMessageHistory()) {
-			messageHistoryTag.add(TeamMessageImpl.toNBT(msg));
+			messageHistoryTag.add(TeamMessageImpl.toNBT(msg, provider));
 		}
 		tag.put("message_history", messageHistoryTag);
 
@@ -130,7 +132,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	protected void serializeExtraNBT(CompoundTag tag) {
 	}
 
-	public void deserializeNBT(CompoundTag tag) {
+	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
 		ranks.clear();
 		CompoundTag ranksNBT = tag.getCompound("ranks");
 
@@ -144,7 +146,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		ListTag messageHistoryTag = tag.getList("message_history", Tag.TAG_COMPOUND);
 		for (int i = 0; i < messageHistoryTag.size(); i++) {
-			addMessage(TeamMessageImpl.fromNBT(messageHistoryTag.getCompound(i)));
+			addMessage(TeamMessageImpl.fromNBT(messageHistoryTag.getCompound(i), provider));
 		}
 
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
@@ -269,7 +271,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
-			new SendMessageResponseMessage(from, text).sendTo(p);
+			NetworkManager.sendToPlayer(p, new SendMessageResponseMessage(from, text));
 		}
 
 		markDirty();
@@ -282,9 +284,9 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		markDirty();
 	}
 
-	void saveIfNeeded(Path directory) {
+	void saveIfNeeded(Path directory, HolderLookup.Provider provider) {
 		if (shouldSave) {
-			SNBT.write(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT());
+			SNBT.write(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT(provider));
 			shouldSave = false;
 		}
 	}

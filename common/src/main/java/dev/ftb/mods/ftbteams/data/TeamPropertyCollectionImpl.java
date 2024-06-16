@@ -167,7 +167,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 
 		Optional<TeamProperty<?>> findProperty(String key) {
 			try {
-				return Optional.ofNullable(byId.get(new ResourceLocation(key)));
+				return Optional.ofNullable(byId.get(ResourceLocation.tryParse(key)));
 			} catch (ResourceLocationException e) {
 				return Optional.empty();
 			}

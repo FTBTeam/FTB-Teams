@@ -22,7 +22,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.UUID;
 
 public class FTBTeamsClient {
-	public static final ResourceLocation OPEN_GUI_ID = new ResourceLocation(FTBTeamsAPI.MOD_ID, "open_gui");
+	public static final ResourceLocation OPEN_GUI_ID = FTBTeamsAPI.rl("open_gui");
 
 	public static KeyMapping openTeamsKey;
 

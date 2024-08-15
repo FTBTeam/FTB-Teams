@@ -1,9 +1,0 @@
-{
-	"my_team": {
-		"group": "ftblibrary:info",
-		"icon": "ftbteams:textures/teams.png",
-		"x": 0,
-		"click": "ftbteams:open_gui",
-		"loading_screen": true
-	}
-}

@@ -15,7 +15,7 @@ FTB Teams adds ability to create your own teams that can be used for quests etc.
 [[dependencies.ftbteams]]
 modId = "neoforge"
 type  = "required"
-versionRange = "[${neoforgeversion},)"
+versionRange = "${neoforgeversionrange}"
 ordering = "NONE"
 side = "BOTH"
 

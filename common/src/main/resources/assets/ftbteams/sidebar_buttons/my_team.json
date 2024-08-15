@@ -1,0 +1,8 @@
+{
+  "icon": "ftbteams:textures/teams.png",
+  "sort_index": 550,
+  "loading_screen": true,
+  "click": [
+    "ftbteams:open_gui"
+  ]
+}

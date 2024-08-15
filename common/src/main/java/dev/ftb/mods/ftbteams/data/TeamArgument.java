@@ -98,7 +98,7 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	@Override
 	public TeamArgumentProvider parse(StringReader reader) throws CommandSyntaxException {
 		if (reader.canRead() && reader.peek() == '@') {
-			EntitySelector selector = new EntitySelectorParser(reader).parse();
+			EntitySelector selector = new EntitySelectorParser(reader, true).parse();
 
 			if (selector.includesEntities()) {
 				throw EntityArgument.ERROR_ONLY_PLAYERS_ALLOWED.create();

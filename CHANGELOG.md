@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2101.1.1]
 
+### Added
+* Added a `tr_tr` translation, thanks @RuyaSavascisi
+
+### Changed
+* Overhauled and cleaned up many icon textures
+
 ### Fixed
 * Fixed the `/ftbteams party settings_for ...` command not functioning correctly
 

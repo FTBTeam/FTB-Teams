@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2101.1.1]
+
+### Added
+* Added a `tr_tr` translation, thanks @RuyaSavascisi
+
+### Changed
+* Overhauled and cleaned up many icon textures
+
+### Fixed
+* Fixed the `/ftbteams party settings_for ...` command not functioning correctly
+
 ## [2101.1.0]
 
 ### Changed

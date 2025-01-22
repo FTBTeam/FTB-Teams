@@ -224,7 +224,7 @@ public abstract class AbstractTeamBase implements Team {
 	public void addMessages(Collection<TeamMessage> messages) {
 		messageHistory.addAll(messages);
 		while (messageHistory.size() > getMaxMessageHistorySize()) {
-			messageHistory.remove(0);
+			messageHistory.removeFirst();
 		}
 		markDirty();
 	}

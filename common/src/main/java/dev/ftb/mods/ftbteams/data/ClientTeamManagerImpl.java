@@ -27,7 +27,7 @@ import java.util.*;
 public class ClientTeamManagerImpl implements ClientTeamManager {
 	private static ClientTeamManagerImpl INSTANCE;  // instantiated whenever the client receives a full team sync from server
 
-	public static StreamCodec<RegistryFriendlyByteBuf, ClientTeamManagerImpl> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClientTeamManagerImpl> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC, m -> m.managerId,
 			ByteBufCodecs.map(HashMap::new, UUIDUtil.STREAM_CODEC, ClientTeam.STREAM_CODEC), m -> m.teamMap,
 			ByteBufCodecs.map(HashMap::new, UUIDUtil.STREAM_CODEC, KnownClientPlayerNet.STREAM_CODEC), m -> m.knownPlayers,

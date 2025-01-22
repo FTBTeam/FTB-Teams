@@ -83,7 +83,4 @@ public class FTBTeams {
 			TeamManagerImpl.INSTANCE.playerLoggedOut(player);
 		}
 	}
-
-	public void setup() {
-	}
 }

@@ -319,13 +319,13 @@ public class PartyTeam extends AbstractTeam {
 			markDirty();
 			manager.syncToAll(this);
 			TeamEvent.ADD_ALLY.invoker().accept(new TeamAllyEvent(this, addedPlayers, true));
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		}
 
 		return 0;
 	}
 
-	public int removeAlly(CommandSourceStack source, Collection<GameProfile> players) throws CommandSyntaxException {
+	public int removeAlly(CommandSourceStack source, Collection<GameProfile> players) {
 		UUID from = source.getEntity() == null ? Util.NIL_UUID : source.getEntity().getUUID();
 		List<GameProfile> removedPlayers = new ArrayList<>();
 
@@ -348,7 +348,7 @@ public class PartyTeam extends AbstractTeam {
 			markDirty();
 			manager.syncToAll(this);
 			TeamEvent.REMOVE_ALLY.invoker().accept(new TeamAllyEvent(this, removedPlayers, false));
-			return 1;
+			return Command.SINGLE_SUCCESS;
 		}
 
 		return 0;
@@ -369,20 +369,23 @@ public class PartyTeam extends AbstractTeam {
 			source.sendSuccess(() -> Component.literal("None"), false);
 		}
 
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 
 	public int forceDisband(CommandSourceStack from) throws CommandSyntaxException {
 		// kick all non-owner members
-		Set<UUID> members = new HashSet<>(getMembers());
-		members.remove(owner);
-		kick(from, members.stream().map(id -> new GameProfile(id, "")).toList());
-
+		List<GameProfile> members = getMembers().stream()
+				.filter(id -> !id.equals(owner))
+				.map(id -> new GameProfile(id, ""))
+				.toList();
+		kick(from, members);
+		
 		// now make the owner leave too
 		leave(owner);
 
-		from.sendSuccess(() -> Component.translatable("ftbteams.message.team_disbanded", getName(), getId()).withStyle(ChatFormatting.GOLD), false);
+		from.sendSuccess(() -> Component.translatable("ftbteams.message.team_disbanded", getName(), getId().toString())
+				.withStyle(ChatFormatting.GOLD), false);
 
-		return 1;
+		return Command.SINGLE_SUCCESS;
 	}
 }

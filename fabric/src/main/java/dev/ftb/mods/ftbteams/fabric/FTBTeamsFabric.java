@@ -10,7 +10,7 @@ import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 public class FTBTeamsFabric implements ModInitializer {
 	@Override
 	public void onInitialize() {
-		new FTBTeams().setup();
+		new FTBTeams();
 
 		ArgumentTypeRegistry.registerArgumentType(FTBTeamsAPI.rl("team"), TeamArgument.class, new TeamArgument.Info());
 		ArgumentTypeRegistry.registerArgumentType(FTBTeamsAPI.rl("team_property"), TeamPropertyArgument.class, new TeamPropertyArgument.Info());

@@ -29,7 +29,7 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty<?>> {
 		return new TeamPropertyArgument();
 	}
 
-	public static TeamProperty<?> get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
+	public static TeamProperty<?> get(CommandContext<CommandSourceStack> context, String name) {
 		return context.getArgument(name, TeamProperty.class);
 	}
 

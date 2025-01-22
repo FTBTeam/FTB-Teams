@@ -11,7 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
 import java.util.UUID;
 
 public class KnownClientPlayerNet {
-    public static StreamCodec<FriendlyByteBuf, KnownClientPlayer> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<FriendlyByteBuf, KnownClientPlayer> STREAM_CODEC = StreamCodec.composite(
             UUIDUtil.STREAM_CODEC, KnownClientPlayer::id,
             ByteBufCodecs.STRING_UTF8, KnownClientPlayer::name,
             ByteBufCodecs.BOOL, KnownClientPlayer::online,

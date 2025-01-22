@@ -40,29 +40,6 @@ public class FTBTUtils {
 		return profile;
 	}
 
-	public static String serializeProfile(@Nullable GameProfile profile) {
-		if (normalize(profile) == NO_PROFILE) {
-			return "";
-		}
-
-		return UndashedUuid.toString(profile.getId()) + ":" + profile.getName();
-	}
-
-	public static GameProfile deserializeProfile(String string) {
-		if (string.isEmpty()) {
-			return NO_PROFILE;
-		}
-
-		try {
-			String[] s = string.split(":", 2);
-			UUID uuid = UndashedUuid.fromString(s[0]);
-			String name = s[1];
-			return normalize(new GameProfile(uuid, name));
-		} catch (Exception ex) {
-			return NO_PROFILE;
-		}
-	}
-
 	public static Color4I randomColor() {
 		return Color4I.hsb(MathUtils.RAND.nextFloat(), 0.65F, 1F);
 	}

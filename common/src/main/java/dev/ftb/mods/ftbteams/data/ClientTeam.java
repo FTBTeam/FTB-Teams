@@ -12,6 +12,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -22,54 +23,10 @@ import java.util.function.BooleanSupplier;
 public class ClientTeam extends AbstractTeamBase {
 	private static final List<TeamProperty<?>> SYNCABLE_PROPS = List.of(TeamProperties.DISPLAY_NAME, TeamProperties.COLOR);
 
-	public static final StreamCodec<RegistryFriendlyByteBuf,ClientTeam> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public ClientTeam decode(RegistryFriendlyByteBuf buffer) {
-			UUID id = buffer.readUUID();
-			UUID ownerID = buffer.readBoolean() ? buffer.readUUID() : Util.NIL_UUID;
-			TeamType type = buffer.readEnum(TeamType.class);
-			boolean mustRemove = buffer.readBoolean();
-
-			TeamPropertyCollection props = TeamPropertyCollectionImpl.STREAM_CODEC.decode(buffer);
-			ClientTeam clientTeam = new ClientTeam(id, ownerID, type, mustRemove, props);
-
-			int nMembers = buffer.readVarInt();
-			for (int i = 0; i < nMembers; i++) {
-				clientTeam.addMember(buffer.readUUID(), buffer.readEnum(TeamRank.class));
-			}
-
-			clientTeam.extraData = buffer.readNbt();
-
-			return clientTeam;
-        }
-
-        @Override
-        public void encode(RegistryFriendlyByteBuf buffer, ClientTeam team) {
-			buffer.writeUUID(team.id);
-
-			boolean hasOwner = !team.ownerID.equals(Util.NIL_UUID);
-			buffer.writeBoolean(hasOwner);
-			if (hasOwner) {
-				buffer.writeUUID(team.ownerID);
-			}
-			buffer.writeEnum(team.type);
-			buffer.writeBoolean(team.toBeRemoved);
-
-			if (team.fullSyncSupplier.getAsBoolean()) {
-				team.properties.write(buffer);
-			} else {
-				team.properties.writeSyncableOnly(buffer, SYNCABLE_PROPS);
-			}
-
-			buffer.writeVarInt(team.ranks.size());
-			for (Map.Entry<UUID, TeamRank> entry : team.ranks.entrySet()) {
-				buffer.writeUUID(entry.getKey());
-				buffer.writeEnum(entry.getValue());
-			}
-
-			buffer.writeNbt(team.extraData);
-        }
-    };
+	public static final StreamCodec<RegistryFriendlyByteBuf,ClientTeam> STREAM_CODEC = StreamCodec.of(
+            ClientTeam::toNet,
+            ClientTeam::fromNet
+    );
 
 	private final TeamType type;
 	private final UUID ownerID;
@@ -163,5 +120,50 @@ public class ClientTeam extends AbstractTeamBase {
 
 	public void setSyncTypeChecker(BooleanSupplier fullSyncSupplier) {
 		this.fullSyncSupplier = fullSyncSupplier;
+	}
+
+	private static @NotNull ClientTeam fromNet(RegistryFriendlyByteBuf buffer) {
+		UUID id = buffer.readUUID();
+		UUID ownerID = buffer.readBoolean() ? buffer.readUUID() : Util.NIL_UUID;
+		TeamType type = buffer.readEnum(TeamType.class);
+		boolean mustRemove = buffer.readBoolean();
+
+		TeamPropertyCollection props = TeamPropertyCollectionImpl.STREAM_CODEC.decode(buffer);
+		ClientTeam clientTeam = new ClientTeam(id, ownerID, type, mustRemove, props);
+
+		int nMembers = buffer.readVarInt();
+		for (int i = 0; i < nMembers; i++) {
+			clientTeam.addMember(buffer.readUUID(), buffer.readEnum(TeamRank.class));
+		}
+
+		clientTeam.extraData = buffer.readNbt();
+
+		return clientTeam;
+	}
+
+	private static void toNet(RegistryFriendlyByteBuf buffer, ClientTeam team) {
+		buffer.writeUUID(team.id);
+
+		boolean hasOwner = !team.ownerID.equals(Util.NIL_UUID);
+		buffer.writeBoolean(hasOwner);
+		if (hasOwner) {
+			buffer.writeUUID(team.ownerID);
+		}
+		buffer.writeEnum(team.type);
+		buffer.writeBoolean(team.toBeRemoved);
+
+		if (team.fullSyncSupplier.getAsBoolean()) {
+			team.properties.write(buffer);
+		} else {
+			team.properties.writeSyncableOnly(buffer, SYNCABLE_PROPS);
+		}
+
+		buffer.writeVarInt(team.ranks.size());
+		for (Map.Entry<UUID, TeamRank> entry : team.ranks.entrySet()) {
+			buffer.writeUUID(entry.getKey());
+			buffer.writeEnum(entry.getValue());
+		}
+
+		buffer.writeNbt(team.extraData);
 	}
 }

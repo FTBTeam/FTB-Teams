@@ -34,8 +34,6 @@ public record NotifyTeamRenameMessage(UUID teamId, String newName) implements Cu
     }
 
     public static void handle(NotifyTeamRenameMessage message, NetworkManager.PacketContext context) {
-        context.queue(() -> {
-            ClientTeamManagerImpl.getInstance().updateDisplayName(message.teamId, message.newName);
-        });
+        context.queue(() -> ClientTeamManagerImpl.getInstance().updateDisplayName(message.teamId, message.newName));
     }
 }

@@ -15,7 +15,7 @@ import java.util.UUID;
 public record UpdatePropertiesResponseMessage(UUID teamId, TeamPropertyCollection properties) implements CustomPacketPayload {
 	public static final Type<UpdatePropertiesResponseMessage> TYPE = new Type<>(FTBTeamsAPI.rl("update_properties_response"));
 
-	public static StreamCodec<RegistryFriendlyByteBuf, UpdatePropertiesResponseMessage> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, UpdatePropertiesResponseMessage> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC, UpdatePropertiesResponseMessage::teamId,
 			TeamPropertyCollectionImpl.STREAM_CODEC, UpdatePropertiesResponseMessage::properties,
 			UpdatePropertiesResponseMessage::new

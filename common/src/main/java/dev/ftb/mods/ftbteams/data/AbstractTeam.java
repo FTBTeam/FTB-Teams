@@ -26,7 +26,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -200,26 +202,37 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	public List<Component> getTeamInfo() {
 		List<Component> res = new ArrayList<>();
 
-		res.add(Component.literal("== ").append(getName()).append(" ==").withStyle(ChatFormatting.BOLD));
-		res.add(Component.translatable("ftbteams.info.id", Component.literal(getId().toString()).withStyle(ChatFormatting.YELLOW)));
-		res.add(Component.translatable("ftbteams.info.short_id", Component.literal(getShortName()).withStyle(ChatFormatting.YELLOW))
-				.append(" [" + getType().getSerializedName() + "]"));
-
-		res.add(getOwner().equals(Util.NIL_UUID) ?
-				Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none")) :
-				Component.translatable("ftbteams.info.owner", manager.getPlayerName(getOwner()))
+		res.add(Component.literal("== ")
+				.append(getName())
+				.append(Component.literal(" [" + getType().getSerializedName() + "]").withStyle(getType().getColor()))
+				.append(" ==")
 		);
+		res.add(Component.translatable("ftbteams.info.id", FTBTUtils.makeCopyableComponent(getId().toString()).withStyle(ChatFormatting.YELLOW)));
+		res.add(Component.translatable("ftbteams.info.short_id", FTBTUtils.makeCopyableComponent(getShortName()).withStyle(ChatFormatting.YELLOW)));
 
-		res.add(Component.translatable("ftbteams.info.members"));
-		if (getMembers().isEmpty()) {
-			res.add(Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")));
-		} else {
-			for (UUID member : getMembers()) {
-				res.add(Component.literal("- ").append(manager.getPlayerName(member)));
+		if (isPartyTeam()) {
+			res.add(getOwner().equals(Util.NIL_UUID) ?
+					Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none").withStyle(ChatFormatting.GRAY)) :
+					Component.translatable("ftbteams.info.owner", playerWithId(getOwner()))
+			);
+
+			res.add(Component.translatable("ftbteams.info.members"));
+			if (getMembers().isEmpty()) {
+				res.add(Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")).withStyle(ChatFormatting.GRAY));
+			} else {
+				for (UUID member : getMembers()) {
+					res.add(Component.literal("- ").append(playerWithId(member)));
+				}
 			}
 		}
 
 		return res;
+	}
+
+	private Component playerWithId(UUID member) {
+		return manager.getPlayerName(member).copy().withStyle(Style.EMPTY
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(member.toString())))
+		);
 	}
 
 	public int info(CommandSourceStack source) throws CommandSyntaxException {

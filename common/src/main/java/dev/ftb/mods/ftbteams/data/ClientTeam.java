@@ -52,6 +52,10 @@ public class ClientTeam extends AbstractTeamBase {
 		return clientTeam;
 	}
 
+	public static <T> boolean isSyncableProperty(TeamProperty<T> key) {
+		return SYNCABLE_PROPS.contains(key);
+	}
+
 	@Override
 	public TeamType getType() {
 		return type;

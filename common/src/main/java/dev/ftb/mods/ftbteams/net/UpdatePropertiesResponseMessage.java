@@ -2,9 +2,12 @@ package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
+import dev.ftb.mods.ftbteams.api.property.TeamPropertyValue;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
+import net.minecraft.Util;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -20,6 +23,10 @@ public record UpdatePropertiesResponseMessage(UUID teamId, TeamPropertyCollectio
 			TeamPropertyCollectionImpl.STREAM_CODEC, UpdatePropertiesResponseMessage::properties,
 			UpdatePropertiesResponseMessage::new
 	);
+
+	public static <T> UpdatePropertiesResponseMessage oneProperty(UUID teamId, TeamProperty<T> prop, T value) {
+		return new UpdatePropertiesResponseMessage(teamId, Util.make(new TeamPropertyCollectionImpl(), c -> c.set(prop, value)));
+	}
 
 	public static void handle(UpdatePropertiesResponseMessage message, NetworkManager.PacketContext context) {
 		context.queue(() -> FTBTeamsClient.updateSettings(message.teamId, message.properties));

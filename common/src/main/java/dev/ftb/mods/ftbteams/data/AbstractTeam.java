@@ -13,11 +13,10 @@ import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamMessage;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.event.*;
-import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
-import dev.ftb.mods.ftbteams.net.NotifyTeamRenameMessage;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
+import dev.ftb.mods.ftbteams.net.UpdatePropertiesResponseMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -172,8 +171,8 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 				source.sendSuccess(() -> Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
 
 				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
-				if (key.equals(TeamProperties.DISPLAY_NAME)) {
-					NetworkHelper.sendToAll(source.getServer(), new NotifyTeamRenameMessage(getId(), value));
+				if (ClientTeam.isSyncableProperty(key)) {
+					NetworkHelper.sendToAll(source.getServer(), UpdatePropertiesResponseMessage.oneProperty(getId(), key, optional.get()));
 				}
 			} else {
 				source.sendFailure(Component.literal("Failed to parse value!"));

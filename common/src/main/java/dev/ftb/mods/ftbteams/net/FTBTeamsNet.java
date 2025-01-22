@@ -10,6 +10,7 @@ public class FTBTeamsNet {
 		NetworkHelper.registerS2C(UpdatePropertiesResponseMessage.TYPE, UpdatePropertiesResponseMessage.STREAM_CODEC, UpdatePropertiesResponseMessage::handle);
 		NetworkHelper.registerS2C(SendMessageResponseMessage.TYPE, SendMessageResponseMessage.STREAM_CODEC, SendMessageResponseMessage::handle);
 		NetworkHelper.registerS2C(UpdatePresenceMessage.TYPE, UpdatePresenceMessage.STREAM_CODEC, UpdatePresenceMessage::handle);
+		NetworkHelper.registerS2C(NotifyTeamRenameMessage.TYPE, NotifyTeamRenameMessage.STREAM_CODEC, NotifyTeamRenameMessage::handle);
 
 		NetworkHelper.registerC2S(OpenGUIMessage.TYPE, OpenGUIMessage.STREAM_CODEC, OpenGUIMessage::handle);
 		NetworkHelper.registerC2S(UpdatePropertiesRequestMessage.TYPE, UpdatePropertiesRequestMessage.STREAM_CODEC, UpdatePropertiesRequestMessage::handle);

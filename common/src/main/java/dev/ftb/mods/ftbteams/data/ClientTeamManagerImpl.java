@@ -4,6 +4,7 @@ import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
+import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.client.KnownClientPlayerNet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -203,10 +204,18 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 
 		knownPlayers.put(toUpdate.id(), newPlayer);
 
-		FTBTeams.LOGGER.debug("Updated presence of " + newPlayer.name());
+        FTBTeams.LOGGER.debug("Updated presence of {}", newPlayer.name());
 	}
 
 	private KnownClientPlayer updateFrom(UUID id, KnownClientPlayer other) {
 		return new KnownClientPlayer(id, other.name(), other.online(), other.teamId(), other.profile(), other.extraData());
+	}
+
+	public void updateDisplayName(UUID teamId, String newName) {
+		Team team = teamMap.get(teamId);
+		if (team != null) {
+			team.setProperty(TeamProperties.DISPLAY_NAME, newName);
+			FTBTeams.LOGGER.debug("Updated display name of {} to {}", teamId, newName);
+		}
 	}
 }

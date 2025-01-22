@@ -64,12 +64,12 @@ public class MemberButton extends NordButton {
 		if (player.id().equals(self.id())) {
 			if (selfRank.isAtLeast(TeamRank.OWNER)) {
 				if (selfTeam.getMembers().size() == 1) {
-					items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.disband"), Icons.CLOSE,
+					items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.disband"), Icons.CANCEL,
 							(b) -> Operation.LEAVE.sendMessage(player))
 							.setYesNoText(Component.translatable("ftbteams.gui.disband.confirm")));
 				}
 			} else {
-				items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.leave"), Icons.CLOSE,
+				items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.leave"), Icons.CANCEL,
 						(b) -> Operation.LEAVE.sendMessage(player))
 						.setYesNoText(Component.translatable("ftbteams.gui.leave.confirm")));
 			}
@@ -93,7 +93,7 @@ public class MemberButton extends NordButton {
 		}
 		if (selfRank.getPower() > playerRank.getPower()) {
 			if (playerRank.isMemberOrBetter()) {
-				items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.kick", player.name()), Icons.CLOSE,
+				items0.add(new ContextMenuItem(Component.translatable("ftbteams.gui.kick", player.name()), Icons.CANCEL,
 						(b) -> Operation.KICK.sendMessage(player))
 						.setYesNoText(Component.translatable("ftbteams.gui.kick.confirm", player.name())));
 			} else if (selfRank.isOfficerOrBetter() && playerRank.isAllyOrBetter()) {

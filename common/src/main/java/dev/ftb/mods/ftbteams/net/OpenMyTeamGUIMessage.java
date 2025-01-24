@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 public record OpenMyTeamGUIMessage(TeamPropertyCollection properties, PlayerPermissions permissions) implements CustomPacketPayload {
 	public static final Type<OpenMyTeamGUIMessage> TYPE = new Type<>(FTBTeamsAPI.rl("open_my_team_gui"));
 
-	public static StreamCodec<RegistryFriendlyByteBuf, OpenMyTeamGUIMessage> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, OpenMyTeamGUIMessage> STREAM_CODEC = StreamCodec.composite(
 			TeamPropertyCollectionImpl.STREAM_CODEC, OpenMyTeamGUIMessage::properties,
 			PlayerPermissions.STREAM_CODEC, OpenMyTeamGUIMessage::permissions,
 			OpenMyTeamGUIMessage::new

@@ -2,12 +2,15 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.util.UUIDTypeAdapter;
 import com.mojang.util.UndashedUuid;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.GameProfileCache;
@@ -37,29 +40,6 @@ public class FTBTUtils {
 		return profile;
 	}
 
-	public static String serializeProfile(@Nullable GameProfile profile) {
-		if (normalize(profile) == NO_PROFILE) {
-			return "";
-		}
-
-		return UndashedUuid.toString(profile.getId()) + ":" + profile.getName();
-	}
-
-	public static GameProfile deserializeProfile(String string) {
-		if (string.isEmpty()) {
-			return NO_PROFILE;
-		}
-
-		try {
-			String[] s = string.split(":", 2);
-			UUID uuid = UndashedUuid.fromString(s[0]);
-			String name = s[1];
-			return normalize(new GameProfile(uuid, name));
-		} catch (Exception ex) {
-			return NO_PROFILE;
-		}
-	}
-
 	public static Color4I randomColor() {
 		return Color4I.hsb(MathUtils.RAND.nextFloat(), 0.65F, 1F);
 	}
@@ -83,5 +63,11 @@ public class FTBTUtils {
 			}
 		}
 		return playerName + "'s Party";
+	}
+
+	static MutableComponent makeCopyableComponent(String id) {
+		return Component.literal(id)
+				.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.copy.click"))))
+				.withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, id)));
 	}
 }

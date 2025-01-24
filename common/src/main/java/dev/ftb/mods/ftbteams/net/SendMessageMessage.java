@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 public record SendMessageMessage(String msg) implements CustomPacketPayload {
 	public static final Type<SendMessageMessage> TYPE = new Type<>(FTBTeamsAPI.rl("send_message"));
 
-	public static StreamCodec<FriendlyByteBuf, SendMessageMessage> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<FriendlyByteBuf, SendMessageMessage> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.STRING_UTF8, SendMessageMessage::msg,
 			SendMessageMessage::new
 	);

@@ -19,7 +19,7 @@ import java.util.Set;
 public record CreatePartyMessage(String name, String description, int color, Set<GameProfile> invited) implements CustomPacketPayload {
 	public static final Type<CreatePartyMessage> TYPE = new Type<>(FTBTeamsAPI.rl("create_party"));
 
-	public static StreamCodec<FriendlyByteBuf, CreatePartyMessage> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<FriendlyByteBuf, CreatePartyMessage> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.STRING_UTF8, CreatePartyMessage::name,
 			ByteBufCodecs.STRING_UTF8, CreatePartyMessage::description,
 			ByteBufCodecs.INT, CreatePartyMessage::color,

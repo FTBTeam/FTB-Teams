@@ -32,8 +32,7 @@ public interface TeamManager {
     UUID getId();
 
     /**
-     * Get an immutable collection of all teams known to the team manager. Note that this is a copy of the teams;
-     * avoid excessive method calls.
+     * Get an immutable collection of all teams known to the team manager.
      *
      * @return an immutable view of the known teams
      */

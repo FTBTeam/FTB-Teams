@@ -5,7 +5,6 @@ import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.data.AbstractTeam;
 import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -14,7 +13,7 @@ import net.minecraft.server.level.ServerPlayer;
 public record UpdatePropertiesRequestMessage(TeamPropertyCollection properties) implements CustomPacketPayload {
 	public static final Type<UpdatePropertiesRequestMessage> TYPE = new Type<>(FTBTeamsAPI.rl("update_propeties_request"));
 
-	public static StreamCodec<RegistryFriendlyByteBuf, UpdatePropertiesRequestMessage> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, UpdatePropertiesRequestMessage> STREAM_CODEC = StreamCodec.composite(
 			TeamPropertyCollectionImpl.STREAM_CODEC, UpdatePropertiesRequestMessage::properties,
 			UpdatePropertiesRequestMessage::new
 	);

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2101.1.2]
+
+### Changed
+* FTB Teams commands which provide command completion for known teams are now smarter about suggesting only relevant teams 
+  * e.g. `/ftbteams server settings ...` now only lists known server teams, not other team types
+
+### Fixed
+* Fixed bug where renaming a team's display name didn't sync change to clients immediately, causing command completion to provide the previous name
+  * This also means any team names and colors will now be immediately visible on client display (e.g. FTB Chunks) if changed by command
+ 
 ## [2101.1.1]
 
 ### Added

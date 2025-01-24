@@ -82,10 +82,7 @@ public class TeamManagerImpl implements TeamManager {
 
 	@Override
 	public Collection<Team> getTeams() {
-		//noinspection UnstableApiUsage
-		ImmutableList.Builder<Team> b = ImmutableList.builderWithExpectedSize(getTeamMap().size());
-		teamMap.values().forEach(b::add);
-		return b.build();
+		return Collections.unmodifiableCollection(teamMap.values());
 	}
 
 	public Map<String, Team> getTeamNameMap() {
@@ -202,11 +199,10 @@ public class TeamManagerImpl implements TeamManager {
 	public void saveNow() {
 		Path directory = server.getWorldPath(FOLDER_NAME);
 
-		if (Files.notExists(directory)) {
-			try {
-				Files.createDirectories(directory);
-			} catch (Exception ex) {
-				FTBTeams.LOGGER.error("can't create directory {}: {}", directory, ex.getMessage());
+		if (!Files.exists(directory)) {
+			tryCreateDir(directory);
+			for (TeamType type : TeamType.values()) {
+				tryCreateDir(directory.resolve(type.getSerializedName()));
 			}
 		}
 
@@ -216,20 +212,16 @@ public class TeamManagerImpl implements TeamManager {
 			shouldSave = false;
 		}
 
-		for (TeamType type : TeamType.values()) {
-			Path path = directory.resolve(type.getSerializedName());
-
-			if (Files.notExists(path)) {
-				try {
-					Files.createDirectories(path);
-				} catch (Exception ex) {
-					FTBTeams.LOGGER.error("can't create directory {}: {}", path, ex.getMessage());
-				}
-			}
-		}
-
 		for (AbstractTeam team : teamMap.values()) {
 			team.saveIfNeeded(directory, server.registryAccess());
+		}
+	}
+
+	private void tryCreateDir(Path path) {
+		try {
+			Files.createDirectories(path);
+		} catch (Exception ex) {
+			FTBTeams.LOGGER.error("can't create directory {}: {} {}", path, ex.getClass().getName(), ex.getMessage());
 		}
 	}
 

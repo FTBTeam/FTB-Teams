@@ -4,6 +4,7 @@ import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
+import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.client.KnownClientPlayerNet;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -26,7 +27,7 @@ import java.util.*;
 public class ClientTeamManagerImpl implements ClientTeamManager {
 	private static ClientTeamManagerImpl INSTANCE;  // instantiated whenever the client receives a full team sync from server
 
-	public static StreamCodec<RegistryFriendlyByteBuf, ClientTeamManagerImpl> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, ClientTeamManagerImpl> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC, m -> m.managerId,
 			ByteBufCodecs.map(HashMap::new, UUIDUtil.STREAM_CODEC, ClientTeam.STREAM_CODEC), m -> m.teamMap,
 			ByteBufCodecs.map(HashMap::new, UUIDUtil.STREAM_CODEC, KnownClientPlayerNet.STREAM_CODEC), m -> m.knownPlayers,
@@ -203,10 +204,18 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 
 		knownPlayers.put(toUpdate.id(), newPlayer);
 
-		FTBTeams.LOGGER.debug("Updated presence of " + newPlayer.name());
+        FTBTeams.LOGGER.debug("Updated presence of {}", newPlayer.name());
 	}
 
 	private KnownClientPlayer updateFrom(UUID id, KnownClientPlayer other) {
 		return new KnownClientPlayer(id, other.name(), other.online(), other.teamId(), other.profile(), other.extraData());
+	}
+
+	public void updateDisplayName(UUID teamId, String newName) {
+		Team team = teamMap.get(teamId);
+		if (team != null) {
+			team.setProperty(TeamProperties.DISPLAY_NAME, newName);
+			FTBTeams.LOGGER.debug("Updated display name of {} to {}", teamId, newName);
+		}
 	}
 }

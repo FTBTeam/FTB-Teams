@@ -19,29 +19,24 @@ import java.util.function.BiConsumer;
 public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	private final PropertyMap map = new PropertyMap();
 
-	public static StreamCodec<RegistryFriendlyByteBuf, TeamPropertyCollection> STREAM_CODEC = new StreamCodec<>() {
-        @Override
-        public TeamPropertyCollectionImpl decode(RegistryFriendlyByteBuf buffer) {
-			TeamPropertyCollectionImpl props = new TeamPropertyCollectionImpl();
-
-			int nProperties = buffer.readVarInt();
-			for (int i = 0; i < nProperties; i++) {
-				TeamProperty<?> tp = TeamPropertyType.read(buffer);
-				props.map.putNetworkProperty(tp, buffer);
+	public static final StreamCodec<RegistryFriendlyByteBuf, TeamPropertyCollection> STREAM_CODEC = StreamCodec.of(
+            (buffer, props) -> {
+				buffer.writeVarInt(props.size());
+				props.forEach((prop, value) -> {
+					TeamPropertyType.write(buffer, prop);
+					prop.writeValue(buffer, value.getValue());
+				});
+            },
+            buffer -> {
+				TeamPropertyCollectionImpl props = new TeamPropertyCollectionImpl();
+				int nProperties = buffer.readVarInt();
+				for (int i = 0; i < nProperties; i++) {
+					TeamProperty<?> tp = TeamPropertyType.read(buffer);
+					props.map.putNetworkProperty(tp, buffer);
+				}
+				return props;
 			}
-            return props;
-        }
-
-        @Override
-        public void encode(RegistryFriendlyByteBuf buffer, TeamPropertyCollection props) {
-			buffer.writeVarInt(props.size());
-
-			props.forEach((prop, value) -> {
-				TeamPropertyType.write(buffer, prop);
-				prop.writeValue(buffer, value.getValue());
-			});
-        }
-    };
+    );
 
 	public void collectProperties() {
 		map.clear();
@@ -119,8 +114,8 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	}
 
 	private static class PropertyMap {
-		Map<Object, Object> backingMap = new LinkedHashMap<>();
-		Map<ResourceLocation, TeamProperty<?>> byId = new HashMap<>();
+		final Map<Object, Object> backingMap = new LinkedHashMap<>();
+		final Map<ResourceLocation, TeamProperty<?>> byId = new HashMap<>();
 
 		void clear() {
 			backingMap.clear();

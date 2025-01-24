@@ -13,7 +13,7 @@ public record OpenGUIMessage() implements CustomPacketPayload {
 
 	private static final OpenGUIMessage INSTANCE = new OpenGUIMessage();
 
-	public static StreamCodec<FriendlyByteBuf, OpenGUIMessage> STREAM_CODEC = StreamCodec.unit(INSTANCE);
+	public static final StreamCodec<FriendlyByteBuf, OpenGUIMessage> STREAM_CODEC = StreamCodec.unit(INSTANCE);
 
 	public static void handle(@SuppressWarnings("unused") OpenGUIMessage message, NetworkManager.PacketContext context) {
 		context.queue(() -> {

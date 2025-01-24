@@ -5,6 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
@@ -15,6 +16,7 @@ import dev.ftb.mods.ftbteams.api.event.*;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
+import dev.ftb.mods.ftbteams.net.UpdatePropertiesResponseMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -23,7 +25,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -86,7 +90,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		TeamEvent.PLAYER_CHANGED.invoker().accept(new PlayerChangedTeamEvent(this, prev, player, p));
 
 		if (prev instanceof PartyTeam && this instanceof PlayerTeam) {
-			TeamEvent.PLAYER_LEFT_PARTY.invoker().accept(new PlayerLeftPartyTeamEvent(prev, (PlayerTeam) this, player, p, deleted));
+			TeamEvent.PLAYER_LEFT_PARTY.invoker().accept(new PlayerLeftPartyTeamEvent(prev, this, player, p, deleted));
 		} else if (prev instanceof PlayerTeam && p != null) {
 			TeamEvent.PLAYER_JOINED_PARTY.invoker().accept(new PlayerJoinedPartyTeamEvent(this, prev, p));
 		}
@@ -167,6 +171,9 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 				source.sendSuccess(() -> Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
 
 				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
+				if (ClientTeam.isSyncableProperty(key)) {
+					NetworkHelper.sendToAll(source.getServer(), UpdatePropertiesResponseMessage.oneProperty(getId(), key, optional.get()));
+				}
 			} else {
 				source.sendFailure(Component.literal("Failed to parse value!"));
 				return 0;
@@ -183,70 +190,48 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 			source.sendSuccess(() -> Component.translatable("ftbteams.message.declined"), true);
 			markDirty();
 			manager.syncToAll(this);
+			return Command.SINGLE_SUCCESS;
 		} else {
 			FTBTeams.LOGGER.warn("ignore invitation decline for player {} to team {} (not invited)", player.getUUID(), getId());
+			return 0;
 		}
-
-		return Command.SINGLE_SUCCESS;
 	}
 
 	@Override
 	public List<Component> getTeamInfo() {
 		List<Component> res = new ArrayList<>();
 
-		res.add(Component.literal("== ").append(getName()).append(" ==").withStyle(ChatFormatting.BOLD));
-		res.add(Component.translatable("ftbteams.info.id", Component.literal(getId().toString()).withStyle(ChatFormatting.YELLOW)));
-		res.add(Component.translatable("ftbteams.info.short_id", Component.literal(getShortName()).withStyle(ChatFormatting.YELLOW))
-				.append(" [" + getType().getSerializedName() + "]"));
-
-		res.add(getOwner().equals(Util.NIL_UUID) ?
-				Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none")) :
-				Component.translatable("ftbteams.info.owner", manager.getPlayerName(getOwner()))
+		res.add(Component.literal("== ")
+				.append(getName())
+				.append(Component.literal(" [" + getType().getSerializedName() + "]").withStyle(getType().getColor()))
+				.append(" ==")
 		);
+		res.add(Component.translatable("ftbteams.info.id", FTBTUtils.makeCopyableComponent(getId().toString()).withStyle(ChatFormatting.YELLOW)));
+		res.add(Component.translatable("ftbteams.info.short_id", FTBTUtils.makeCopyableComponent(getShortName()).withStyle(ChatFormatting.YELLOW)));
 
-		res.add(Component.translatable("ftbteams.info.members"));
-		if (getMembers().isEmpty()) {
-			res.add(Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")));
-		} else {
-			for (UUID member : getMembers()) {
-				res.add(Component.literal("- ").append(manager.getPlayerName(member)));
+		if (isPartyTeam()) {
+			res.add(getOwner().equals(Util.NIL_UUID) ?
+					Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none").withStyle(ChatFormatting.GRAY)) :
+					Component.translatable("ftbteams.info.owner", playerWithId(getOwner()))
+			);
+
+			res.add(Component.translatable("ftbteams.info.members"));
+			if (getMembers().isEmpty()) {
+				res.add(Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")).withStyle(ChatFormatting.GRAY));
+			} else {
+				for (UUID member : getMembers()) {
+					res.add(Component.literal("- ").append(playerWithId(member)));
+				}
 			}
 		}
 
 		return res;
 	}
 
-	public int info(CommandSourceStack source) throws CommandSyntaxException {
-		source.sendSuccess(Component::empty, false);
-
-		MutableComponent infoComponent = Component.literal("");
-		infoComponent.getStyle().withBold(true);
-		infoComponent.append("== ");
-		infoComponent.append(getName());
-		infoComponent.append(" ==");
-		source.sendSuccess(() -> infoComponent, false);
-
-		source.sendSuccess(() -> Component.translatable("ftbteams.info.id", Component.literal(getId().toString()).withStyle(ChatFormatting.YELLOW)), false);
-		source.sendSuccess(() -> Component.translatable("ftbteams.info.short_id", Component.literal(getShortName()).withStyle(ChatFormatting.YELLOW)).append(" [" + getType().getSerializedName() + "]"), false);
-
-		if (getOwner().equals(Util.NIL_UUID)) {
-			source.sendSuccess(() -> Component.translatable("ftbteams.info.owner", Component.translatable("ftbteams.info.owner.none")), false);
-		} else {
-			source.sendSuccess(() -> Component.translatable("ftbteams.info.owner", manager.getPlayerName(getOwner())), false);
-		}
-
-		source.sendSuccess(() -> Component.translatable("ftbteams.info.members"), false);
-
-		if (getMembers().isEmpty()) {
-			source.sendSuccess(() -> Component.literal("- ").append(Component.translatable("ftbteams.info.members.none")), false);
-		} else {
-			for (UUID member : getMembers()) {
-				source.sendSuccess(() -> Component.literal("- ").append(manager.getPlayerName(member)), false);
-			}
-		}
-
-		TeamEvent.INFO.invoker().accept(new TeamInfoEvent(this, source));
-		return Command.SINGLE_SUCCESS;
+	private Component playerWithId(UUID member) {
+		return manager.getPlayerName(member).copy().withStyle(Style.EMPTY
+				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(member.toString())))
+		);
 	}
 
 	@Override

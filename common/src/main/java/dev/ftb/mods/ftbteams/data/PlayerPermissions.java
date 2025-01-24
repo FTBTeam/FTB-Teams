@@ -7,7 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.level.ServerPlayer;
 
 public record PlayerPermissions(boolean createParty, boolean invitePlayer, boolean addAlly) {
-    public static StreamCodec<FriendlyByteBuf, PlayerPermissions> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<FriendlyByteBuf, PlayerPermissions> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL, PlayerPermissions::createParty,
             ByteBufCodecs.BOOL, PlayerPermissions::invitePlayer,
             ByteBufCodecs.BOOL, PlayerPermissions::addAlly,

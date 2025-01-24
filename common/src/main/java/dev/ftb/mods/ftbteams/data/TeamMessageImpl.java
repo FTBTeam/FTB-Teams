@@ -14,7 +14,7 @@ import net.minecraft.network.codec.StreamCodec;
 import java.util.UUID;
 
 public record TeamMessageImpl(UUID sender, long date, Component text) implements TeamMessage {
-	public static StreamCodec<RegistryFriendlyByteBuf, TeamMessage> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, TeamMessage> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC, TeamMessage::sender,
 			ByteBufCodecs.VAR_LONG, TeamMessage::date,
 			ComponentSerialization.STREAM_CODEC, TeamMessage::text,

@@ -15,7 +15,7 @@ import java.util.UUID;
 public record SendMessageResponseMessage(UUID senderId, Component text) implements CustomPacketPayload {
 	public static final Type<SendMessageResponseMessage> TYPE = new Type<>(FTBTeamsAPI.rl("send_message_response"));
 
-	public static StreamCodec<RegistryFriendlyByteBuf, SendMessageResponseMessage> STREAM_CODEC = StreamCodec.composite(
+	public static final StreamCodec<RegistryFriendlyByteBuf, SendMessageResponseMessage> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC, SendMessageResponseMessage::senderId,
 			ComponentSerialization.STREAM_CODEC, SendMessageResponseMessage::text,
 			SendMessageResponseMessage::new

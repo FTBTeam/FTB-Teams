@@ -23,10 +23,13 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashSet;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType ALREADY_IN_PARTY = new SimpleCommandExceptionType(Component.translatable("ftbteams.already_in_party"));
@@ -43,16 +46,23 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType NAME_TOO_SHORT = new SimpleCommandExceptionType(Component.translatable("ftbteams.name_too_short"));
 	public static final SimpleCommandExceptionType NO_PERMISSION = new SimpleCommandExceptionType(Component.translatable("ftbteams.server_permissions_prevent"));
 
-	public static TeamArgument create() {
-		return new TeamArgument();
+	private final TeamType type;
+
+    public static TeamArgument create() {
+		return new TeamArgument(null);
+	}
+
+	public static TeamArgument create(TeamType type) {
+		return new TeamArgument(type);
 	}
 
 	public static Team get(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
 		return context.getArgument(name, TeamArgumentProvider.class).getTeam(context.getSource());
 	}
 
-	private TeamArgument() {
-	}
+	private TeamArgument(@Nullable TeamType type) {
+        this.type = type;
+    }
 
 	private static class SelectorProvider implements TeamArgumentProvider {
 		private final EntitySelector selector;
@@ -119,57 +129,60 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	@Override
 	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> commandContext, SuggestionsBuilder builder) {
 		if (commandContext.getSource() instanceof SharedSuggestionProvider) {
-			LinkedHashSet<String> list = new LinkedHashSet<>();
-
-			FTBTeamsAPI.API api = FTBTeamsAPI.api();
-			if (commandContext.getSource() instanceof CommandSourceStack) {
-				if (api.isManagerLoaded()) {
-					for (Team team : api.getManager().getTeams()) {
-						if (!team.isPlayerTeam()) {
-							list.add(team.getShortName());
-						}
-					}
-				}
-			} else if (api.isClientManagerLoaded()) {
-				for (Team team : api.getClientManager().getTeams()) {
-					if (!team.isPlayerTeam()) {
-						list.add(team.getShortName());
-					}
-				}
-			}
-
-			list.addAll(((SharedSuggestionProvider) commandContext.getSource()).getOnlinePlayerNames());
+			Stream<String> list = getTeams(commandContext).stream()
+					.filter(t -> type == null || type.matches(t))
+					.map(Team::getShortName)
+					.sorted();
 			return SharedSuggestionProvider.suggest(list, builder);
 		}
 
 		return Suggestions.empty();
 	}
 
+	private Collection<Team> getTeams(CommandContext<?> context) {
+		FTBTeamsAPI.API api = FTBTeamsAPI.api();
+		if (context.getSource() instanceof CommandSourceStack && api.isManagerLoaded()) {
+			return api.getManager().getTeams();
+		} else if (api.isClientManagerLoaded()) {
+			return api.getClientManager().getTeams();
+		} else {
+			return List.of();
+		}
+	}
+
 	public static class Info implements ArgumentTypeInfo<TeamArgument, Info.Template> {
 		@Override
-		public void serializeToNetwork(Template template, FriendlyByteBuf friendlyByteBuf) {
-
+		public void serializeToNetwork(Template template, FriendlyByteBuf buf) {
+			buf.writeNullable(template.teamType, FriendlyByteBuf::writeEnum);
 		}
 
 		@Override
-		public Template deserializeFromNetwork(FriendlyByteBuf friendlyByteBuf) {
-			return new Template();
+		public Template deserializeFromNetwork(FriendlyByteBuf buf) {
+			return new Template(buf.readNullable(b -> b.readEnum(TeamType.class)));
 		}
 
 		@Override
 		public void serializeToJson(Template template, JsonObject jsonObject) {
-
+			if (template.teamType != null) {
+				jsonObject.addProperty("type", template.teamType.name());
+			}
 		}
 
 		@Override
 		public Template unpack(TeamArgument argumentType) {
-			return new Template();
+			return new Template(argumentType.type);
 		}
 
 		public final class Template implements ArgumentTypeInfo.Template<TeamArgument> {
+			private final TeamType teamType;
+
+			public Template(TeamType teamType) {
+				this.teamType = teamType;
+			}
+
 			@Override
 			public TeamArgument instantiate(CommandBuildContext commandBuildContext) {
-				return TeamArgument.create();
+				return TeamArgument.create(teamType);
 			}
 
 			@Override

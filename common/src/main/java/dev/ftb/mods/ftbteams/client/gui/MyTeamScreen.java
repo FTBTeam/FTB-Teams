@@ -95,7 +95,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		});
 
 		if (ClientTeamManagerImpl.getInstance().self() == null) {
-			add(missingDataButton = new SimpleButton(this, Component.empty(), Icons.CLOSE, (w, mb) -> {}) {
+			add(missingDataButton = new SimpleButton(this, Component.empty(), Icons.CANCEL, (w, mb) -> {}) {
 				@Override
 				public void addMouseOverText(TooltipList list) {
 					list.add(Component.translatable("ftbteams.missing_data").withStyle(ChatFormatting.RED));

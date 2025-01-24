@@ -18,7 +18,7 @@ import java.util.List;
 public record SyncMessageHistoryMessage(List<TeamMessage> messages) implements CustomPacketPayload {
     public static final Type<SyncMessageHistoryMessage> TYPE = new Type<>(FTBTeamsAPI.rl("sync_msg_history"));
 
-    public static StreamCodec<RegistryFriendlyByteBuf, SyncMessageHistoryMessage> STREAM_CODEC = StreamCodec.composite(
+    public static final StreamCodec<RegistryFriendlyByteBuf, SyncMessageHistoryMessage> STREAM_CODEC = StreamCodec.composite(
             TeamMessageImpl.STREAM_CODEC.apply(ByteBufCodecs.list()), SyncMessageHistoryMessage::messages,
             SyncMessageHistoryMessage::new
     );

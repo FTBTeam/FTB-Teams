@@ -8,11 +8,11 @@ import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
-import net.minecraft.ChatFormatting;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
@@ -125,25 +125,20 @@ public abstract class AbstractTeamBase implements Team {
 
 	@Override
 	public Component getName() {
-		MutableComponent text = Component.literal(getDisplayName());
-
-		if (getType().isPlayer()) {
-			text.withStyle(ChatFormatting.GRAY);
-		} else if (getType().isServer()) {
-			text.withStyle(ChatFormatting.RED);
-		} else {
-			text.withStyle(ChatFormatting.AQUA);
-		}
-
-		text.setStyle(text.getStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getShortName())));
-		return text;
+        return Component.literal(getDisplayName()).withStyle(Style.EMPTY
+                .withColor(getType().getColor())
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getShortName()))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("ftbteams.click_show_info")))
+        );
 	}
 
 	@Override
 	public Component getColoredName() {
-		MutableComponent text = Component.literal(getDisplayName());
-		text.withStyle(getProperty(TeamProperties.COLOR).toStyle().withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getShortName())));
-		return text;
+        return Component.literal(getDisplayName())
+                .withStyle(getProperty(TeamProperties.COLOR).toStyle()
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getShortName()))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("ftbteams.click_show_info")))
+        );
 	}
 
 	@Override
@@ -229,7 +224,7 @@ public abstract class AbstractTeamBase implements Team {
 	public void addMessages(Collection<TeamMessage> messages) {
 		messageHistory.addAll(messages);
 		while (messageHistory.size() > getMaxMessageHistorySize()) {
-			messageHistory.remove(0);
+			messageHistory.removeFirst();
 		}
 		markDirty();
 	}

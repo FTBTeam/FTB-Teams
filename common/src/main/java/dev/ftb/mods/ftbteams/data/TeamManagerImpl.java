@@ -46,7 +46,7 @@ public class TeamManagerImpl implements TeamManager {
 	private boolean shouldSave;
 	private final Map<UUID, PlayerTeam> knownPlayers;
 	private final Map<UUID, AbstractTeam> teamMap;
-	Map<String, Team> nameMap;
+	private Map<String, Team> nameMap;
 	private CompoundTag extraData;
 
 	public TeamManagerImpl(MinecraftServer s) {
@@ -454,5 +454,9 @@ public class TeamManagerImpl implements TeamManager {
 				FTBTeams.LOGGER.error("can't delete directory {}: {}", teamFilePath, e1.getMessage());
 			}
 		}
+	}
+
+	void invalidateNameMap() {
+		nameMap = null;
 	}
 }

@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 * Fixed the `/ftbteams party settings_for ...` command not functioning correctly
+* Fixed bug where renaming a team's display name didn't sync change to clients immediately, causing command completion to provide the previous name
+  * This also means any team names and colors will now be immediately visible on client display (e.g. FTB Chunks) if changed by command
 
 ## [2001.3.0]
 

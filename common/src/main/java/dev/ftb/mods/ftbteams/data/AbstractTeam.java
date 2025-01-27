@@ -14,6 +14,7 @@ import dev.ftb.mods.ftbteams.api.event.*;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
+import dev.ftb.mods.ftbteams.net.UpdatePropertiesResponseMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -46,7 +47,12 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	@Override
 	public void markDirty() {
 		shouldSave = true;
-		manager.nameMap = null;
+	}
+
+	@Override
+	protected void onTeamNameChanged() {
+		manager.invalidateNameMap();
+		manager.syncToAll(this);
 	}
 
 	public List<ServerPlayer> getOnlineRanked(TeamRank rank) {
@@ -84,7 +90,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		TeamEvent.PLAYER_CHANGED.invoker().accept(new PlayerChangedTeamEvent(this, prev, player, p));
 
 		if (prev instanceof PartyTeam && this instanceof PlayerTeam) {
-			TeamEvent.PLAYER_LEFT_PARTY.invoker().accept(new PlayerLeftPartyTeamEvent(prev, (PlayerTeam) this, player, p, deleted));
+			TeamEvent.PLAYER_LEFT_PARTY.invoker().accept(new PlayerLeftPartyTeamEvent(prev, this, player, p, deleted));
 		} else if (prev instanceof PlayerTeam && p != null) {
 			TeamEvent.PLAYER_JOINED_PARTY.invoker().accept(new PlayerJoinedPartyTeamEvent(this, prev, p));
 		}
@@ -165,6 +171,9 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 				source.sendSuccess(() -> Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
 
 				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
+				if (ClientTeam.isSyncableProperty(key)) {
+					UpdatePropertiesResponseMessage.oneProperty(getId(), key, optional.get()).sendToAll(source.getServer());
+				}
 			} else {
 				source.sendFailure(Component.literal("Failed to parse value!"));
 				return 0;

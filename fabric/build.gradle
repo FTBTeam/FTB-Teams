@@ -115,7 +115,7 @@ if (ENV.CURSEFORGE_KEY) {
 				requiredDependency 'fabric-api'
 				requiredDependency 'ftb-library-fabric'
 			}
-			changelog = ENV.CHANGELOG  // expected to exist if ENV.CURSEFORGE does
+			changelog = createChangelog(project)
 			changelogType = 'markdown'
 		}
 	}

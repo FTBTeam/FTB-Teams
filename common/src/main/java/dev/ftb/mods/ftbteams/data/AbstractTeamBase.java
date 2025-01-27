@@ -90,8 +90,13 @@ public abstract class AbstractTeamBase implements Team {
 	@Override
 	public <T> void setProperty(TeamProperty<T> property, T value) {
 		properties.set(property, value);
+		if (property.equals(TeamProperties.DISPLAY_NAME)) {
+			onTeamNameChanged();
+		}
 		markDirty();
 	}
+
+	protected abstract void onTeamNameChanged();
 
 	public String getDisplayName() {
 		return getProperty(TeamProperties.DISPLAY_NAME);

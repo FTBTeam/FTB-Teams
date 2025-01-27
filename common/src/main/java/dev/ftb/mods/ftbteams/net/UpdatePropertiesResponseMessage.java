@@ -3,9 +3,11 @@ package dev.ftb.mods.ftbteams.net;
 import dev.architectury.networking.NetworkManager;
 import dev.architectury.networking.simple.BaseS2CMessage;
 import dev.architectury.networking.simple.MessageType;
+import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
+import net.minecraft.Util;
 import net.minecraft.network.FriendlyByteBuf;
 
 import java.util.UUID;
@@ -23,6 +25,10 @@ public class UpdatePropertiesResponseMessage extends BaseS2CMessage {
 	public UpdatePropertiesResponseMessage(UUID id, TeamPropertyCollection p) {
 		teamId = id;
 		properties = p;
+	}
+
+	public static <T> UpdatePropertiesResponseMessage oneProperty(UUID teamId, TeamProperty<T> prop, T value) {
+		return new UpdatePropertiesResponseMessage(teamId, Util.make(new TeamPropertyCollectionImpl(), c -> c.set(prop, value)));
 	}
 
 	@Override

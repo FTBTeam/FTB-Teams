@@ -87,5 +87,6 @@
 	"ftbteams.message.deleted_server_team": "¡Se eliminó el equipo de servidor '%s'!",
 	"ftbteams.message.team_disbanded": "¡Se disolvió forzosamente el equipo de grupo '%s' (%s)!",
 	"ftbteams.accept": "Aceptar ✔",
-	"ftbteams.decline": "Rechazar ✘"
+	"ftbteams.decline": "Rechazar ✘",
+	"ftbteams.click_show_info": "Haz clic para mostrar información de equipo"
 }

@@ -61,8 +61,10 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 
 	@Override
 	public Optional<Boolean> fromNBT(Tag tag) {
-        return tag instanceof NumericTag n ? n.getAsByte() == 1 ? TRUE : FALSE : Optional.empty();
-    }
+		if (tag instanceof NumericTag) {
+			if (tag.asByte().orElse((byte) 0) == 1) {
+				return TRUE;
+			}
 
 	@Override
 	public void writeValue(RegistryFriendlyByteBuf buf, Boolean value) {

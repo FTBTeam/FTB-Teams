@@ -80,7 +80,7 @@ public class PlayerTeam extends AbstractTeam {
 	@Override
 	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
 		super.deserializeNBT(tag, provider);
-		playerName = tag.getString("player_name");
+		playerName = tag.getStringOr("player_name", "");
 	}
 
 	@Nullable

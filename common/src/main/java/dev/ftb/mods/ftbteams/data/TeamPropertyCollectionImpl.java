@@ -104,7 +104,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	}
 
 	public void read(CompoundTag tag) {
-		tag.getAllKeys().forEach(key -> map.findProperty(key).ifPresent(prop -> map.putNBTProperty(prop, tag.get(key))));
+		tag.keySet().forEach(key -> map.findProperty(key).ifPresent(prop -> map.putNBTProperty(prop, tag.get(key))));
 	}
 
 	public CompoundTag write(CompoundTag tag) {

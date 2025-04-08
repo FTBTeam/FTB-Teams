@@ -79,7 +79,7 @@ public class EnumProperty extends TeamProperty<String> {
 	@Override
 	public Optional<String> fromNBT(Tag tag) {
 		if (tag instanceof StringTag) {
-			return Optional.of(tag.getAsString());
+			return tag.asString();
 		}
 
 		return Optional.empty();

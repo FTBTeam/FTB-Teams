@@ -25,7 +25,9 @@ dependencies {
 	modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
 	modApi "dev.architectury:architectury-fabric:${rootProject.architectury_api_version}"
 
-	modApi("dev.ftb.mods:ftb-library-fabric:${rootProject.ftb_library_version}") { transitive false }
+	modApi("dev.ftb.mods:ftb-library-fabric:${rootProject.ftb_library_version}") {
+		exclude group: "mezz.jei", module: "jei-1.21.1-fabric-api"
+	}
 	//modRuntime("dev.ftb.mods:ftb-chunks-fabric:${rootProject.ftb_chunks_version}") { transitive false }
 
 	common(project(path: ":common", configuration: "namedElements")) { transitive false }

@@ -13,6 +13,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -36,13 +37,13 @@ public class PartyTeam extends AbstractTeam {
 
 	@Override
 	protected void serializeExtraNBT(CompoundTag tag) {
-		tag.putString("owner", owner.toString());
+		tag.store("owner", UUIDUtil.CODEC, owner);
 	}
 
 	@Override
 	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
 		super.deserializeNBT(tag, provider);
-		owner = UUID.fromString(tag.getString("owner"));
+		owner = tag.read("owner", UUIDUtil.CODEC).orElseThrow();
 	}
 
 	@Override
@@ -126,7 +127,7 @@ public class PartyTeam extends AbstractTeam {
 
 	private Component makeInviteButton(String xlate, ChatFormatting color, String command) {
 		return Component.translatable(xlate)
-				.withStyle(Style.EMPTY.withColor(color).withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command)));
+				.withStyle(Style.EMPTY.withColor(color).withClickEvent(new ClickEvent.RunCommand(command)));
 	}
 
 	public int kick(CommandSourceStack from, Collection<GameProfile> players) throws CommandSyntaxException {

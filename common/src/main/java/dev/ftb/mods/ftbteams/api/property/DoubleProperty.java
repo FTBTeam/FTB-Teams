@@ -69,7 +69,7 @@ public class DoubleProperty extends TeamProperty<Double> {
 	@Override
 	public Optional<Double> fromNBT(Tag tag) {
 		if (tag instanceof NumericTag) {
-			return Optional.of(Mth.clamp(((NumericTag) tag).getAsDouble(), minValue, maxValue));
+			return Optional.of(Mth.clamp(tag.asDouble().orElse(minValue), minValue, maxValue));
 		}
 
 		return Optional.empty();

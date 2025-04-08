@@ -67,7 +67,7 @@ public class FTBTUtils {
 
 	static MutableComponent makeCopyableComponent(String id) {
 		return Component.literal(id)
-				.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("chat.copy.click"))))
-				.withStyle(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, id)));
+				.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.translatable("chat.copy.click"))))
+				.withStyle(style -> style.withClickEvent(new ClickEvent.CopyToClipboard(id)));
 	}
 }

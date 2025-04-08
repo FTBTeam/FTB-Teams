@@ -79,7 +79,7 @@ public abstract class TeamProperty<T> {
 	}
 
 	public Optional<T> fromNBT(Tag tag) {
-		return fromString(tag.getAsString());
+		return fromString(tag.asString().orElseThrow());
 	}
 
 	public TeamPropertyValue<T> createDefaultValue() {

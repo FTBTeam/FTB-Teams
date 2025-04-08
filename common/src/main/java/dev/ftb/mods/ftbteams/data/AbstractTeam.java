@@ -21,6 +21,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -108,7 +109,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	public SNBTCompoundTag serializeNBT(HolderLookup.Provider provider) {
 		SNBTCompoundTag tag = new SNBTCompoundTag();
-		tag.putString("id", getId().toString());
+		tag.store("id", UUIDUtil.CODEC, getId());
 		tag.putString("type", getType().getSerializedName());
 		serializeExtraNBT(tag);
 
@@ -120,12 +121,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		tag.put("ranks", ranksNBT);
 		tag.put("properties", properties.write(new SNBTCompoundTag()));
-
-		ListTag messageHistoryTag = new ListTag();
-		for (TeamMessage msg : getMessageHistory()) {
-			messageHistoryTag.add(TeamMessageImpl.toNBT(msg, provider));
-		}
-		tag.put("message_history", messageHistoryTag);
+		tag.store("message_history", TeamMessageImpl.LIST_CODEC, getMessageHistory());
 
 		TeamEvent.SAVED.invoker().accept(new TeamEvent(this));
 		tag.put("extra", extraData);
@@ -138,20 +134,17 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
 		ranks.clear();
-		CompoundTag ranksNBT = tag.getCompound("ranks");
+		CompoundTag ranksNBT = tag.getCompoundOrEmpty("ranks");
 
-		for (String s : ranksNBT.getAllKeys()) {
-			ranks.put(UUID.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s)));
+		for (String s : ranksNBT.keySet()) {
+			ranks.put(UUID.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s).orElseThrow()));
 		}
 
-		properties.read(tag.getCompound("properties"));
-		extraData = tag.getCompound("extra");
+		properties.read(tag.getCompoundOrEmpty("properties"));
+		extraData = tag.getCompoundOrEmpty("extra");
 		messageHistory.clear();
 
-		ListTag messageHistoryTag = tag.getList("message_history", Tag.TAG_COMPOUND);
-		for (int i = 0; i < messageHistoryTag.size(); i++) {
-			addMessage(TeamMessageImpl.fromNBT(messageHistoryTag.getCompound(i), provider));
-		}
+		tag.read("message_history", TeamMessageImpl.LIST_CODEC).orElse(List.of()).forEach(this::addMessage);
 
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
 	}
@@ -230,7 +223,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	private Component playerWithId(UUID member) {
 		return manager.getPlayerName(member).copy().withStyle(Style.EMPTY
-				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(member.toString())))
+				.withHoverEvent(new HoverEvent.ShowText(Component.literal(member.toString())))
 		);
 	}
 

@@ -62,7 +62,7 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 	@Override
 	public Optional<Boolean> fromNBT(Tag tag) {
 		if (tag instanceof NumericTag) {
-			if (((NumericTag) tag).getAsByte() == 1) {
+			if (tag.asByte().orElse((byte) 0) == 1) {
 				return TRUE;
 			}
 

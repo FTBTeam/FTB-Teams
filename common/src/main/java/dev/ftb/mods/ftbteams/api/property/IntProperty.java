@@ -73,7 +73,7 @@ public class IntProperty extends TeamProperty<Integer> {
 	@Override
 	public Optional<Integer> fromNBT(Tag tag) {
 		if (tag instanceof NumericTag) {
-			return Optional.of(Mth.clamp(((NumericTag) tag).getAsInt(), minValue, maxValue));
+			return Optional.of(Mth.clamp(tag.asInt().orElse(minValue), minValue, maxValue));
 		}
 
 		return Optional.empty();

@@ -67,7 +67,7 @@ public class StringListProperty extends TeamProperty<List<String>> {
     public Optional<List<String>> fromNBT(Tag tag) {
         List<String> res = new ArrayList<>();
         if (tag instanceof ListTag l) {
-            l.forEach(t -> res.add(t.getAsString()));
+            l.forEach(t -> res.add(t.asString().orElse("")));
             return Optional.of(res);
         } else {
             return Optional.empty();

@@ -20,6 +20,7 @@ import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -145,10 +146,10 @@ public class TeamManagerImpl implements TeamManager {
 
 		if (dataFileTag != null) {
 			if (dataFileTag.contains("id")) {
-				id = UUID.fromString(dataFileTag.getString("id"));
+				id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
 			}
 
-			extraData = dataFileTag.getCompound("extra");
+			extraData = dataFileTag.getCompoundOrEmpty("extra");
 			TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
 		}
 
@@ -160,7 +161,7 @@ public class TeamManagerImpl implements TeamManager {
 					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
 						CompoundTag nbt = SNBT.read(file);
 						if (nbt != null) {
-							AbstractTeam team = type.createTeam(this, UUID.fromString(nbt.getString("id")));
+							AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt, server.registryAccess());
 						}
@@ -227,7 +228,7 @@ public class TeamManagerImpl implements TeamManager {
 
 	public SNBTCompoundTag serializeNBT() {
 		SNBTCompoundTag nbt = new SNBTCompoundTag();
-		nbt.putString("id", getId().toString());
+		nbt.store("id", UUIDUtil.CODEC, getId());
 		nbt.put("extra", extraData);
 		return nbt;
 	}

@@ -127,8 +127,8 @@ public abstract class AbstractTeamBase implements Team {
 	public Component getName() {
         return Component.literal(getDisplayName()).withStyle(Style.EMPTY
                 .withColor(getType().getColor())
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getShortName()))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("ftbteams.click_show_info")))
+                .withClickEvent(new ClickEvent.RunCommand("/ftbteams info " + getShortName()))
+                .withHoverEvent(new HoverEvent.ShowText(Component.translatable("ftbteams.click_show_info")))
         );
 	}
 
@@ -136,8 +136,8 @@ public abstract class AbstractTeamBase implements Team {
 	public Component getColoredName() {
         return Component.literal(getDisplayName())
                 .withStyle(getProperty(TeamProperties.COLOR).toStyle()
-                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/ftbteams info " + getShortName()))
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("ftbteams.click_show_info")))
+                .withClickEvent(new ClickEvent.RunCommand("/ftbteams info " + getShortName()))
+                .withHoverEvent(new HoverEvent.ShowText(Component.translatable("ftbteams.click_show_info")))
         );
 	}
 

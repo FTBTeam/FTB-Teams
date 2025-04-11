@@ -26,7 +26,7 @@ public record TeamMessageImpl(UUID sender, long date, Component text) implements
 	);
 
 	public static final Codec<TeamMessage> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
-			UUIDUtil.CODEC.fieldOf("from").forGetter(TeamMessage::sender),
+			UUIDUtil.STRING_CODEC.fieldOf("from").forGetter(TeamMessage::sender),
 			Codec.LONG.fieldOf("date").forGetter(TeamMessage::date),
 			ComponentSerialization.CODEC.fieldOf("text").forGetter(TeamMessage::text)
 	).apply(instance, TeamMessageImpl::new));

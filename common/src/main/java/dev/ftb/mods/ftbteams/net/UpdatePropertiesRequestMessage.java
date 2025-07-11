@@ -25,7 +25,7 @@ public record UpdatePropertiesRequestMessage(TeamPropertyCollection properties) 
 			FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
 				if (team instanceof AbstractTeam abstractTeam && abstractTeam.isOfficerOrBetter(player.getUUID())) {
 					abstractTeam.updatePropertiesFrom(message.properties);
-					NetworkManager.sendToPlayers(player.server.getPlayerList().getPlayers(),
+					NetworkManager.sendToPlayers(player.getServer().getPlayerList().getPlayers(),
 							new UpdatePropertiesResponseMessage(team.getId(), abstractTeam.getProperties()));
 				}
 			});

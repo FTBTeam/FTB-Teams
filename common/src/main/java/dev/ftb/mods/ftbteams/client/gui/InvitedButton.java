@@ -16,7 +16,6 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 
-
 public class InvitedButton extends NordButton {
 	public final InvitationSetup screen;
 	public final KnownClientPlayer player;
@@ -41,10 +40,8 @@ public class InvitedButton extends NordButton {
 		super.drawIcon(graphics, theme, x, y, w, h);
 
 		if (player.online()) {
-			graphics.pose().pushPose();
-			graphics.pose().translate(x + w - 1.5D, y - 0.5D, 0);
-			Color4I.GREEN.draw(graphics, 0, 0, 2, 2);
-			graphics.pose().popPose();
+			// Direkt zeichnen ohne PoseStack Manipulationen
+			Color4I.GREEN.draw(graphics, x + w - 2, y, 2, 2);
 		}
 	}
 

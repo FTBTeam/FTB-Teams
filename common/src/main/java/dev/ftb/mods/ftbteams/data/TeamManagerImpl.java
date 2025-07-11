@@ -22,6 +22,8 @@ import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -30,6 +32,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -142,15 +145,19 @@ public class TeamManagerImpl implements TeamManager {
 			return;
 		}
 
-		CompoundTag dataFileTag = SNBT.read(directory.resolve("ftbteams.snbt"));
+		try (InputStream inputStream = Files.newInputStream(directory.resolve("ftbteams.snbt"))) {
+			CompoundTag dataFileTag = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
+			
+			if (dataFileTag != null) {
+				if (dataFileTag.contains("id")) {
+					id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
+				}
 
-		if (dataFileTag != null) {
-			if (dataFileTag.contains("id")) {
-				id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
+				extraData = dataFileTag.getCompoundOrEmpty("extra");
+				TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
 			}
-
-			extraData = dataFileTag.getCompoundOrEmpty("extra");
-			TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
+		} catch (Exception ex) {
+			FTBTeams.LOGGER.error("Error reading ftbteams.snbt: {}", ex.getMessage());
 		}
 
 		for (TeamType type : TeamType.values()) {
@@ -159,11 +166,15 @@ public class TeamManagerImpl implements TeamManager {
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
 				try (Stream<Path> s = Files.list(dir)) {
 					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
-						CompoundTag nbt = SNBT.read(file);
-						if (nbt != null) {
-							AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
-							teamMap.put(team.id, team);
-							team.deserializeNBT(nbt, server.registryAccess());
+						try (InputStream inputStream = Files.newInputStream(file)) {
+							CompoundTag nbt = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
+							if (nbt != null) {
+								AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
+								teamMap.put(team.id, team);
+								team.deserializeNBT(nbt, server.registryAccess());
+							}
+						} catch (Exception ex) {
+							FTBTeams.LOGGER.error("Error reading team file {}: {}", file, ex.getMessage());
 						}
 					});
 				} catch (Exception ex) {

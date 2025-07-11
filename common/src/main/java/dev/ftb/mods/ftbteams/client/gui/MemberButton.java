@@ -35,10 +35,10 @@ public class MemberButton extends NordButton {
 		super.drawIcon(graphics, theme, x, y, w, h);
 
 		if (player.online()) {
-			graphics.pose().pushPose();
-			graphics.pose().translate(x + w - 1.5D, y - 0.5D, 0);
+			graphics.pose().pushMatrix();
+			graphics.pose().translate((float)(x + w - 1.5), (float)(y - 0.5));
 			Color4I.GREEN.draw(graphics, 0, 0, 2, 2);
-			graphics.pose().popPose();
+			graphics.pose().popMatrix();
 		}
 
 		ClientTeam selfTeam = ClientTeamManagerImpl.getInstance().selfTeam();

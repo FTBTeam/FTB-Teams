@@ -25,6 +25,7 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
@@ -33,6 +34,8 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -54,6 +57,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	public void markDirty() {
 		shouldSave = true;
 		manager.nameMap = null;
+		FTBTeams.LOGGER.debug("Team {} marked dirty, shouldSave = {}", getId(), shouldSave);
 	}
 
 	public List<ServerPlayer> getOnlineRanked(TeamRank rank) {
@@ -263,9 +267,30 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	}
 
 	void saveIfNeeded(Path directory, HolderLookup.Provider provider) {
+		FTBTeams.LOGGER.debug("saveIfNeeded called for team {}, shouldSave = {}", getId(), shouldSave);
 		if (shouldSave) {
-			SNBT.write(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT(provider));
+			// FIX: Use NbtIo.writeCompressed instead of SNBT.write
+			Path teamFile = directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt");
+			try {
+				SNBTCompoundTag snbtTag = serializeNBT(provider);
+				CompoundTag tag = new CompoundTag();
+				
+				// Convert SNBT to regular CompoundTag
+				for (String key : snbtTag.keySet()) {
+					tag.put(key, snbtTag.get(key));
+				}
+				
+				// Ensure parent directory exists
+				Files.createDirectories(teamFile.getParent());
+				
+				NbtIo.writeCompressed(tag, Files.newOutputStream(teamFile));
+				FTBTeams.LOGGER.info("Successfully wrote team file {} in GZIP format", teamFile);
+			} catch (IOException e) {
+				FTBTeams.LOGGER.error("Error writing team file {}: {}", teamFile, e.getMessage());
+			}
 			shouldSave = false;
+		} else {
+			FTBTeams.LOGGER.debug("Team {} does not need saving", getId());
 		}
 	}
 }

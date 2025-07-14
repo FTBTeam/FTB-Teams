@@ -145,59 +145,90 @@ public class TeamManagerImpl implements TeamManager {
 			return;
 		}
 
-		try (InputStream inputStream = Files.newInputStream(directory.resolve("ftbteams.snbt"))) {
-			CompoundTag dataFileTag = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
-			
-			if (dataFileTag != null) {
-				if (dataFileTag.contains("id")) {
-					id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
-				}
+		Path ftbteamsFile = directory.resolve("ftbteams.snbt");
+		if (Files.exists(ftbteamsFile)) {
+			try (InputStream inputStream = Files.newInputStream(ftbteamsFile)) {
+				CompoundTag dataFileTag = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
+				
+				if (dataFileTag != null) {
+					if (dataFileTag.contains("id")) {
+						id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
+					}
 
-				extraData = dataFileTag.getCompoundOrEmpty("extra");
-				TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
+					extraData = dataFileTag.getCompoundOrEmpty("extra");
+					TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
+				}
+			} catch (Exception ex) {
+				FTBTeams.LOGGER.error("Error reading ftbteams.snbt: {}", ex.getMessage());
+				FTBTeams.LOGGER.info("Creating new ftbteams.snbt file...");
+				// File is corrupted, we'll create a new one on next save
 			}
-		} catch (Exception ex) {
-			FTBTeams.LOGGER.error("Error reading ftbteams.snbt: {}", ex.getMessage());
+		} else {
+			FTBTeams.LOGGER.info("ftbteams.snbt does not exist, will be created on first save");
 		}
 
 		for (TeamType type : TeamType.values()) {
 			Path dir = directory.resolve(type.getSerializedName());
+			FTBTeams.LOGGER.info("Looking for {} teams in directory: {}", type.getSerializedName(), dir);
 
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
 				try (Stream<Path> s = Files.list(dir)) {
 					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
+						FTBTeams.LOGGER.info("Attempting to load team file: {}", file);
 						try (InputStream inputStream = Files.newInputStream(file)) {
 							CompoundTag nbt = NbtIo.readCompressed(inputStream, NbtAccounter.unlimitedHeap());
 							if (nbt != null) {
+								FTBTeams.LOGGER.info("Successfully read team file: {}", file);
 								AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
 								teamMap.put(team.id, team);
 								team.deserializeNBT(nbt, server.registryAccess());
+								FTBTeams.LOGGER.info("Successfully loaded team: {} ({})", team.getId(), team.getShortName());
+							} else {
+								FTBTeams.LOGGER.warn("Team file {} returned null NBT data", file);
 							}
 						} catch (Exception ex) {
 							FTBTeams.LOGGER.error("Error reading team file {}: {}", file, ex.getMessage());
+							ex.printStackTrace();
 						}
 					});
 				} catch (Exception ex) {
 					FTBTeams.LOGGER.error("can't list directory {}: {}", dir, ex.getMessage());
 				}
+			} else {
+				FTBTeams.LOGGER.info("Directory {} does not exist or is not a directory", dir);
 			}
 		}
 
 		for (AbstractTeam team : teamMap.values()) {
 			if (team instanceof PlayerTeam) {
 				knownPlayers.put(team.id, (PlayerTeam) team);
+				FTBTeams.LOGGER.info("Added player team to knownPlayers: {} -> {}", team.id, team.getShortName());
 			}
 		}
 
+		FTBTeams.LOGGER.info("knownPlayers after loading: {}", knownPlayers.keySet());
+
+		// First pass: Set up party team memberships
 		for (AbstractTeam team : teamMap.values()) {
 			if (team instanceof PartyTeam) {
+				FTBTeams.LOGGER.info("Processing party team: {} with members: {}", team.getId(), team.getMembers());
 				for (UUID member : team.getMembers()) {
 					PlayerTeam t = knownPlayers.get(member);
 					if (t != null) {
+						FTBTeams.LOGGER.info("Setting effective team for player {} from {} to party {}", member, t.getEffectiveTeam().getId(), team.getId());
 						t.setEffectiveTeam(team);
+						FTBTeams.LOGGER.info("After setting: player {} effective team is now {}", member, t.getEffectiveTeam().getId());
+					} else {
+						FTBTeams.LOGGER.warn("Player team not found for member {} in party {}", member, team.getId());
 					}
 				}
 			}
+		}
+
+		// Second pass: Resolve any saved effective team IDs
+		for (PlayerTeam playerTeam : knownPlayers.values()) {
+			playerTeam.resolveEffectiveTeam();
+			FTBTeams.LOGGER.info("Player {} resolved effective team: {}", playerTeam.getId(), playerTeam.getEffectiveTeam().getId());
 		}
 
 		FTBTeams.LOGGER.info("loaded team data: {} known players, {} teams total", knownPlayers.size(), teamMap.size());
@@ -220,11 +251,27 @@ public class TeamManagerImpl implements TeamManager {
 
 		if (shouldSave) {
 			TeamManagerEvent.SAVED.invoker().accept(new TeamManagerEvent(this));
-			SNBT.write(directory.resolve("ftbteams.snbt"), serializeNBT());
+			
+			// FIX: Use NbtIo.writeCompressed instead of SNBT.write
+			try {
+				CompoundTag tag = new CompoundTag();
+				SNBTCompoundTag snbtTag = serializeNBT();
+				tag.put("id", snbtTag.get("id"));
+				tag.put("extra", snbtTag.get("extra"));
+				
+				// Ensure directory exists
+				Files.createDirectories(directory);
+				NbtIo.writeCompressed(tag, Files.newOutputStream(directory.resolve("ftbteams.snbt")));
+				FTBTeams.LOGGER.info("Successfully wrote ftbteams.snbt in GZIP format");
+			} catch (IOException e) {
+				FTBTeams.LOGGER.error("Error writing ftbteams.snbt: {}", e.getMessage());
+			}
+			
 			shouldSave = false;
 		}
 
 		for (AbstractTeam team : teamMap.values()) {
+			FTBTeams.LOGGER.debug("Calling saveIfNeeded for team {} (type: {})", team.getId(), team.getType().getSerializedName());
 			team.saveIfNeeded(directory, server.registryAccess());
 		}
 	}
@@ -263,7 +310,8 @@ public class TeamManagerImpl implements TeamManager {
 		team.setProperty(TeamProperties.DISPLAY_NAME, name.isEmpty() ? FTBTUtils.getDefaultPartyName(server, playerId, player) : name);
 		team.setProperty(TeamProperties.COLOR, FTBTUtils.randomColor());
 
-		team.onCreated(player, playerId);
+		// DON'T call onCreated() here - we'll call it after adding the member
+		// team.onCreated(player, playerId);
 		return team;
 	}
 
@@ -284,10 +332,11 @@ public class TeamManagerImpl implements TeamManager {
 		PlayerTeam team = knownPlayers.get(id);
 		boolean syncToAll = false;
 
-		FTBTeams.LOGGER.debug("player {} logged in, player team = {}", id, team);
+		FTBTeams.LOGGER.info("player {} ({}) logged in, player team = {}", name, id, team);
+		FTBTeams.LOGGER.info("knownPlayers contains {} players: {}", knownPlayers.size(), knownPlayers.keySet());
 
 		if (team == null) {
-			FTBTeams.LOGGER.debug("creating new player team for player {}", id);
+			FTBTeams.LOGGER.info("creating new player team for player {} ({})", name, id);
 
 			team = createPlayerTeam(id, name);
 			teamMap.put(id, team);
@@ -298,31 +347,35 @@ public class TeamManagerImpl implements TeamManager {
 			syncToAll = true;
 			team.onPlayerChangeTeam(null, id, player, false);
 
-			FTBTeams.LOGGER.debug("  - team created");
-		} else if (!team.getPlayerName().equals(name)) {
-			FTBTeams.LOGGER.debug("updating player name: {} -> {}", team.getPlayerName(), name);
-			team.setPlayerName(name);
-			team.markDirty();
-			markDirty();
-			syncToAll = true;
+			FTBTeams.LOGGER.info("  - team created");
+		} else {
+			FTBTeams.LOGGER.info("Found existing player team: {} for player {} ({})", team.getId(), name, id);
+			if (!team.getPlayerName().equals(name)) {
+				FTBTeams.LOGGER.info("updating player name: {} -> {}", team.getPlayerName(), name);
+				team.setPlayerName(name);
+				team.markDirty();
+				markDirty();
+				syncToAll = true;
+			}
 		}
 
-		FTBTeams.LOGGER.debug("syncing player team data, all = {}", syncToAll);
+		FTBTeams.LOGGER.info("syncing player team data, all = {}", syncToAll);
 		if (player != null) {
+			FTBTeams.LOGGER.info("effective team for player: {}", team.getEffectiveTeam().getId());
 			syncAllToPlayer(player, team.getEffectiveTeam());
 		}
 		if (syncToAll) {
 			syncToAll(team.getEffectiveTeam());
 		}
 
-		FTBTeams.LOGGER.debug("updating team presence");
+		FTBTeams.LOGGER.info("updating team presence");
 		team.setOnline(true);
 		team.updatePresence();
 
 		if (player != null) {
-			FTBTeams.LOGGER.debug("sending team login event for {}...", player.getUUID());
+			FTBTeams.LOGGER.info("sending team login event for {}...", player.getUUID());
 			TeamEvent.PLAYER_LOGGED_IN.invoker().accept(new PlayerLoggedInAfterTeamEvent(team.getEffectiveTeam(), player));
-			FTBTeams.LOGGER.debug("team login event for {} sent", player.getUUID());
+			FTBTeams.LOGGER.info("team login event for {} sent", player.getUUID());
 		}
 	}
 
@@ -394,17 +447,26 @@ public class TeamManagerImpl implements TeamManager {
 			throw TeamArgument.ALREADY_IN_PARTY.create();
 		}
 
+		FTBTeams.LOGGER.info("Creating party team for player {}", playerId);
 		PartyTeam team = createPartyTeamInternal(playerId, player, name);
 		if (description != null) team.setProperty(TeamProperties.DESCRIPTION, description);
 		if (color != null) team.setProperty(TeamProperties.COLOR, color);
 
+		FTBTeams.LOGGER.info("Setting effective team for player {} to party {}", playerId, team.getId());
 		playerTeam.setEffectiveTeam(team);
 
 		Component playerName = player != null ? player.getName() : Component.literal(playerId.toString());
+		FTBTeams.LOGGER.info("Adding member {} to party team {} with rank OWNER", playerId, team.getId());
 		team.addMember(playerId, TeamRank.OWNER);
+		FTBTeams.LOGGER.info("Party team {} now has {} members: {}", team.getId(), team.getMembers().size(), team.getMembers());
+		
+		// NOW call onCreated() after the member is added
+		team.onCreated(player, playerId);
+		
 		team.sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.joined", playerName).withStyle(ChatFormatting.YELLOW));
 		team.markDirty();
 
+		FTBTeams.LOGGER.info("Removing member {} from player team {}", playerId, playerTeam.getId());
 		playerTeam.removeMember(playerId);
 		playerTeam.markDirty();
 

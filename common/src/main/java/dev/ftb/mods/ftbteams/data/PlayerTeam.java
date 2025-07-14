@@ -10,6 +10,7 @@ import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
@@ -24,6 +25,7 @@ public class PlayerTeam extends AbstractTeam {
 	private String playerName;
 	private boolean online;
 	private AbstractTeam effectiveTeam;
+	private UUID effectiveTeamId; // For serialization
 
 	public PlayerTeam(TeamManagerImpl manager, UUID id) {
 		super(manager, id);
@@ -31,6 +33,7 @@ public class PlayerTeam extends AbstractTeam {
 		playerName = "";
 		online = false;
 		effectiveTeam = this;
+		effectiveTeamId = null;
 	}
 
 	@Override
@@ -70,17 +73,47 @@ public class PlayerTeam extends AbstractTeam {
 
 	public void setEffectiveTeam(AbstractTeam effectiveTeam) {
 		this.effectiveTeam = effectiveTeam;
+		this.effectiveTeamId = effectiveTeam.getId();
+		markDirty(); // Important: mark as dirty when effective team changes
 	}
 
 	@Override
 	protected void serializeExtraNBT(CompoundTag tag) {
 		tag.putString("player_name", playerName);
+		// FIX: Save effective team ID
+		if (effectiveTeamId != null && !effectiveTeamId.equals(getId())) {
+			tag.store("effective_team_id", UUIDUtil.CODEC, effectiveTeamId);
+		}
 	}
 
 	@Override
 	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
 		super.deserializeNBT(tag, provider);
 		playerName = tag.getStringOr("player_name", "");
+		
+		// FIX: Load effective team ID
+		effectiveTeamId = tag.read("effective_team_id", UUIDUtil.CODEC).orElse(null);
+		if (effectiveTeamId != null) {
+			// We'll resolve this after all teams are loaded
+			// For now, keep the ID so we can find the team later
+		} else {
+			effectiveTeam = this;
+		}
+	}
+
+	// Method to resolve effective team after all teams are loaded
+	public void resolveEffectiveTeam() {
+		if (effectiveTeamId != null) {
+			AbstractTeam team = manager.getTeamMap().get(effectiveTeamId);
+			if (team != null) {
+				effectiveTeam = team;
+			} else {
+				// Team no longer exists, reset to self
+				effectiveTeam = this;
+				effectiveTeamId = null;
+				markDirty();
+			}
+		}
 	}
 
 	@Nullable

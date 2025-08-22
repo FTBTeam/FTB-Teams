@@ -138,6 +138,14 @@ public interface Team {
     void sendMessage(UUID senderId, String message);
 
     /**
+     * Send a team message to this team. This is a no-op if called on a client-side team.
+     *
+     * @param senderId UUID of the player sending the message
+     * @param message the message text
+     */
+    void sendMessage(UUID senderId, Component message);
+
+    /**
      * Return a nicely marked-up block of text info for this team, for display purposes.
      *
      * @return a component list of team information

@@ -25,6 +25,7 @@ public class FTBTeamsClient {
 	public static final ResourceLocation OPEN_GUI_ID = FTBTeamsAPI.rl("open_gui");
 
 	public static KeyMapping openTeamsKey;
+	private static boolean chatRedirected = false;
 
 	public static void init() {
 		registerKeys();
@@ -84,5 +85,13 @@ public class FTBTeamsClient {
 		if (ClientTeamManagerImpl.getInstance() != null) {
 			ClientTeamManagerImpl.getInstance().updatePresence(update);
 		}
+	}
+
+	public static void setChatRedirected(boolean chatRedirected) {
+		FTBTeamsClient.chatRedirected = chatRedirected;
+	}
+
+	public static boolean isChatRedirected() {
+		return chatRedirected;
 	}
 }

@@ -10,11 +10,13 @@ public class FTBTeamsNet {
 		NetworkHelper.registerS2C(UpdatePropertiesResponseMessage.TYPE, UpdatePropertiesResponseMessage.STREAM_CODEC, UpdatePropertiesResponseMessage::handle);
 		NetworkHelper.registerS2C(SendMessageResponseMessage.TYPE, SendMessageResponseMessage.STREAM_CODEC, SendMessageResponseMessage::handle);
 		NetworkHelper.registerS2C(UpdatePresenceMessage.TYPE, UpdatePresenceMessage.STREAM_CODEC, UpdatePresenceMessage::handle);
+		NetworkHelper.registerS2C(ToggleChatResponseMessage.TYPE, ToggleChatResponseMessage.STREAM_CODEC, ToggleChatResponseMessage::handle);
 
 		NetworkHelper.registerC2S(OpenGUIMessage.TYPE, OpenGUIMessage.STREAM_CODEC, OpenGUIMessage::handle);
 		NetworkHelper.registerC2S(UpdatePropertiesRequestMessage.TYPE, UpdatePropertiesRequestMessage.STREAM_CODEC, UpdatePropertiesRequestMessage::handle);
 		NetworkHelper.registerC2S(SendMessageMessage.TYPE, SendMessageMessage.STREAM_CODEC, SendMessageMessage::handle);
 		NetworkHelper.registerC2S(CreatePartyMessage.TYPE, CreatePartyMessage.STREAM_CODEC, CreatePartyMessage::handle);
 		NetworkHelper.registerC2S(PlayerGUIOperationMessage.TYPE, PlayerGUIOperationMessage.STREAM_CODEC, PlayerGUIOperationMessage::handle);
+		NetworkHelper.registerC2S(ToggleChatRedirectionMessage.TYPE, ToggleChatRedirectionMessage.STREAM_CODEC, ToggleChatRedirectionMessage::handle);
 	}
 }

@@ -9,6 +9,7 @@ import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftblibrary.ui.*;
 import dev.ftb.mods.ftblibrary.ui.input.Key;
 import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftblibrary.util.TooltipList;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
@@ -18,8 +19,10 @@ import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
+import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.*;
 import dev.ftb.mods.ftbteams.net.SendMessageMessage;
+import dev.ftb.mods.ftbteams.net.ToggleChatRedirectionMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
@@ -39,6 +42,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	private Button infoButton;
 	private Button missingDataButton;
 	private Button colorButton;
+	private Button toggleChatButton;
 	private Button inviteButton;
 	private Button allyButton;
 	private Panel memberPanel;
@@ -80,7 +84,6 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public void addWidgets() {
-
 		add(settingsButton = new SettingsButton());
 
 		add(infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (w,mb) -> {}) {
@@ -127,6 +130,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 		});
 
+		add(toggleChatButton = new ToggleChatButton(this));
 		add(inviteButton = new InviteButton(this));
 		add(allyButton = new AllyButton(this));
 
@@ -146,6 +150,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		settingsButton.setPosAndSize(width - 19, 3, 16, 16);
 		inviteButton.setPosAndSize(width - 37, 3, 16, 16);
 		allyButton.setPosAndSize(width - 55, 3, 16, 16);
+		toggleChatButton.setPosAndSize(width - 73, 3, 16, 16);
 
 		memberPanel.setPosAndSize(1, 22, Math.max(memberPanel.width, MIN_MEMBER_PANEL_WIDTH), height - 23);
 	}
@@ -221,6 +226,35 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
 			return knownPlayer != null && ClientTeamManagerImpl.getInstance().selfTeam().isOfficerOrBetter(knownPlayer.id());
+		}
+
+		@Override
+		public boolean shouldDraw() {
+			return isEnabled();
+		}
+	}
+
+	private static class ToggleChatButton extends SimpleButton {
+		public ToggleChatButton(Panel panel) {
+			super(panel, Component.translatable("ftbteams.gui.toggle_chat"), Icons.CHAT,
+					(b, mb) -> NetworkManager.sendToServer(ToggleChatRedirectionMessage.INSTANCE)
+			);
+		}
+
+		@Override
+		public void addMouseOverText(TooltipList list) {
+			list.add(Component.translatable("ftbteams.message.chat_redirected." + (FTBTeamsClient.isChatRedirected() ? "on" : "off")));
+			list.add(Component.translatable("ftbteams.gui.toggle_chat").withStyle(ChatFormatting.GRAY));
+		}
+
+		@Override
+		public void tick() {
+			setIcon(FTBTeamsClient.isChatRedirected() ? Icons.CHAT.withTint(Color4I.rgb(0xFFA060)) : Icons.CHAT);
+		}
+
+		@Override
+		public boolean isEnabled() {
+			return ClientTeamManagerImpl.getInstance().selfTeam().getType() == TeamType.PARTY;
 		}
 
 		@Override

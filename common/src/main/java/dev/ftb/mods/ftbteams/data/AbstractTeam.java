@@ -244,7 +244,8 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		sendMessage(senderId, TextComponentUtils.withLinks(message));
 	}
 
-	void sendMessage(UUID from, Component text) {
+	@Override
+	public void sendMessage(UUID from, Component text) {
 		addMessage(FTBTeamsAPI.api().createMessage(from, text));
 
 		MutableComponent component = Component.literal("<");

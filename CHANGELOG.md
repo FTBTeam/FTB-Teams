@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2101.1.3]
+
+### Added 
+* Added per-player toggle to redirect chat into ftb teams chat
+  * When enabled, all messages typed into chat will go only to the player's team instead of the usual broadcast 
+  * Use `/ftbteams redirect_chat` command to toggle
+  * Or use the new toggle button on the teams GUI (chat icon, top right)
+* Updated `es_es` and `es_mx` translations (thanks @ArrivedBog593)
+* Added `ja_jp` translation (thanks @Twister)
+
 ## [2101.1.2]
 
 ### Changed

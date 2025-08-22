@@ -12,7 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * Use `/ftbteams redirect_chat` command to toggle
   * Or use the new toggle button on the teams GUI (chat icon, top right)
 * Updated `es_es` and `es_mx` translations (thanks @ArrivedBog593)
+* Updated `fr_fr` translation (thanks @nogapra)
 * Added `ja_jp` translation (thanks @Twister)
+* Added `pt_br` translation (thanks @Xlr11)
+* Added `uk_ua` translation (thanks @GIGABAIT93)
+* Added `ru_ru` translation (thanks @BazZziliuS)
 
 ## [2101.1.2]
 

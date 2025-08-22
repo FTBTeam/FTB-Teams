@@ -24,7 +24,6 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -138,7 +137,7 @@ public class TeamManagerImpl implements TeamManager {
 				.orElse(false);
 	}
 
-	public void load() {
+	public void load() throws IOException {
 		id = null;
 		Path directory = server.getWorldPath(FOLDER_NAME);
 
@@ -146,25 +145,22 @@ public class TeamManagerImpl implements TeamManager {
 			return;
 		}
 
-		CompoundTag dataFileTag = SNBT.read(directory.resolve("ftbteams.snbt"));
-
-		if (dataFileTag != null) {
-			if (dataFileTag.contains("id")) {
-				id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
-			}
-
-			extraData = dataFileTag.getCompoundOrEmpty("extra");
-			TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
-
-			chatRedirected.clear();
-			dataFileTag.getList("chat_redirected", Tag.TAG_STRING).forEach(tag -> {
-				try {
-					chatRedirected.add(UUID.fromString(tag.getAsString()));
-				} catch (IllegalArgumentException e) {
-					FTBTeams.LOGGER.error("invalid uuid {} in 'chat_redirection', ignoring", tag.getAsString());
-				}
-			});
+		CompoundTag dataFileTag = SNBT.tryRead(directory.resolve("ftbteams.snbt"));
+		if (dataFileTag.contains("id")) {
+			id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
 		}
+
+		extraData = dataFileTag.getCompoundOrEmpty("extra");
+		TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
+
+		chatRedirected.clear();
+		dataFileTag.getListOrEmpty("chat_redirected").forEach(tag -> {
+			try {
+				chatRedirected.add(UUID.fromString(tag.toString()));
+			} catch (IllegalArgumentException e) {
+				FTBTeams.LOGGER.error("invalid uuid {} in 'chat_redirection', ignoring", tag.toString());
+			}
+		});
 
 		for (TeamType type : TeamType.values()) {
 			Path dir = directory.resolve(type.getSerializedName());
@@ -172,12 +168,14 @@ public class TeamManagerImpl implements TeamManager {
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
 				try (Stream<Path> s = Files.list(dir)) {
 					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
-						CompoundTag nbt = SNBT.read(file);
-						if (nbt != null) {
+                        try {
+                            CompoundTag nbt = SNBT.tryRead(file);
 							AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt, server.registryAccess());
-						}
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
 					});
 				} catch (Exception ex) {
 					FTBTeams.LOGGER.error("can't list directory {}: {}", dir, ex.getMessage());

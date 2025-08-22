@@ -58,6 +58,7 @@
 	"ftbteams.gui.add_ally": "Ally",
 	"ftbteams.gui.remove_ally": "Un-Ally with %s",
 	"ftbteams.gui.remove_ally.confirm": "Do you want to remove %s as an Ally?",
+	"ftbteams.gui.toggle_chat": "Click to toggle",
 	"ftbteams.ranks.enemy": "Enemy",
 	"ftbteams.ranks.none": "None",
 	"ftbteams.ranks.ally": "Ally",
@@ -86,6 +87,8 @@
 	"ftbteams.message.created_server_team": "Created new server team '%s'!",
 	"ftbteams.message.deleted_server_team": "Deleted server team '%s'!",
 	"ftbteams.message.team_disbanded": "Forcibly disbanded party team '%s' (%s) !",
+	"ftbteams.message.chat_redirected.on": "Chat messages are redirected to team chat",
+	"ftbteams.message.chat_redirected.off": "Chat messages are sent to vanilla chat",
 	"ftbteams.accept": "Accept ✔",
 	"ftbteams.decline": "Decline ✘",
 	"ftbteams.click_show_info": "Click to show team info"

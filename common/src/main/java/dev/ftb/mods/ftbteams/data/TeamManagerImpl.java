@@ -1,12 +1,12 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.google.common.collect.ImmutableList;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamManager;
@@ -17,11 +17,15 @@ import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
+import dev.ftb.mods.ftbteams.net.ToggleChatResponseMessage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,6 +52,7 @@ public class TeamManagerImpl implements TeamManager {
 	private boolean shouldSave;
 	private final Map<UUID, PlayerTeam> knownPlayers;
 	private final Map<UUID, AbstractTeam> teamMap;
+	private final Set<UUID> chatRedirected;
 	Map<String, Team> nameMap;
 	private CompoundTag extraData;
 
@@ -56,6 +61,7 @@ public class TeamManagerImpl implements TeamManager {
 		knownPlayers = new LinkedHashMap<>();
 		teamMap = new LinkedHashMap<>();
 		extraData = new CompoundTag();
+		chatRedirected = new HashSet<>();
 	}
 
 	@Override
@@ -130,7 +136,7 @@ public class TeamManagerImpl implements TeamManager {
 	@Override
 	public boolean arePlayersInSameTeam(UUID id1, UUID id2) {
 		return getTeamForPlayerID(id1).map(team1 -> getTeamForPlayerID(id2)
-				.map(team2 -> team1.getId().equals(team2.getId())).orElse(false))
+						.map(team2 -> team1.getId().equals(team2.getId())).orElse(false))
 				.orElse(false);
 	}
 
@@ -151,6 +157,15 @@ public class TeamManagerImpl implements TeamManager {
 
 			extraData = dataFileTag.getCompoundOrEmpty("extra");
 			TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
+
+			chatRedirected.clear();
+			dataFileTag.getList("chat_redirected", Tag.TAG_STRING).forEach(tag -> {
+				try {
+					chatRedirected.add(UUID.fromString(tag.getAsString()));
+				} catch (IllegalArgumentException e) {
+					FTBTeams.LOGGER.error("invalid uuid {} in 'chat_redirection', ignoring", tag.getAsString());
+				}
+			});
 		}
 
 		for (TeamType type : TeamType.values()) {
@@ -230,6 +245,7 @@ public class TeamManagerImpl implements TeamManager {
 		SNBTCompoundTag nbt = new SNBTCompoundTag();
 		nbt.store("id", UUIDUtil.CODEC, getId());
 		nbt.put("extra", extraData);
+		nbt.put("chat_redirected", Util.make(new ListTag(), l -> chatRedirected.forEach(id -> l.add(StringTag.valueOf(id.toString())))));
 		return nbt;
 	}
 
@@ -336,6 +352,7 @@ public class TeamManagerImpl implements TeamManager {
 
 		NetworkManager.sendToPlayer(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.id), selfTeam.getTeamId(), true));
 		NetworkManager.sendToPlayer(player, SyncMessageHistoryMessage.forTeam(selfTeam));
+		NetworkManager.sendToPlayer(player, new ToggleChatResponseMessage(isChatRedirected(player)));
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
@@ -364,6 +381,19 @@ public class TeamManagerImpl implements TeamManager {
 	public Team createPartyTeam(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
 		var res = createParty(player.getUUID(), player, name, description, color);
 		return res.getRight();
+	}
+
+	@Override
+	public void setChatRedirected(ServerPlayer player, boolean redirect) {
+		if (redirect && chatRedirected.add(player.getUUID()) || !redirect && chatRedirected.remove(player.getUUID())) {
+			NetworkHelper.sendTo(player, new ToggleChatResponseMessage(redirect));
+			shouldSave = true;
+		}
+	}
+
+	@Override
+	public boolean isChatRedirected(ServerPlayer player) {
+		return chatRedirected.contains(player.getUUID());
 	}
 
 	// Command Handlers //

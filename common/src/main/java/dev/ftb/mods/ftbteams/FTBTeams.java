@@ -28,6 +28,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+
 public class FTBTeams {
 	public static final Logger LOGGER = LogManager.getLogger(FTBTeamsAPI.MOD_NAME);
 
@@ -51,8 +53,12 @@ public class FTBTeams {
 	private void serverAboutToStart(MinecraftServer server) {
 		TeamManagerImpl.INSTANCE = new TeamManagerImpl(server);
 		TeamManagerEvent.CREATED.invoker().accept(new TeamManagerEvent(TeamManagerImpl.INSTANCE));
-		TeamManagerImpl.INSTANCE.load();
-	}
+        try {
+            TeamManagerImpl.INSTANCE.load();
+        } catch (IOException e) {
+            FTBTeams.LOGGER.error("Load failure for ");
+        }
+    }
 
 	private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext, Commands.CommandSelection selection) {
 		new FTBTeamsCommands().register(dispatcher);

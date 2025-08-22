@@ -85,4 +85,12 @@ public class FTBTeamsClient {
 	public static boolean isChatRedirected() {
 		return chatRedirected;
 	}
+
+	public static void setChatRedirected(boolean chatRedirected) {
+		FTBTeamsClient.chatRedirected = chatRedirected;
+	}
+
+	public static boolean isChatRedirected() {
+		return chatRedirected;
+	}
 }

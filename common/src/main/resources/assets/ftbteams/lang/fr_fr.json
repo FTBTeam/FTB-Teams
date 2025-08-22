@@ -19,6 +19,7 @@
 	"ftbteams.property_not_found": "ID de propriété non trouvé !",
 	"ftbteams.owner_cant_leave": "Vous devez transférer la propriété de l'équipe avant de pouvoir la quitter !",
 	"ftbteams.cant_kick_owner": "Vous ne pouvez pas exclure le propriétaire !",
+	"ftbteams.party_api_only": "Dans ce modpack, vous ne pouvez pas créer d’équipes de groupe directement !",
 	"ftbteams.api_override": "Dans ce modpack, vous pouvez seulement créer une partie à partir du bouton 'Mon équipe' dans l'inventaire !",
 	"ftbteams.missing_data": "Les données de l'équipe n'ont pas été reçues du serveur !\nFTB Teams ne va pas fonctionner correctement.\nRegarder le journal du serveur pour des erreurs, et assurez-vous d'activer le mode 'En ligne' du serveur.",
 	"sidebar_button.ftbteams.my_team": "Mon équipe",

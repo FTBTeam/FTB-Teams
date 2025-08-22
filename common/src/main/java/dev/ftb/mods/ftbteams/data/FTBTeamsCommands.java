@@ -11,6 +11,7 @@ import dev.architectury.platform.Platform;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
+import dev.ftb.mods.ftbteams.api.TeamManager;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamInfoEvent;
@@ -178,6 +179,9 @@ public class FTBTeamsCommands {
 								.executes(ctx -> partyTeamArg(ctx, TeamRank.NONE).forceDisband(ctx.getSource()))
 						)
 				)
+				.then(Commands.literal("redirect_chat")
+						.executes(FTBTeamsCommands::redirectChatToggle)
+				)
 		);
 
 		if (Platform.isDevelopmentEnvironment()) {
@@ -309,6 +313,15 @@ public class FTBTeamsCommands {
 				.orElse(Component.literal("<none>"));
 
 		source.sendSuccess(() -> Component.translatable("ftbteams.list", teams), false);
+		return Command.SINGLE_SUCCESS;
+	}
+
+	private static int redirectChatToggle(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		ServerPlayer player = ctx.getSource().getPlayerOrException();
+		TeamManager mgr = FTBTeamsAPI.api().getManager();
+		mgr.setChatRedirected(player, !mgr.isChatRedirected(player));
+		String key = "ftbteams.message.chat_redirected." + (mgr.isChatRedirected(player) ? "on" : "off");
+		ctx.getSource().sendSuccess(() -> Component.translatable(key).withStyle(ChatFormatting.ITALIC, ChatFormatting.GOLD), false);
 		return Command.SINGLE_SUCCESS;
 	}
 

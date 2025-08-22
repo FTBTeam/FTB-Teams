@@ -72,6 +72,11 @@ public class ClientTeam extends AbstractTeamBase {
 	}
 
 	@Override
+	public void sendMessage(UUID senderId, Component message) {
+		// no-op
+	}
+
+	@Override
 	public List<Component> getTeamInfo() {
 		return List.of();
 	}

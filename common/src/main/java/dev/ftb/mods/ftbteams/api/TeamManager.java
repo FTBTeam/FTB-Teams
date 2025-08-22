@@ -125,4 +125,22 @@ public interface TeamManager {
      * most commonly that the player is already in a party
      */
     Team createPartyTeam(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException;
+
+    /**
+     * Set chat redirection for the given player. When chat redirection is enabled, all chat messages from the player
+     * are instead sent to FTB Teams team chat, to be seen by the player's team only.
+     *
+     * @param player the player
+     * @param redirected true if messages should go to team chat, false if they should be broadcast as normal
+     */
+    void setChatRedirected(ServerPlayer player, boolean redirected);
+
+    /**
+     * {@return true if messages should go to team chat, false if they should be broadcast as normal}
+     * See {@link #setChatRedirected(ServerPlayer, boolean)} for more information.
+     *
+     * @param player the player
+     */
+    boolean isChatRedirected(ServerPlayer player);
+
 }

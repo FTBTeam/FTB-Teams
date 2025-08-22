@@ -1,6 +1,8 @@
 package dev.ftb.mods.ftbteams;
 
 import com.mojang.brigadier.CommandDispatcher;
+import dev.architectury.event.EventResult;
+import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.LifecycleEvent;
 import dev.architectury.event.events.common.PlayerEvent;
@@ -18,11 +20,13 @@ import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 public class FTBTeams {
 	public static final Logger LOGGER = LogManager.getLogger(FTBTeamsAPI.MOD_NAME);
@@ -37,6 +41,7 @@ public class FTBTeams {
 		TeamEvent.COLLECT_PROPERTIES.register(this::teamConfig);
 		PlayerEvent.PLAYER_JOIN.register(this::playerLoggedIn);
 		PlayerEvent.PLAYER_QUIT.register(this::playerLoggedOut);
+		ChatEvent.RECEIVED.register(this::chatReceived);
 
 		EnvExecutor.runInEnv(Env.CLIENT, () -> FTBTeamsClient::init);
 
@@ -82,5 +87,15 @@ public class FTBTeams {
 		if (TeamManagerImpl.INSTANCE != null) {
 			TeamManagerImpl.INSTANCE.playerLoggedOut(player);
 		}
+	}
+
+	private EventResult chatReceived(@Nullable ServerPlayer player, Component component) {
+		if (TeamManagerImpl.INSTANCE != null && player != null && TeamManagerImpl.INSTANCE.isChatRedirected(player)) {
+			return FTBTeamsAPI.api().getManager().getTeamForPlayer(player).map(team -> {
+				team.sendMessage(player.getUUID(), component);
+				return EventResult.interruptFalse();
+			}).orElse(EventResult.pass());
+		}
+		return EventResult.pass();
 	}
 }

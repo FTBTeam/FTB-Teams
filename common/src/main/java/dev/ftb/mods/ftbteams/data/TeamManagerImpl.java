@@ -104,7 +104,7 @@ public class TeamManagerImpl implements TeamManager {
 
 	@Override
 	public Optional<Team> getTeamByID(UUID teamId) {
-		return Optional.of(teamMap.get(teamId));
+		return Optional.ofNullable(teamMap.get(teamId));
 	}
 
 	@Override

@@ -281,8 +281,6 @@ public class PartyTeam extends AbstractTeam {
 			deletingTeam = true;
 			invalidateTeam();
 			manager.deleteTeam(this);
-			manager.saveNow();
-			manager.tryDeleteTeamFile(getId() + ".snbt", "party");
 		}
 
 		playerTeam.updatePresence();
@@ -380,7 +378,7 @@ public class PartyTeam extends AbstractTeam {
 				.toList();
 		kick(from, members);
 		
-		// now make the owner leave too
+		// now make the owner leave too`
 		leave(owner);
 
 		from.sendSuccess(() -> Component.translatable("ftbteams.message.team_disbanded", getName(), getId().toString())

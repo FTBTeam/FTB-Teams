@@ -458,12 +458,14 @@ public class TeamManagerImpl implements TeamManager {
 		return extraData;
 	}
 
-	void deleteTeam(Team team) {
+	void deleteTeam(AbstractTeam team) {
 		teamMap.remove(team.getId());
 		markDirty();
+		saveNow();
+		tryDeleteTeamFile(team.getId() + ".snbt", team.getType().getSerializedName());
 	}
 
-	void tryDeleteTeamFile(String teamFileName, String subfolderName) {
+	private void tryDeleteTeamFile(String teamFileName, String subfolderName) {
 		Path deletedPath = getServer().getWorldPath(FOLDER_NAME).resolve("deleted");
 		Path teamFilePath = getServer().getWorldPath(FOLDER_NAME).resolve(subfolderName).resolve(teamFileName);
 		try {

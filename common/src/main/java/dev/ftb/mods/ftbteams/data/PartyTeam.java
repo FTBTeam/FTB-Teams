@@ -18,6 +18,7 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -65,18 +66,22 @@ public class PartyTeam extends AbstractTeam {
 	}
 
 	public int join(ServerPlayer player) throws CommandSyntaxException {
-		Team oldTeam = manager.getTeamForPlayer(player)
-				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(player.getUUID()));
+		return join(player, player.getGameProfile());
+	}
+
+	public int join(@Nullable ServerPlayer player, GameProfile playerProfile) throws CommandSyntaxException {
+		UUID id = playerProfile.getId();
+
+		Team oldTeam = manager.getTeamForPlayerID(id)
+				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(id));
 
 		if (!(oldTeam instanceof PlayerTeam playerTeam)) {
 			throw TeamArgument.ALREADY_IN_PARTY.create();
 		}
 
-		UUID id = player.getUUID();
-
 		playerTeam.setEffectiveTeam(this);
 		ranks.put(id, TeamRank.MEMBER);
-		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.joined", player.getName()).withStyle(ChatFormatting.GREEN));
+		sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.joined", playerProfile.getName()).withStyle(ChatFormatting.GREEN));
 		markDirty();
 
 		playerTeam.ranks.remove(id);

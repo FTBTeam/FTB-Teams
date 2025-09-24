@@ -182,6 +182,20 @@ public class FTBTeamsCommands {
 				.then(Commands.literal("redirect_chat")
 						.executes(FTBTeamsCommands::redirectChatToggle)
 				)
+				.then(Commands.literal("force-add")
+						.requires(requiresOPorSP())
+						.then(createTeamArg(TeamType.PARTY)
+								.then(Commands.argument("players", GameProfileArgument.gameProfile())
+										.executes(FTBTeamsCommands::forceAddPlayers))
+						)
+				)
+				.then(Commands.literal("force-remove")
+						.requires(requiresOPorSP())
+						.then(createTeamArg(TeamType.PARTY)
+								.then(Commands.argument("players", GameProfileArgument.gameProfile())
+										.executes(FTBTeamsCommands::forceRemovePlayers))
+						)
+				)
 		);
 
 		if (Platform.isDevelopmentEnvironment()) {
@@ -299,7 +313,7 @@ public class FTBTeamsCommands {
 	private static int serverId(CommandSourceStack source) {
 		UUID managerId = FTBTeamsAPI.api().getManager().getId();
 		source.sendSuccess(() -> Component.literal("Server ID: ")
-				.append(FTBTUtils.makeCopyableComponent(managerId.toString()).withStyle(ChatFormatting.YELLOW)),
+						.append(FTBTUtils.makeCopyableComponent(managerId.toString()).withStyle(ChatFormatting.YELLOW)),
 				false);
 		return Command.SINGLE_SUCCESS;
 	}
@@ -323,6 +337,19 @@ public class FTBTeamsCommands {
 		String key = "ftbteams.message.chat_redirected." + (mgr.isChatRedirected(player) ? "on" : "off");
 		ctx.getSource().sendSuccess(() -> Component.translatable(key).withStyle(ChatFormatting.ITALIC, ChatFormatting.GOLD), false);
 		return Command.SINGLE_SUCCESS;
+	}
+
+	private static int forceAddPlayers(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		int res = 0;
+		PartyTeam party = partyTeamArg(ctx, TeamRank.NONE);
+		for (GameProfile profile : GameProfileArgument.getGameProfiles(ctx, "players")) {
+			res += party.join(null, profile);
+		}
+		return res;
+	}
+
+	private static int forceRemovePlayers(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		return partyTeamArg(ctx, TeamRank.NONE).kick(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "players"));
 	}
 
 	private int addFakePlayer(Collection<GameProfile> profiles) {

@@ -217,7 +217,8 @@ public class PartyTeam extends AbstractTeam {
 		// new owner must be in this party
 		UUID newOwnerID = toProfile.getId();
 		if (!getMembers().contains(newOwnerID)) {
-			throw TeamArgument.NOT_MEMBER.create(toProfile.toString(), getName());
+			String name = String.format("%s (%s)", toProfile.getName(), newOwnerID.toString());
+			throw TeamArgument.NOT_MEMBER.create(name, getName());
 		}
 
 		if (owner.equals(newOwnerID)) {

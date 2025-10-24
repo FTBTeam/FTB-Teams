@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.api.event;
 
-import dev.ftb.mods.ftbteams.api.Team;
 import com.mojang.authlib.GameProfile;
+import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.data.PartyTeam;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;

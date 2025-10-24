@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftblibrary.util.NetworkHelper;
@@ -257,7 +256,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
-			NetworkManager.sendToPlayer(p, new SendMessageResponseMessage(from, text));
+			NetworkHelper.sendTo(p, new SendMessageResponseMessage(from, text));
 		}
 
 		markDirty();

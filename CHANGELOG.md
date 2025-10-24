@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2101.1.5]
+
+### Added
+
+* Added `/ftbteams force-add` and `/ftbteams force-remove` commands
+  * Allows an admin user to quickly add/remove any player (including offline players if known to server) to/from any team
+
+### Fixed
+* Fixed "internal error" message when using `/ftbteams transfer_ownership` command
+* Fixed output formatting for error message when trying to transfer ownership to an invalid player
+* Fixed a server crash if vanilla clients attempt to connect, and no other installed mod has already prevented a connection
+  * This technically means FTB Teams can now be used as a (limited) server-only mod, without any GUI functionality or translations
+  * Lack of translations could be fixed by making a resource pack containing the files in https://github.com/FTBTeam/FTB-Teams/blob/dev/common/src/main/resources/assets/ftbteams/lang/
+
 ## [2101.1.4]
 
 ### Fixed

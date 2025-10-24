@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.tree.CommandNode;
-import com.mojang.util.UndashedUuid;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
 import net.minecraft.Util;

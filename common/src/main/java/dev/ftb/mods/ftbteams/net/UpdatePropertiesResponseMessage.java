@@ -4,7 +4,6 @@ import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
-import dev.ftb.mods.ftbteams.api.property.TeamPropertyValue;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
 import net.minecraft.Util;

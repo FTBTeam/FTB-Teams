@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.data.AbstractTeam;
@@ -25,8 +26,7 @@ public record UpdatePropertiesRequestMessage(TeamPropertyCollection properties) 
 			FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
 				if (team instanceof AbstractTeam abstractTeam && abstractTeam.isOfficerOrBetter(player.getUUID())) {
 					abstractTeam.updatePropertiesFrom(message.properties);
-					NetworkManager.sendToPlayers(player.server.getPlayerList().getPlayers(),
-							new UpdatePropertiesResponseMessage(team.getId(), abstractTeam.getProperties()));
+					NetworkHelper.sendToAll(player.server, new UpdatePropertiesResponseMessage(team.getId(), abstractTeam.getProperties()));
 				}
 			});
 		});

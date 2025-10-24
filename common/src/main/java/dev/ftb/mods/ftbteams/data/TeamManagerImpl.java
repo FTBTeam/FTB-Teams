@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
@@ -349,9 +348,9 @@ public class TeamManagerImpl implements TeamManager {
 	public void syncAllToPlayer(ServerPlayer player, AbstractTeam selfTeam) {
 		ClientTeamManagerImpl manager = ClientTeamManagerImpl.forSyncing(this, teamMap.values());
 
-		NetworkManager.sendToPlayer(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.id), selfTeam.getTeamId(), true));
-		NetworkManager.sendToPlayer(player, SyncMessageHistoryMessage.forTeam(selfTeam));
-		NetworkManager.sendToPlayer(player, new ToggleChatResponseMessage(isChatRedirected(player)));
+		NetworkHelper.sendTo(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.id), selfTeam.getTeamId(), true));
+		NetworkHelper.sendTo(player, SyncMessageHistoryMessage.forTeam(selfTeam));
+		NetworkHelper.sendTo(player, new ToggleChatResponseMessage(isChatRedirected(player)));
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
@@ -368,9 +367,9 @@ public class TeamManagerImpl implements TeamManager {
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			getTeamForPlayer(player).ifPresent(selfTeam -> {
-				NetworkManager.sendToPlayer(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.getTeamId()), selfTeam.getTeamId(), false));
+				NetworkHelper.sendTo(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.getTeamId()), selfTeam.getTeamId(), false));
 				if (teams.length > 1) {
-					NetworkManager.sendToPlayer(player, SyncMessageHistoryMessage.forTeam(selfTeam));
+					NetworkHelper.sendTo(player, SyncMessageHistoryMessage.forTeam(selfTeam));
 				}
 			});
 		}

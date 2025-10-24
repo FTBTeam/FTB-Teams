@@ -257,7 +257,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
-			NetworkManager.sendToPlayer(p, new SendMessageResponseMessage(from, text));
+			NetworkHelper.sendTo(p, new SendMessageResponseMessage(from, text));
 		}
 
 		markDirty();

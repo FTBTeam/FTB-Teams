@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
@@ -100,7 +101,7 @@ public class PlayerTeam extends AbstractTeam {
 	}
 
 	public void updatePresence() {
-		NetworkManager.sendToPlayers(manager.getServer().getPlayerList().getPlayers(), new UpdatePresenceMessage(createClientPlayer()));
+		NetworkHelper.sendToAll(manager.getServer(), new UpdatePresenceMessage(createClientPlayer()));
 	}
 
 	public Team createParty(UUID playerId, @Nullable ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {

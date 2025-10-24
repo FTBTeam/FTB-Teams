@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
 import dev.architectury.networking.NetworkManager;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.data.PlayerPermissions;
 import net.minecraft.network.FriendlyByteBuf;
@@ -19,7 +20,7 @@ public record OpenGUIMessage() implements CustomPacketPayload {
 		context.queue(() -> {
 			ServerPlayer player = (ServerPlayer) context.getPlayer();
 			FTBTeamsAPI.api().getManager().getTeamForPlayer(player)
-					.ifPresent(team -> NetworkManager.sendToPlayer(player, new OpenMyTeamGUIMessage(team.getProperties(), PlayerPermissions.forPlayer(player))));
+					.ifPresent(team -> NetworkHelper.sendTo(player, new OpenMyTeamGUIMessage(team.getProperties(), PlayerPermissions.forPlayer(player))));
 		});
 	}
 

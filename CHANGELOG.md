@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 * Fixed "internal error" message when using `/ftbteams transfer_ownership` command
 * Fixed output formatting for error message when trying to transfer ownership to an invalid player
+* Fixed a server crash if vanilla clients attempt to connect, and no other installed mod has already prevented a connection
+  * This technically means FTB Teams can now be used as a (limited) server-only mod, without any GUI functionality or translations
+  * Lack of translations could be fixed by making a resource pack containing the files in https://github.com/FTBTeam/FTB-Teams/blob/dev/common/src/main/resources/assets/ftbteams/lang/
 
 ## [2101.1.4]
 

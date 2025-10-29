@@ -8,6 +8,9 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.architectury.platform.Platform;
+import dev.ftb.mods.ftblibrary.FTBLibraryCommands;
+import dev.ftb.mods.ftblibrary.net.EditNBTPacket;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
@@ -17,9 +20,11 @@ import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -196,6 +201,13 @@ public class FTBTeamsCommands {
 										.executes(FTBTeamsCommands::forceRemovePlayers))
 						)
 				)
+				.then(Commands.literal("nbtedit")
+						.requires(requiresOPorSP())
+						.executes(this::editPlayerTeamNBT)
+						.then(createTeamArg()
+								.executes(FTBTeamsCommands::editTeamNBT)
+						)
+				)
 		);
 
 		if (Platform.isDevelopmentEnvironment()) {
@@ -358,5 +370,34 @@ public class FTBTeamsCommands {
 		}
 
 		return Command.SINGLE_SUCCESS;
+	}
+
+	private int editPlayerTeamNBT(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		return doTeamEdit(ctx, ctx.getSource().getPlayerOrException(), getTeam(ctx));
+	}
+
+	private static int editTeamNBT(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		return doTeamEdit(ctx, ctx.getSource().getPlayerOrException(), TeamArgument.get(ctx, "team"));
+	}
+
+	private static int doTeamEdit(CommandContext<CommandSourceStack> ctx, ServerPlayer editor, Team team) {
+		if (team instanceof AbstractTeam abstractTeam) {
+			CompoundTag info = Util.make(new CompoundTag(), t -> {
+				t.putString("title", Component.Serializer.toJson(abstractTeam.getColoredName(), editor.registryAccess()));
+				t.putString("type", "ftbteams:team");
+				t.putUUID("id", team.getTeamId());
+				t.putString("team_type", abstractTeam.getType().getSerializedName());
+				t.put("text", FTBLibraryCommands.InfoBuilder.create(ctx)
+						.add("Team Type", Component.translatable(team.getTypeTranslationKey()))
+						.add("Owner", Component.literal(team.getOwner().toString()))
+						.add("Members", Component.literal(String.valueOf(team.getMembers().size())))
+						.build()
+				);
+			});
+			CompoundTag tag = abstractTeam.serializeNBT(ctx.getSource().getServer().registryAccess());
+			NetworkHelper.sendTo(editor, new EditNBTPacket(info, tag));
+			return Command.SINGLE_SUCCESS;
+		}
+		return 0;
 	}
 }

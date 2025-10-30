@@ -414,6 +414,7 @@ public class TeamManagerImpl implements TeamManager {
 		PartyTeam team = createPartyTeamInternal(playerId, player, name);
 		if (description != null) team.setProperty(TeamProperties.DESCRIPTION, description);
 		if (color != null) team.setProperty(TeamProperties.COLOR, color);
+		team.copyExtraData(playerTeam);
 
 		playerTeam.setEffectiveTeam(team);
 

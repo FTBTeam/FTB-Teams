@@ -275,4 +275,8 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 			shouldSave = false;
 		}
 	}
+
+	void copyExtraData(Team from) {
+		extraData = from.getExtraData().copy();
+	}
 }

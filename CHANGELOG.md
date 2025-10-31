@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2101.1.5]
 
 ### Added
+* Added `/ftbteams nbtedit` admin command to allow direct NBT viewing/editing of team data
+  * FTB Library 2021.1.25+ required
+  * Use with caution; incorrect edits could leave the team in an unusable state. Make backups!
+
+### Fixed
+* Team "extra data" is now copied from player to party team when the party team is initially formed.
+
+## [2101.1.5]
+
+### Added
 
 * Added `/ftbteams force-add` and `/ftbteams force-remove` commands
   * Allows an admin user to quickly add/remove any player (including offline players if known to server) to/from any team

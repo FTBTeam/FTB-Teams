@@ -105,7 +105,7 @@ public class PlayerTeam extends AbstractTeam {
 
 	public Team createParty(UUID playerId, @Nullable ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {
 		try {
-			PartyTeam team = manager.createParty(playerId, player, name, description, Color4I.rgb(color)).getRight();
+			PartyTeam team = manager.createParty(playerId, player, name, description, Color4I.rgb(color));
 			if (player != null) {
 				team.invite(player, invited);
 			}

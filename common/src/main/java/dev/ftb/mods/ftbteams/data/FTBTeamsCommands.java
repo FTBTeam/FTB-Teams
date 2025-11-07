@@ -130,7 +130,7 @@ public class FTBTeamsCommands {
 						.requires(requiresOPorSP())
 						.then(Commands.literal("create")
 								.then(Commands.argument("name", StringArgumentType.greedyString())
-										.executes(ctx -> TeamManagerImpl.INSTANCE.createServer(ctx.getSource(), string(ctx, "name")).getLeft())
+										.executes(FTBTeamsCommands::tryCreateServerTeam)
 								)
 						)
 						.then(Commands.literal("delete")
@@ -311,7 +311,13 @@ public class FTBTeamsCommands {
 		if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
 			throw TeamArgument.API_OVERRIDE.create();
 		}
-		return TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName).getLeft();
+		TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName);
+		return Command.SINGLE_SUCCESS;
+	}
+
+	private static int tryCreateServerTeam(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		FTBTeamsAPI.api().getManager().createServerTeam(ctx.getSource(), string(ctx, "name"), null, null);
+		return Command.SINGLE_SUCCESS;
 	}
 
 	private static int info(CommandSourceStack source, Team team) {

@@ -46,7 +46,7 @@ public interface Team {
     /**
      * Get the unique player ID for the team's owner.
      *
-     * @return the owner's ID; a valid player UUID
+     * @return the owner's ID; a valid player UUID or {@link net.minecraft.Util#NIL_UUID} representing the server console
      */
     UUID getOwner();
 

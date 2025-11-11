@@ -8,6 +8,7 @@
 	"ftbteams.not_officer": "%s is not an officer of %s!",
 	"ftbteams.not_invited": "You are not invited to join %s!",
 	"ftbteams.name_too_short": "Team name is too short! (must be >=3 characters)",
+	"ftbteams.team_already_exists": "Team %s already exists!",
 	"ftbteams.server_permissions_prevent": "Server permissions prevent you from doing that.",
 	"ftbteams.info.id": "Long Team ID: %s",
 	"ftbteams.info.short_id": "Short Team ID: %s",

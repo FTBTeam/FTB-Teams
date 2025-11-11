@@ -25,7 +25,8 @@ public interface TeamPropertyCollection {
 	TeamPropertyCollection copy();
 
 	/**
-	 * Update this collection's properties from the supplied property collection.
+	 * Update this collection's properties from the supplied property collection. Property values in
+	 * {@code otherProperties} override properties in this object.
 	 *
 	 * @param otherProperties the collection to update from
 	 */
@@ -33,7 +34,7 @@ public interface TeamPropertyCollection {
 
 	/**
 	 * Retrieve the value for the given property. All built-in properties are available at {@link TeamProperties}, but
-	 * other mods may register extra properties (via {@link dev.ftb.mods.ftbteams.api.event.TeamCollectPropertiesEvent}).
+	 * other mods may register extra properties via {@link dev.ftb.mods.ftbteams.api.event.TeamCollectPropertiesEvent}.
 	 *
 	 * @param key the property to retrieve
 	 * @return the value for this property

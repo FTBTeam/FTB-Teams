@@ -13,11 +13,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BigIntegerProperty extends TeamProperty<BigInteger> {
-    protected BigIntegerProperty(ResourceLocation id, Supplier<BigInteger> def) {
+    public BigIntegerProperty(ResourceLocation id, Supplier<BigInteger> def) {
         super(id, def);
     }
 
-    protected BigIntegerProperty(ResourceLocation id, BigInteger def) {
+    public BigIntegerProperty(ResourceLocation id, BigInteger def) {
         this(id, () -> def);
     }
 

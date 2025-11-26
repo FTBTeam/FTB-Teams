@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -44,7 +45,7 @@ public class ColorProperty extends TeamProperty<Color4I> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<Color4I> value) {
-		config.addColor(id.getPath(), value.value, value.consumer, getDefaultValue());
+	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<Color4I> value) {
+		return config.addColor(id.getPath(), value.getValue(), value::setValue, getDefaultValue());
 	}
 }

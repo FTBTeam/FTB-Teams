@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.api.property;
 import dev.ftb.mods.ftblibrary.config.NameMap;
 import net.minecraft.util.StringRepresentable;
 
+// TODO this should be moved to FTB Chunks
 public enum PrivacyMode implements StringRepresentable {
 	ALLIES("allies"),
 	PRIVATE("private"),

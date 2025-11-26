@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
@@ -24,8 +25,7 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 	}
 
 	static BooleanProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
-		boolean val = buf.readBoolean();
-		return new BooleanProperty(id, () -> val);
+		return new BooleanProperty(id, buf.readBoolean());
 	}
 
 	@Override
@@ -50,8 +50,8 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<Boolean> value) {
-		config.addBool(id.getPath(), value.value, value.consumer, getDefaultValue());
+	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<Boolean> value) {
+		return config.addBool(id.getPath(), value.getValue(), value::setValue, getDefaultValue());
 	}
 
 	@Override
@@ -61,14 +61,16 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 
 	@Override
 	public Optional<Boolean> fromNBT(Tag tag) {
-		if (tag instanceof NumericTag) {
-			if (((NumericTag) tag).getAsByte() == 1) {
-				return TRUE;
-			}
+        return tag instanceof NumericTag n ? n.getAsByte() == 1 ? TRUE : FALSE : Optional.empty();
+    }
 
-			return FALSE;
-		}
+	@Override
+	public void writeValue(RegistryFriendlyByteBuf buf, Boolean value) {
+		buf.writeBoolean(value);
+	}
 
-		return Optional.empty();
+	@Override
+	public Boolean readValue(RegistryFriendlyByteBuf buf) {
+		return buf.readBoolean();
 	}
 }

@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
@@ -61,8 +62,18 @@ public class IntProperty extends TeamProperty<Integer> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<Integer> value) {
-		config.addInt(id.getPath(), value.value, value.consumer, getDefaultValue(), minValue, maxValue);
+	public void writeValue(RegistryFriendlyByteBuf buf, Integer value) {
+		buf.writeInt(value);
+	}
+
+	@Override
+	public Integer readValue(RegistryFriendlyByteBuf buf) {
+		return buf.readInt();
+	}
+
+	@Override
+	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<Integer> value) {
+		return config.addInt(id.getPath(), value.getValue(), value::setValue, getDefaultValue(), minValue, maxValue);
 	}
 
 	@Override
@@ -72,10 +83,6 @@ public class IntProperty extends TeamProperty<Integer> {
 
 	@Override
 	public Optional<Integer> fromNBT(Tag tag) {
-		if (tag instanceof NumericTag) {
-			return Optional.of(Mth.clamp(((NumericTag) tag).getAsInt(), minValue, maxValue));
-		}
-
-		return Optional.empty();
-	}
+        return tag instanceof NumericTag n ? Optional.of(Mth.clamp(n.getAsInt(), minValue, maxValue)) : Optional.empty();
+    }
 }

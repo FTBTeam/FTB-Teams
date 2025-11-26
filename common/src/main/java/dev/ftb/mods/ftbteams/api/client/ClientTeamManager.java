@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Used to track known teams and player on each client in the game. You can retrieve an instance of this via
+ * Used to track known teams and players on each client in the game. You can retrieve an instance of this via
  * {@link FTBTeamsAPI.API#getClientManager()}.
  */
 public interface ClientTeamManager {

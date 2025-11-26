@@ -4,9 +4,6 @@ import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author LatvianModder
- */
 public class PlayerJoinedPartyTeamEvent extends TeamEvent {
 	private final Team previousTeam;
 	private final ServerPlayer player;

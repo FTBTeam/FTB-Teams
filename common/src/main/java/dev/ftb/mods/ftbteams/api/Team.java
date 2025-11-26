@@ -6,6 +6,7 @@ import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
@@ -236,4 +237,15 @@ public interface Team {
      * @return the newly-created party team
      */
     Team createParty(String description, @Nullable Color4I color);
+
+    /**
+     * Synchronise the value of one team property for this team to all players on the server. This method does nothing
+     * if the property was not declared syncable (via {@link TeamProperty#syncToAll()}), or if called on the client.
+     *
+     * @param server the server
+     * @param property the property to sync
+     * @param value the value to sync
+     * @param <T> the property type
+     */
+    <T> void syncOnePropertyToAll(MinecraftServer server, TeamProperty<T> property, T value);
 }

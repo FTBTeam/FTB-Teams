@@ -389,7 +389,10 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 				MyTeamScreen.this.properties.forEach((key, value) -> {
 					String groupName = key.getId().getNamespace();
 					ConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getOrCreateSubgroup(groupName));
-					key.config(cfg, value);
+					var val = key.config(cfg, value);
+					if (val != null && !key.isPlayerEditable()) {
+						val.setCanEdit(false);
+					}
 				});
 
 				new EditConfigScreen(config).openGui();

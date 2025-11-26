@@ -84,7 +84,7 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 				ClientTeam clientTeam = manager.getTeamMap().containsKey(team.getId()) ?
 						ClientTeam.copyOf(abstractTeam) :
 						ClientTeam.invalidTeam(abstractTeam);
-				clientTeam.setSyncTypeChecker(() -> clientManager.getSelfTeamId().equals(clientTeam.getId()));
+				clientTeam.setFullSyncRequired(() -> clientManager.getSelfTeamId().equals(clientTeam.getId()));
 				clientManager.addTeam(clientTeam);
 			}
 

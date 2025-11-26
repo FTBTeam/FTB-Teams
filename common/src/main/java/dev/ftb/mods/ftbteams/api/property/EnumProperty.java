@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import dev.ftb.mods.ftblibrary.config.NameMap;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
@@ -70,8 +71,8 @@ public class EnumProperty extends TeamProperty<String> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<String> value) {
-		config.addEnum(id.getPath(), value.value, value.consumer, NameMap.of(getDefaultValue(), values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
+	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<String> value) {
+		return config.addEnum(id.getPath(), value.getValue(), value::setValue, NameMap.of(getDefaultValue(), values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
 	}
 
 	@Override
@@ -81,10 +82,6 @@ public class EnumProperty extends TeamProperty<String> {
 
 	@Override
 	public Optional<String> fromNBT(Tag tag) {
-		if (tag instanceof StringTag) {
-			return Optional.of(tag.getAsString());
-		}
-
-		return Optional.empty();
-	}
+        return tag instanceof StringTag ? Optional.of(tag.getAsString()) : Optional.empty();
+    }
 }

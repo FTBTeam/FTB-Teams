@@ -9,9 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class FTBTeamsAPI {
 	public static final String MOD_ID = "ftbteams";
 	public static final String MOD_NAME = "FTB Teams";

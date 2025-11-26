@@ -4,9 +4,6 @@ import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
-/**
- * @author LatvianModder
- */
 public class TeamInfoEvent extends TeamEvent {
 	private final CommandSourceStack source;
 

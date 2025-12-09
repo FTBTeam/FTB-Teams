@@ -10,7 +10,6 @@ import dev.architectury.utils.Env;
 import dev.architectury.utils.EnvExecutor;
 import dev.ftb.mods.ftblibrary.nbtedit.NBTEditResponseHandlers;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.event.TeamCollectPropertiesEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
@@ -19,12 +18,10 @@ import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.AbstractTeam;
 import dev.ftb.mods.ftbteams.data.FTBTeamsCommands;
 import dev.ftb.mods.ftbteams.data.TeamManagerImpl;
-import dev.ftb.mods.ftbteams.data.TeamType;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -92,6 +89,7 @@ public class FTBTeams {
 		event.add(TeamProperties.COLOR);
 		event.add(TeamProperties.FREE_TO_JOIN);
 		event.add(TeamProperties.MAX_MSG_HISTORY_SIZE);
+		event.add(TeamProperties.TEAM_STAGES);
 	}
 
 	private void playerLoggedIn(ServerPlayer player) {

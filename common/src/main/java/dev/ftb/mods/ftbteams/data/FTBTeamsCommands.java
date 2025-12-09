@@ -12,10 +12,7 @@ import dev.ftb.mods.ftblibrary.FTBLibraryCommands;
 import dev.ftb.mods.ftblibrary.net.EditNBTPacket;
 import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
-import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.api.Team;
-import dev.ftb.mods.ftbteams.api.TeamManager;
-import dev.ftb.mods.ftbteams.api.TeamRank;
+import dev.ftb.mods.ftbteams.api.*;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;
@@ -23,6 +20,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -206,6 +204,32 @@ public class FTBTeamsCommands {
 						.executes(this::editPlayerTeamNBT)
 						.then(createTeamArg()
 								.executes(FTBTeamsCommands::editTeamNBT)
+						)
+				)
+				.then(Commands.literal("teamstage")
+						.requires(requiresOPorSP())
+						.then(Commands.argument("player", EntityArgument.player())
+								.then(Commands.literal("add")
+										.then(Commands.argument("stage", StringArgumentType.string())
+												.executes(ctx -> updateTeamStage(ctx,
+														EntityArgument.getPlayer(ctx, "player"),
+														StringArgumentType.getString(ctx, "stage"),
+														true)
+												)
+										)
+								)
+								.then(Commands.literal("remove")
+										.then(Commands.argument("stage", StringArgumentType.string())
+												.executes(ctx -> updateTeamStage(ctx,
+														EntityArgument.getPlayer(ctx, "player"),
+														StringArgumentType.getString(ctx, "stage"),
+														false)
+												)
+										)
+								)
+								.then(Commands.literal("list")
+										.executes(ctx -> listTeamStages(ctx, EntityArgument.getPlayer(ctx, "player")))
+								)
 						)
 				)
 		);
@@ -403,6 +427,35 @@ public class FTBTeamsCommands {
 			CompoundTag tag = abstractTeam.serializeNBT(ctx.getSource().getServer().registryAccess());
 			NetworkHelper.sendTo(editor, new EditNBTPacket(info, tag));
 			return Command.SINGLE_SUCCESS;
+		}
+		return 0;
+	}
+
+	private static int updateTeamStage(CommandContext<CommandSourceStack> ctx, ServerPlayer player, String stage, boolean adding) throws CommandSyntaxException {
+		Team team = FTBTeamsAPI.api().getManager().getTeamForPlayer(player)
+				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(player.getDisplayName()));
+
+		if (adding) {
+			if (TeamStagesHelper.addTeamStage(team, stage)) {
+				ctx.getSource().sendSuccess(() -> Component.translatable("ftbteams.message.added_stage", stage), false);
+			}
+		} else if (TeamStagesHelper.removeTeamStage(team, stage)) {
+			ctx.getSource().sendSuccess(() -> Component.translatable("ftbteams.message.removed_stage", stage), false);
+		}
+
+		return Command.SINGLE_SUCCESS;
+	}
+
+	private static int listTeamStages(CommandContext<CommandSourceStack> ctx, ServerPlayer player) throws CommandSyntaxException {
+		Team team = FTBTeamsAPI.api().getManager().getTeamForPlayer(player)
+				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(player.getDisplayName()));
+
+		Collection<String> stages = TeamStagesHelper.getStages(team);
+		if (stages.isEmpty()) {
+			ctx.getSource().sendSuccess(() -> Component.translatable("ftbteams.message.no_team_stages").withStyle(ChatFormatting.GOLD), false);
+		} else {
+			ctx.getSource().sendSuccess(() -> Component.translatable("ftbteams.message.team_stages_header", stages.size()).withStyle(ChatFormatting.YELLOW), false);
+			stages.forEach(stage -> ctx.getSource().sendSuccess(() -> Component.literal("• ").append(stage), false));
 		}
 		return 0;
 	}

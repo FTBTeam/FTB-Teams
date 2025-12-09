@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -23,12 +24,16 @@ public class TeamPropertyType<T> {
 	public static final TeamPropertyType<Boolean> BOOLEAN = register("boolean", BooleanProperty::fromNetwork);
 	public static final TeamPropertyType<String> STRING = register("string", StringProperty::fromNetwork);
 	public static final TeamPropertyType<List<String>> STRING_LIST = register("string_list", StringListProperty::fromNetwork);
+	public static final TeamPropertyType<Set<String>> STRING_SET = register("string_list", StringSetProperty::fromNetwork);
 	public static final TeamPropertyType<Integer> INT = register("int", IntProperty::fromNetwork);
 	public static final TeamPropertyType<Double> DOUBLE = register("double", DoubleProperty::fromNetwork);
 	public static final TeamPropertyType<Color4I> COLOR = register("color", ColorProperty::fromNetwork);
 	public static final TeamPropertyType<String> ENUM = register("enum", EnumProperty::fromNetwork);
 	public static final TeamPropertyType<PrivacyMode> PRIVACY_MODE = register("privacy_mode", PrivacyProperty::fromNetwork);
 	public static final TeamPropertyType<BigInteger> BIG_INTEGER = register("big_integer", BigIntegerProperty::fromNetwork);
+	public static final TeamPropertyType<Map<String,Integer>> INT_MAP = register("int_map", StringMapProperty.ToInteger::fromNetwork);
+	public static final TeamPropertyType<Map<String,Boolean>> BOOL_MAP = register("bool_map", StringMapProperty.ToBoolean::fromNetwork);
+	public static final TeamPropertyType<Map<String,String>> STRING_MAP = register("string_map", StringMapProperty.ToString::fromNetwork);
 
 	private final ResourceLocation id;
 	private final FromNet<T> deserializer;

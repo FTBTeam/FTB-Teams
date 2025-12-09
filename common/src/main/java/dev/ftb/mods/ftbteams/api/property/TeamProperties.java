@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbteams.api.property;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 
-import java.math.BigInteger;
+import java.util.HashSet;
 import java.util.regex.Pattern;
 
 /**
@@ -23,4 +23,7 @@ public class TeamProperties {
             = new BooleanProperty(FTBTeamsAPI.rl("free_to_join"), false);
     public static final IntProperty MAX_MSG_HISTORY_SIZE
             = new IntProperty(FTBTeamsAPI.rl("max_msg_history_size"), 1000);
+    public static final StringSetProperty TEAM_STAGES
+            = (StringSetProperty) new StringSetProperty(FTBTeamsAPI.rl("team_stages"), new HashSet<>())
+            .notPlayerEditable();
 }

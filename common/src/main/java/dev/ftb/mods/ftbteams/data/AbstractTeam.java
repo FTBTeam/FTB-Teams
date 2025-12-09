@@ -287,4 +287,9 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 			NetworkHelper.sendToAll(server, UpdatePropertiesResponseMessage.oneProperty(getId(), property, value));
 		}
 	}
+
+	@Override
+	public <T> void syncOnePropertyToTeam(TeamProperty<T> property, T value) {
+		getOnlineMembers().forEach(sp -> NetworkHelper.sendTo(sp, UpdatePropertiesResponseMessage.oneProperty(getId(), property, value)));
+	}
 }

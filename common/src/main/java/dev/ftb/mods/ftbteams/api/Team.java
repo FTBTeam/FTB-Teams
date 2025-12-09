@@ -248,4 +248,14 @@ public interface Team {
      * @param <T> the property type
      */
     <T> void syncOnePropertyToAll(MinecraftServer server, TeamProperty<T> property, T value);
+
+    /**
+     * Synchronise the value of one team property for this team to all online players on this team. This method does nothing
+     *  if called on the client.
+     *
+     * @param property the property to sync
+     * @param value the value to sync
+     * @param <T> the property type
+     */
+    <T> void syncOnePropertyToTeam(TeamProperty<T> property, T value);
 }

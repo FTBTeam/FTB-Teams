@@ -90,6 +90,10 @@
 	"ftbteams.message.team_disbanded": "Forcibly disbanded party team '%s' (%s) !",
 	"ftbteams.message.chat_redirected.on": "Chat messages are redirected to team chat",
 	"ftbteams.message.chat_redirected.off": "Chat messages are sent to vanilla chat",
+	"ftbteams.message.added_stage": "Added team stage: %s",
+	"ftbteams.message.no_team_stages": "No team stages for this team",
+	"ftbteams.message.removed_stage": "Removed team stage: %s",
+	"ftbteams.message.team_stages_header": "%s team stage(s) for this team:",
 	"ftbteams.accept": "Accept ✔",
 	"ftbteams.decline": "Decline ✘",
 	"ftbteams.click_show_info": "Click to show team info"

@@ -58,6 +58,11 @@ public class ClientTeam extends AbstractTeamBase {
 	}
 
 	@Override
+	public <T> void syncOnePropertyToTeam(TeamProperty<T> property, T value) {
+		// no-op
+	}
+
+	@Override
 	public TeamType getType() {
 		return type;
 	}

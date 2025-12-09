@@ -21,8 +21,6 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public class ClientTeam extends AbstractTeamBase {
-//	private static final List<TeamProperty<?>> SYNCABLE_PROPS = List.of(TeamProperties.DISPLAY_NAME, TeamProperties.COLOR);
-
 	public static final StreamCodec<RegistryFriendlyByteBuf,ClientTeam> STREAM_CODEC = StreamCodec.of(
             ClientTeam::toNet,
             ClientTeam::fromNet

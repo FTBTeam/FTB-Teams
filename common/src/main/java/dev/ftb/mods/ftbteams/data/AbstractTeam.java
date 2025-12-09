@@ -160,7 +160,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		MutableComponent keyc = Component.translatable(key.getTranslationKey("ftbteamsconfig")).withStyle(ChatFormatting.YELLOW);
 		if (value.isEmpty()) {
 			Component valuec = Component.literal(key.toString(getProperty(key))).withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(() -> keyc.append(" is set to ").append(valuec), true);
+			source.sendSuccess(() -> keyc.append(" = ").append(valuec), true);
 		} else if (key.isPlayerEditable()) {
 			Optional<T> optional = key.fromString(value);
 
@@ -168,16 +168,16 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 				TeamPropertyCollection old = properties.copy();
 				setProperty(key, optional.get());
 				Component valuec = Component.literal(value).withStyle(ChatFormatting.AQUA);
-				source.sendSuccess(() -> Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
+				source.sendSuccess(() -> Component.translatable("ftbteams.message.set_property", keyc, valuec), true);
 
 				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
 				syncOnePropertyToAll(source.getServer(), key, optional.get());
 			} else {
-				source.sendFailure(Component.literal("Failed to parse value!"));
+				source.sendFailure(Component.translatable("ftbteams.message.parse_failed", value));
 				return 0;
 			}
 		} else {
-			source.sendFailure(Component.literal("That property may not be edited!"));
+			source.sendFailure(Component.translatable("ftbteams.message.property_not_editable", keyc));
 		}
 		return Command.SINGLE_SUCCESS;
 	}

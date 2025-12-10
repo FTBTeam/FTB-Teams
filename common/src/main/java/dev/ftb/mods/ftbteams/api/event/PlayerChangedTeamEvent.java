@@ -7,9 +7,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class PlayerChangedTeamEvent extends TeamEvent {
 	private final Team previousTeam;
 	private final UUID playerId;

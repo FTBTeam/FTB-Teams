@@ -4,13 +4,13 @@ import dev.ftb.mods.ftbteams.api.TeamMessage;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.event.ClientTeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
-import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import net.minecraft.Util;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,8 +21,6 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 
 public class ClientTeam extends AbstractTeamBase {
-	private static final List<TeamProperty<?>> SYNCABLE_PROPS = List.of(TeamProperties.DISPLAY_NAME, TeamProperties.COLOR);
-
 	public static final StreamCodec<RegistryFriendlyByteBuf,ClientTeam> STREAM_CODEC = StreamCodec.of(
             ClientTeam::toNet,
             ClientTeam::fromNet
@@ -52,8 +50,14 @@ public class ClientTeam extends AbstractTeamBase {
 		return clientTeam;
 	}
 
-	public static <T> boolean isSyncableProperty(TeamProperty<T> key) {
-		return SYNCABLE_PROPS.contains(key);
+	@Override
+	public <T> void syncOnePropertyToAll(MinecraftServer server, TeamProperty<T> property, T value) {
+		// no-op
+	}
+
+	@Override
+	public <T> void syncOnePropertyToTeam(TeamProperty<T> property, T value) {
+		// no-op
 	}
 
 	@Override
@@ -127,7 +131,7 @@ public class ClientTeam extends AbstractTeamBase {
 		TeamEvent.CLIENT_PROPERTIES_CHANGED.invoker().accept(new ClientTeamPropertiesChangedEvent(this, old));
 	}
 
-	public void setSyncTypeChecker(BooleanSupplier fullSyncSupplier) {
+	public void setFullSyncRequired(BooleanSupplier fullSyncSupplier) {
 		this.fullSyncSupplier = fullSyncSupplier;
 	}
 
@@ -164,7 +168,7 @@ public class ClientTeam extends AbstractTeamBase {
 		if (team.fullSyncSupplier.getAsBoolean()) {
 			team.properties.write(buffer);
 		} else {
-			team.properties.writeSyncableOnly(buffer, SYNCABLE_PROPS);
+			team.properties.writeSyncableOnly(buffer);
 		}
 
 		buffer.writeVarInt(team.ranks.size());

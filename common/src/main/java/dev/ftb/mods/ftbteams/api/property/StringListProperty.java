@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import dev.ftb.mods.ftblibrary.config.StringConfig;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -52,8 +53,8 @@ public class StringListProperty extends TeamProperty<List<String>> {
     }
 
     @Override
-    public void config(ConfigGroup config, TeamPropertyValue<List<String>> value) {
-        config.addList(id.getPath(), value.value, new StringConfig(), "");
+    public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<List<String>> value) {
+        return config.addList(id.getPath(), value.getValue(), new StringConfig(), "");
     }
 
     @Override
@@ -65,12 +66,18 @@ public class StringListProperty extends TeamProperty<List<String>> {
 
     @Override
     public Optional<List<String>> fromNBT(Tag tag) {
-        List<String> res = new ArrayList<>();
-        if (tag instanceof ListTag l) {
-            l.forEach(t -> res.add(t.getAsString()));
-            return Optional.of(res);
-        } else {
-            return Optional.empty();
-        }
+        return tag instanceof ListTag l ?
+                Optional.of(l.stream().map(Tag::getAsString).toList()) :
+                Optional.empty();
+    }
+
+    @Override
+    public void writeValue(RegistryFriendlyByteBuf buf, List<String> value) {
+        buf.writeCollection(value, FriendlyByteBuf::writeUtf);
+    }
+
+    @Override
+    public List<String> readValue(RegistryFriendlyByteBuf buf) {
+        return buf.readList(FriendlyByteBuf::readUtf);
     }
 }

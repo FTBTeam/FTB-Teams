@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
@@ -57,8 +58,8 @@ public class DoubleProperty extends TeamProperty<Double> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<Double> value) {
-		config.addDouble(id.getPath(), value.value, value.consumer, getDefaultValue(), minValue, maxValue);
+	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<Double> value) {
+		return config.addDouble(id.getPath(), value.getValue(), value::setValue, getDefaultValue(), minValue, maxValue);
 	}
 
 	@Override
@@ -68,10 +69,16 @@ public class DoubleProperty extends TeamProperty<Double> {
 
 	@Override
 	public Optional<Double> fromNBT(Tag tag) {
-		if (tag instanceof NumericTag) {
-			return Optional.of(Mth.clamp(((NumericTag) tag).getAsDouble(), minValue, maxValue));
-		}
+        return tag instanceof NumericTag n ? Optional.of(Mth.clamp(n.getAsDouble(), minValue, maxValue)) : Optional.empty();
+    }
 
-		return Optional.empty();
+	@Override
+	public Double readValue(RegistryFriendlyByteBuf buf) {
+		return buf.readDouble();
+	}
+
+	@Override
+	public void writeValue(RegistryFriendlyByteBuf buf, Double value) {
+		buf.writeDouble(value);
 	}
 }

@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -8,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+// TODO this should be moved to FTB Chunks
 public class PrivacyProperty extends TeamProperty<PrivacyMode> {
 	public PrivacyProperty(ResourceLocation id, Supplier<PrivacyMode> def) {
 		super(id, def);
@@ -42,7 +44,7 @@ public class PrivacyProperty extends TeamProperty<PrivacyMode> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<PrivacyMode> value) {
-		config.addEnum(id.getPath(), value.value, value.consumer, PrivacyMode.NAME_MAP);
+	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<PrivacyMode> value) {
+		return config.addEnum(id.getPath(), value.getValue(), value::setValue, PrivacyMode.NAME_MAP);
 	}
 }

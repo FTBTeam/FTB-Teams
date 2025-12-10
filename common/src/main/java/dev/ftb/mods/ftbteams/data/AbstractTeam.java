@@ -27,6 +27,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,24 +160,24 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		MutableComponent keyc = Component.translatable(key.getTranslationKey("ftbteamsconfig")).withStyle(ChatFormatting.YELLOW);
 		if (value.isEmpty()) {
 			Component valuec = Component.literal(key.toString(getProperty(key))).withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(() -> keyc.append(" is set to ").append(valuec), true);
-		} else {
+			source.sendSuccess(() -> keyc.append(" = ").append(valuec), true);
+		} else if (key.isPlayerEditable()) {
 			Optional<T> optional = key.fromString(value);
 
 			if (optional.isPresent()) {
 				TeamPropertyCollection old = properties.copy();
 				setProperty(key, optional.get());
 				Component valuec = Component.literal(value).withStyle(ChatFormatting.AQUA);
-				source.sendSuccess(() -> Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
+				source.sendSuccess(() -> Component.translatable("ftbteams.message.set_property", keyc, valuec), true);
 
 				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
-				if (ClientTeam.isSyncableProperty(key)) {
-					NetworkHelper.sendToAll(source.getServer(), UpdatePropertiesResponseMessage.oneProperty(getId(), key, optional.get()));
-				}
+				syncOnePropertyToAll(source.getServer(), key, optional.get());
 			} else {
-				source.sendFailure(Component.literal("Failed to parse value!"));
+				source.sendFailure(Component.translatable("ftbteams.message.parse_failed", value));
 				return 0;
 			}
+		} else {
+			source.sendFailure(Component.translatable("ftbteams.message.property_not_editable", keyc));
 		}
 		return Command.SINGLE_SUCCESS;
 	}
@@ -278,5 +279,17 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	void copyExtraData(Team from) {
 		extraData = from.getExtraData().copy();
+	}
+
+	@Override
+	public <T> void syncOnePropertyToAll(MinecraftServer server, TeamProperty<T> property, T value) {
+		if (property.shouldSyncToAll()) {
+			NetworkHelper.sendToAll(server, UpdatePropertiesResponseMessage.oneProperty(getId(), property, value));
+		}
+	}
+
+	@Override
+	public <T> void syncOnePropertyToTeam(TeamProperty<T> property, T value) {
+		getOnlineMembers().forEach(sp -> NetworkHelper.sendTo(sp, UpdatePropertiesResponseMessage.oneProperty(getId(), property, value)));
 	}
 }

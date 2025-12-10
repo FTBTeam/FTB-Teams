@@ -6,9 +6,6 @@ import dev.ftb.mods.ftbteams.data.PartyTeam;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
-/**
- * @author LatvianModder
- */
 public class PlayerTransferredTeamOwnershipEvent extends TeamEvent {
 	private final ServerPlayer from, to;
 	private final GameProfile toProfile;

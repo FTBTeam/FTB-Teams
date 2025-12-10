@@ -15,28 +15,29 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	private final PropertyMap map = new PropertyMap();
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, TeamPropertyCollection> STREAM_CODEC = StreamCodec.of(
-            (buffer, props) -> {
+			(buffer, props) -> {
 				buffer.writeVarInt(props.size());
 				props.forEach((prop, value) -> {
 					TeamPropertyType.write(buffer, prop);
 					prop.writeValue(buffer, value.getValue());
 				});
-            },
-            buffer -> {
+			},
+			buffer -> {
 				TeamPropertyCollectionImpl props = new TeamPropertyCollectionImpl();
 				int nProperties = buffer.readVarInt();
 				for (int i = 0; i < nProperties; i++) {
 					TeamProperty<?> tp = TeamPropertyType.read(buffer);
-					props.map.putNetworkProperty(tp, buffer);
+					props.map.putPropertyFromNetwork(tp, buffer);
 				}
 				return props;
 			}
-    );
+	);
 
 	public void collectProperties() {
 		map.clear();
@@ -50,11 +51,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 
 	@Override
 	public TeamPropertyCollectionImpl copy() {
-		TeamPropertyCollectionImpl p = new TeamPropertyCollectionImpl();
-
-		map.forEachProperty((key, value) -> p.map.putProperty(key, value.copy()));
-
-		return p;
+		return copyIf(p -> true);
 	}
 
 	@Override
@@ -82,16 +79,29 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 		return map.size();
 	}
 
+	@Override
+	public TeamPropertyCollectionImpl copyIf(Predicate<TeamProperty<?>> predicate) {
+		TeamPropertyCollectionImpl p = new TeamPropertyCollectionImpl();
+
+		map.forEachProperty((key, value) -> {
+			if (predicate.test(key)) {
+				p.map.putProperty(key, value.copy());
+			}
+		});
+
+		return p;
+	}
+
 	public void write(RegistryFriendlyByteBuf buffer) {
 		TeamPropertyCollectionImpl.STREAM_CODEC.encode(buffer, this);
 	}
 
-	public void writeSyncableOnly(RegistryFriendlyByteBuf buffer, List<TeamProperty<?>> syncableProps) {
+	public void writeSyncableOnly(RegistryFriendlyByteBuf buffer) {
 		// this is used when sync'ing team data for a different team
 		// player A only needs to know limited info (display name, color...) about team B if A isn't a member of B
 		PropertyMap subMap = new PropertyMap();
-		syncableProps.forEach(prop -> {
-			if (map.hasProperty(prop)) {
+		map.forEachProperty((prop, val) -> {
+			if (prop.shouldSyncToAll()) {
 				subMap.backingMap.put(prop, map.backingMap.get(prop));
 			}
 		});
@@ -104,7 +114,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	}
 
 	public void read(CompoundTag tag) {
-		tag.getAllKeys().forEach(key -> map.findProperty(key).ifPresent(prop -> map.putNBTProperty(prop, tag.get(key))));
+		tag.getAllKeys().forEach(key -> map.findProperty(key).ifPresent(prop -> map.putPropertyFromNBT(prop, tag.get(key))));
 	}
 
 	public CompoundTag write(CompoundTag tag) {
@@ -136,17 +146,17 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 		}
 
 		void putDefaultProperty(TeamProperty<?> prop) {
-			backingMap.put(prop, prop.createDefaultValue());
+			backingMap.put(prop, TeamPropertyValue.createDefaultValue(prop));
 			byId.put(prop.getId(), prop);
 		}
 
-		void putNetworkProperty(TeamProperty<?> prop, RegistryFriendlyByteBuf buffer) {
-			backingMap.put(prop, prop.createValueFromNetwork(buffer));
+		void putPropertyFromNetwork(TeamProperty<?> prop, RegistryFriendlyByteBuf buffer) {
+			backingMap.put(prop, TeamPropertyValue.fromNetwork(prop, buffer));
 			byId.put(prop.getId(), prop);
 		}
 
-		void putNBTProperty(TeamProperty<?> prop, Tag tag) {
-			backingMap.put(prop, prop.createValueFromNBT(tag));
+		void putPropertyFromNBT(TeamProperty<?> prop, Tag tag) {
+			backingMap.put(prop, TeamPropertyValue.fromNBT(prop, tag));
 			byId.put(prop.getId(), prop);
 		}
 

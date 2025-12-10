@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import java.util.function.BiConsumer;
+import java.util.function.Predicate;
 
 /**
  * Represents the collection of properties that a team has. All teams have the same properties, but of course
@@ -11,7 +12,8 @@ import java.util.function.BiConsumer;
  */
 public interface TeamPropertyCollection {
 	/**
-	 * Iterate over all the properties in this collection,
+	 * Iterate over all the properties in this collection.
+	 *
 	 * @param consumer the consumer to call for each property and value pair
 	 * @param <T> the property type
 	 */
@@ -23,6 +25,15 @@ public interface TeamPropertyCollection {
 	 * @return a copy of this collection
 	 */
 	TeamPropertyCollection copy();
+
+	/**
+	 * Create a new TeamPropertyCollection, which is a copy of this one, but containing only properties which are
+	 * matched by the given predicate.
+	 *
+	 * @param predicate the predicate to test properties in the collection
+	 * @return a new TeamPropertyCollection object
+	 */
+	TeamPropertyCollection copyIf(Predicate<TeamProperty<?>> predicate);
 
 	/**
 	 * Update this collection's properties from the supplied property collection. Property values in

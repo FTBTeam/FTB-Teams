@@ -24,7 +24,7 @@ public class TeamPropertyType<T> {
 	public static final TeamPropertyType<Boolean> BOOLEAN = register("boolean", BooleanProperty::fromNetwork);
 	public static final TeamPropertyType<String> STRING = register("string", StringProperty::fromNetwork);
 	public static final TeamPropertyType<List<String>> STRING_LIST = register("string_list", StringListProperty::fromNetwork);
-	public static final TeamPropertyType<Set<String>> STRING_SET = register("string_list", StringSetProperty::fromNetwork);
+	public static final TeamPropertyType<Set<String>> STRING_SET = register("string_set", StringSetProperty::fromNetwork);
 	public static final TeamPropertyType<Integer> INT = register("int", IntProperty::fromNetwork);
 	public static final TeamPropertyType<Double> DOUBLE = register("double", DoubleProperty::fromNetwork);
 	public static final TeamPropertyType<Color4I> COLOR = register("color", ColorProperty::fromNetwork);

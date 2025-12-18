@@ -71,6 +71,9 @@ public class TeamPropertyType<T> {
 	 */
 	public static <Y> TeamPropertyType<Y> register(ResourceLocation id, FromNet<Y> deserializer) {
 		TeamPropertyType<Y> t = new TeamPropertyType<>(id, deserializer);
+		if (MAP.containsKey(id)) {
+			throw new IllegalStateException("team property type '" + id + "' is already registered!");
+		}
 		MAP.put(id, t);
 		return t;
 	}

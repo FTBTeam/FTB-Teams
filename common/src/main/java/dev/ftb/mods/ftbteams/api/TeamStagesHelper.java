@@ -11,8 +11,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Utility class providing some convenience methods for querying and adjust the team stages for a team. These methods
- * all handle client sync and team data serialization internally.
+ * Utility class providing some convenience methods for querying and modifying the team stages for a team. These methods
+ * all handle client sync and team data serialization for you.
+ * <p>
+ * These methods are all safe to call on the client, but it's only useful to query stages on the client with
+ * {@link #hasTeamStage(Team, String)}; the methods which modify stages do nothing on the client.
  * <p>
  * Modifying a team's stages also causes a {@link TeamPropertiesChangedEvent} event to be fired.
  */
@@ -85,6 +88,9 @@ public class TeamStagesHelper {
     }
 
     private static int updateStages(Team team, Collection<String> stages, boolean adding) {
+        if (team.isClientTeam()) {
+            return 0;
+        }
         Set<String> stageSet = team.getProperty(TeamProperties.TEAM_STAGES);
         int changed = (int) stages.stream().filter(stage -> adding && stageSet.add(stage) || !adding && stageSet.remove(stage)).count();
         if (changed > 0) {

@@ -88,9 +88,8 @@ public class TeamStagesHelper {
         Set<String> stageSet = team.getProperty(TeamProperties.TEAM_STAGES);
         int changed = (int) stages.stream().filter(stage -> adding && stageSet.add(stage) || !adding && stageSet.remove(stage)).count();
         if (changed > 0) {
-            team.setProperty(TeamProperties.TEAM_STAGES, stageSet);
-
             TeamPropertyCollection old = team.getProperties().copy();
+            team.setProperty(TeamProperties.TEAM_STAGES, stageSet);
             TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(team, old));
             team.syncOnePropertyToTeam(TeamProperties.TEAM_STAGES, stageSet);
         }

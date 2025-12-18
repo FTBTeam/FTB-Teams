@@ -3,6 +3,8 @@ package dev.ftb.mods.ftbteams.api.client;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -49,6 +51,15 @@ public interface ClientTeamManager {
      * @return the team, or {@code Optional.empty()} if no team could be found
      */
     Optional<Team> getTeamByID(UUID teamId);
+
+    /**
+     * Get the current team for the given player. This will only succeed if the details for the player in question
+     * are in the known players list as returned by {@link #knownClientPlayers()}.
+     *
+     * @param player the player to check
+     * @return the team, or {@code Optional.empty()} if no team could be found
+     */
+    Optional<Team> getTeamForPlayer(Player player);
 
     /**
      * Get the client team data for this client player (i.e. {@link net.minecraft.client.Minecraft#player})

@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.data;
 
 import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
@@ -14,6 +15,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -124,6 +126,11 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 	@Override
 	public Optional<Team> getTeamByID(UUID teamId) {
 		return Optional.ofNullable(teamMap.get(teamId));
+	}
+
+	@Override
+	public Optional<Team> getTeamForPlayer(Player player) {
+		return getKnownPlayer(player.getUUID()).flatMap(kcp -> getTeamByID(kcp.teamId()));
 	}
 
 	@Override

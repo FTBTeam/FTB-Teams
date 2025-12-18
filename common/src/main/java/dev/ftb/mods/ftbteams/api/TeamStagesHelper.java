@@ -1,14 +1,14 @@
 package dev.ftb.mods.ftbteams.api;
 
+import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Utility class providing some convenience methods for querying and modifying the team stages for a team. These methods
@@ -75,6 +75,25 @@ public class TeamStagesHelper {
      */
     public static boolean hasTeamStage(Team team, String stage) {
         return team.getProperty(TeamProperties.TEAM_STAGES).contains(stage);
+    }
+
+    /**
+     * Check if a player has a particular team stage.
+     *
+     * @param player the player to check
+     * @param stage the stage to check
+     * @return true if the player's current team has the stage, false otherwise
+     */
+    public static boolean hasTeamStage(Player player, String stage) {
+        if (player instanceof ServerPlayer sp) {
+            return FTBTeamsAPI.api().getManager().getTeamForPlayer(sp)
+                    .map(team -> team.getProperty(TeamProperties.TEAM_STAGES).contains(stage))
+                    .orElse(false);
+        } else {
+            return FTBTeamsAPI.api().getClientManager().getTeamForPlayer(player)
+                    .map(team -> team.getProperty(TeamProperties.TEAM_STAGES).contains(stage))
+                    .orElse(false);
+        }
     }
 
     /**

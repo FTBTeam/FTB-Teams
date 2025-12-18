@@ -17,6 +17,7 @@ import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Represents the teams and known players that the client knows about; one global instance exists on the client.
@@ -45,6 +46,10 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 
 	public static ClientTeamManagerImpl getInstance() {
 		return INSTANCE;
+	}
+
+	public static void ifPresent(Consumer<ClientTeamManagerImpl> mgr) {
+		if (INSTANCE != null) mgr.accept(INSTANCE);
 	}
 
 	private ClientTeamManagerImpl(UUID managerId) {

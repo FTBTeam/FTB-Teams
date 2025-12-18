@@ -59,32 +59,23 @@ public class FTBTeamsClient {
 	}
 
 	public static void updateSettings(UUID id, TeamPropertyCollection properties) {
-		if (ClientTeamManagerImpl.getInstance() == null) {
-			return;
-		}
-
-		ClientTeamManagerImpl.getInstance().getTeam(id)
-				.ifPresent(team -> team.updateProperties(properties));
+		ClientTeamManagerImpl.ifPresent(mgr -> mgr.getTeam(id).ifPresent(team -> team.updateProperties(properties)));
 	}
 
 	public static void sendMessage(UUID from, Component text) {
-		if (ClientTeamManagerImpl.getInstance() == null) {
-			return;
-		}
+		ClientTeamManagerImpl.ifPresent(mgr -> {
+			TeamMessage msg = FTBTeamsAPI.api().createMessage(from, text);
+			mgr.selfTeam().addMessage(msg);
 
-		TeamMessage msg = FTBTeamsAPI.api().createMessage(from, text);
-		ClientTeamManagerImpl.getInstance().selfTeam().addMessage(msg);
-
-		MyTeamScreen screen = ClientUtils.getCurrentGuiAs(MyTeamScreen.class);
-		if (screen != null) {
-			screen.refreshChat();
-		}
+			MyTeamScreen screen = ClientUtils.getCurrentGuiAs(MyTeamScreen.class);
+			if (screen != null) {
+				screen.refreshChat();
+			}
+		});
 	}
 
 	public static void updatePresence(KnownClientPlayer update) {
-		if (ClientTeamManagerImpl.getInstance() != null) {
-			ClientTeamManagerImpl.getInstance().updatePresence(update);
-		}
+		ClientTeamManagerImpl.ifPresent(mgr -> mgr.updatePresence(update));
 	}
 
 	public static void setChatRedirected(boolean chatRedirected) {

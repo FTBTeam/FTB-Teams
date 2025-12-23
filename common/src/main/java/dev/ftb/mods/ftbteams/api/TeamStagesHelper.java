@@ -1,18 +1,21 @@
 package dev.ftb.mods.ftbteams.api;
 
+import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Utility class providing some convenience methods for querying and adjust the team stages for a team. These methods
- * all handle client sync and team data serialization internally.
+ * Utility class providing some convenience methods for querying and modifying the team stages for a team. These methods
+ * all handle client sync and team data serialization for you.
+ * <p>
+ * These methods are all safe to call on the client, but it's only useful to query stages on the client with
+ * {@link #hasTeamStage(Team, String)}; the methods which modify stages do nothing on the client.
  * <p>
  * Modifying a team's stages also causes a {@link TeamPropertiesChangedEvent} event to be fired.
  */
@@ -75,6 +78,25 @@ public class TeamStagesHelper {
     }
 
     /**
+     * Check if a player has a particular team stage.
+     *
+     * @param player the player to check
+     * @param stage the stage to check
+     * @return true if the player's current team has the stage, false otherwise
+     */
+    public static boolean hasTeamStage(Player player, String stage) {
+        if (player instanceof ServerPlayer sp) {
+            return FTBTeamsAPI.api().getManager().getTeamForPlayer(sp)
+                    .map(team -> team.getProperty(TeamProperties.TEAM_STAGES).contains(stage))
+                    .orElse(false);
+        } else {
+            return FTBTeamsAPI.api().getClientManager().getTeamForPlayer(player)
+                    .map(team -> team.getProperty(TeamProperties.TEAM_STAGES).contains(stage))
+                    .orElse(false);
+        }
+    }
+
+    /**
      * Get all the stages for a team.
      *
      * @param team the team
@@ -85,12 +107,14 @@ public class TeamStagesHelper {
     }
 
     private static int updateStages(Team team, Collection<String> stages, boolean adding) {
+        if (team.isClientTeam()) {
+            return 0;
+        }
         Set<String> stageSet = team.getProperty(TeamProperties.TEAM_STAGES);
         int changed = (int) stages.stream().filter(stage -> adding && stageSet.add(stage) || !adding && stageSet.remove(stage)).count();
         if (changed > 0) {
-            team.setProperty(TeamProperties.TEAM_STAGES, stageSet);
-
             TeamPropertyCollection old = team.getProperties().copy();
+            team.setProperty(TeamProperties.TEAM_STAGES, stageSet);
             TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(team, old));
             team.syncOnePropertyToTeam(TeamProperties.TEAM_STAGES, stageSet);
         }

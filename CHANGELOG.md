@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2101.1.9]
 
+### Added
+* Added `TeamStagesHelper#hasTeamStage` convenience method variant which takes a player argument
+
 ### Fixed
 * Fixed a typo in team property type for new String set property (thanks @Mgazul)
 

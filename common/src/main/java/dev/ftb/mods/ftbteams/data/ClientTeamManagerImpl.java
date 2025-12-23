@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.data;
 
 import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
@@ -14,9 +15,11 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Represents the teams and known players that the client knows about; one global instance exists on the client.
@@ -45,6 +48,10 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 
 	public static ClientTeamManagerImpl getInstance() {
 		return INSTANCE;
+	}
+
+	public static void ifPresent(Consumer<ClientTeamManagerImpl> mgr) {
+		if (INSTANCE != null) mgr.accept(INSTANCE);
 	}
 
 	private ClientTeamManagerImpl(UUID managerId) {
@@ -119,6 +126,11 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 	@Override
 	public Optional<Team> getTeamByID(UUID teamId) {
 		return Optional.ofNullable(teamMap.get(teamId));
+	}
+
+	@Override
+	public Optional<Team> getTeamForPlayer(Player player) {
+		return getKnownPlayer(player.getUUID()).flatMap(kcp -> getTeamByID(kcp.teamId()));
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -55,12 +56,12 @@ public class FTBTeams {
 
 	private void serverStarted(MinecraftServer server) {
 		NBTEditResponseHandlers.INSTANCE.registerHandler("ftbteams:team", (serverPlayer, info, data) -> {
-			TeamManagerImpl.INSTANCE.getTeamByID(info.getUUID("id")).ifPresent(team -> {
-				if (team instanceof AbstractTeam abstractTeam) {
-					abstractTeam.deserializeNBT(data, server.registryAccess());
-					abstractTeam.markDirty();
-				}
-			});
+            info.read("id", UUIDUtil.CODEC).flatMap(e -> TeamManagerImpl.INSTANCE.getTeamByID(e)).ifPresent(team -> {
+                if (team instanceof AbstractTeam abstractTeam) {
+                    abstractTeam.deserializeNBT(data, server.registryAccess());
+                    abstractTeam.markDirty();
+                }
+            });
         });
 	}
 

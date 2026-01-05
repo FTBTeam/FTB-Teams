@@ -7,7 +7,7 @@ import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import java.util.Optional;
@@ -17,25 +17,25 @@ public class IntProperty extends TeamProperty<Integer> {
 	public final int minValue;
 	public final int maxValue;
 
-	public IntProperty(ResourceLocation id, Supplier<Integer> def, int min, int max) {
+	public IntProperty(Identifier id, Supplier<Integer> def, int min, int max) {
 		super(id, def);
 		minValue = min;
 		maxValue = max;
 	}
 
-	public IntProperty(ResourceLocation id, Supplier<Integer> def) {
+	public IntProperty(Identifier id, Supplier<Integer> def) {
 		this(id, def, Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 
-	public IntProperty(ResourceLocation id, int def, int min, int max) {
+	public IntProperty(Identifier id, int def, int min, int max) {
 		this(id, () -> def, min, max);
 	}
 
-	public IntProperty(ResourceLocation id, int def) {
+	public IntProperty(Identifier id, int def) {
 		this(id, () -> def);
 	}
 
-	static IntProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+	static IntProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
 		return new IntProperty(id, buf.readVarInt(), buf.readVarInt(), buf.readVarInt());
 	}
 

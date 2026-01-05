@@ -17,7 +17,7 @@ import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesResponseMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
@@ -84,7 +84,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	}
 
 	void updateCommands(ServerPlayer player) {
-		player.getServer().getPlayerList().sendPlayerPermissionLevel(player);
+		player.level().getServer().getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
 	void onPlayerChangeTeam(@Nullable Team prev, UUID player, @Nullable ServerPlayer p, boolean deleted) {

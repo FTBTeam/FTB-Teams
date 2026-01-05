@@ -6,7 +6,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,7 +21,7 @@ public class StringMapProperty<T> extends TeamProperty<Map<String,T>> {
     private final BiConsumer<FriendlyByteBuf, T> toNet;
     private final Function<FriendlyByteBuf, T> fromNet;
 
-    protected StringMapProperty(ResourceLocation id, Supplier<Map<String, T>> defaultValue, TeamPropertyType<Map<String, T>> propType,
+    protected StringMapProperty(Identifier id, Supplier<Map<String, T>> defaultValue, TeamPropertyType<Map<String, T>> propType,
                                 Function<String,T> fromString, BiConsumer<FriendlyByteBuf,T> toNet, Function<FriendlyByteBuf,T> fromNet)
     {
         super(id, defaultValue);
@@ -69,8 +69,8 @@ public class StringMapProperty<T> extends TeamProperty<Map<String,T>> {
     public Optional<Map<String, T>> fromNBT(Tag tag) {
         if (tag instanceof CompoundTag c) {
             Map<String,T> res = new HashMap<>();
-            c.getAllKeys().forEach(k -> {
-                res.put(k, fromString.apply(c.getString(k)));
+            c.keySet().forEach(k -> {
+                res.put(k, fromString.apply(c.getString(k).orElse(null)));
             });
             return Optional.of(res);
         } else {
@@ -93,31 +93,31 @@ public class StringMapProperty<T> extends TeamProperty<Map<String,T>> {
     }
 
     public static class ToInteger extends StringMapProperty<Integer> {
-        public ToInteger(ResourceLocation id, Map<String, Integer> defaultValue) {
+        public ToInteger(Identifier id, Map<String, Integer> defaultValue) {
             super(id, () -> defaultValue, TeamPropertyType.INT_MAP, Integer::parseInt, FriendlyByteBuf::writeVarInt, FriendlyByteBuf::readVarInt);
         }
 
-        static ToInteger fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        static ToInteger fromNetwork(Identifier id, FriendlyByteBuf buf) {
             return new ToInteger(id, mapFromNetwork(buf, FriendlyByteBuf::readVarInt));
         }
     }
 
     public static class ToBoolean extends StringMapProperty<Boolean> {
-        public ToBoolean(ResourceLocation id, Map<String, Boolean> defaultValue) {
+        public ToBoolean(Identifier id, Map<String, Boolean> defaultValue) {
             super(id, () -> defaultValue, TeamPropertyType.BOOL_MAP, Boolean::parseBoolean, FriendlyByteBuf::writeBoolean, FriendlyByteBuf::readBoolean);
         }
 
-        static ToBoolean fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        static ToBoolean fromNetwork(Identifier id, FriendlyByteBuf buf) {
             return new ToBoolean(id, mapFromNetwork(buf, FriendlyByteBuf::readBoolean));
         }
     }
 
     public static class ToString extends StringMapProperty<String> {
-        public ToString(ResourceLocation id, Map<String, String> defaultValue) {
+        public ToString(Identifier id, Map<String, String> defaultValue) {
             super(id, () -> defaultValue, TeamPropertyType.STRING_MAP, Function.identity(), FriendlyByteBuf::writeUtf, FriendlyByteBuf::readUtf);
         }
 
-        static ToString fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+        static ToString fromNetwork(Identifier id, FriendlyByteBuf buf) {
             return new ToString(id, mapFromNetwork(buf, FriendlyByteBuf::readUtf));
         }
     }

@@ -18,7 +18,7 @@ import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatResponseMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -146,9 +146,8 @@ public class TeamManagerImpl implements TeamManager {
 		}
 
 		CompoundTag dataFileTag = SNBT.tryRead(directory.resolve("ftbteams.snbt"));
-		if (dataFileTag.contains("id")) {
-			id = dataFileTag.read("id", UUIDUtil.CODEC).orElseThrow();
-		}
+        var compoundUuid = dataFileTag.read("id", UUIDUtil.CODEC);
+        compoundUuid.ifPresent(uuid -> id = uuid);
 
 		extraData = dataFileTag.getCompoundOrEmpty("extra");
 		TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));

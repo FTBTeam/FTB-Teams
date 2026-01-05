@@ -4,7 +4,8 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.tree.CommandNode;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
-import net.minecraft.Util;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -12,11 +13,11 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.GameProfileCache;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class FTBTUtils {
@@ -28,12 +29,12 @@ public class FTBTUtils {
 	}
 
 	public static GameProfile normalize(@Nullable GameProfile profile) {
-		if (profile == null || profile.getId() == null || profile.getName() == null || profile.equals(NO_PROFILE)) {
+		if (profile == null || profile.id() == null || profile.name() == null || profile.equals(NO_PROFILE)) {
 			return NO_PROFILE;
 		}
 
-		if (!profile.getProperties().isEmpty()) {
-			return new GameProfile(profile.getId(), profile.getName());
+		if (!profile.properties().isEmpty()) {
+			return new GameProfile(profile.id(), profile.name());
 		}
 
 		return profile;
@@ -45,21 +46,17 @@ public class FTBTUtils {
 
 	public static boolean canPlayerUseCommand(ServerPlayer player, String command) {
 		List<String> parts = Arrays.asList(command.split("\\."));
-		CommandNode<CommandSourceStack> node = player.getServer().getCommands().getDispatcher().findNode(parts);
+		CommandNode<CommandSourceStack> node = player.level().getServer().getCommands().getDispatcher().findNode(parts);
 		return node != null && node.canUse(player.createCommandSourceStack());
 	}
 
 	public static String getDefaultPartyName(MinecraftServer server, UUID playerId, @Nullable ServerPlayer player) {
 		String playerName;
 		if (player != null) {
-			playerName = player.getGameProfile().getName();
+			playerName = player.getGameProfile().name();
 		} else {
-			GameProfileCache profileCache = server.getProfileCache();
-			if (profileCache == null) {
-				playerName = playerId.toString();
-			} else {
-				playerName = profileCache.get(playerId).orElse(new GameProfile(playerId, playerId.toString())).getName();
-			}
+			Optional<NameAndId> profileCache =  server.services().nameToIdCache().get(playerId);
+            playerName = profileCache.map(NameAndId::name).orElse(playerId.toString());
 		}
 		return playerName + "'s Party";
 	}

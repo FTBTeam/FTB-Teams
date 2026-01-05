@@ -42,7 +42,7 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
     @Override
     public boolean onInit() {
         setWidth(200);
-        setHeight(getScreen().getGuiScaledHeight() * 3 / 4);
+        setHeight(getWindow().getGuiScaledHeight() * 3 / 4);
         return true;
     }
 

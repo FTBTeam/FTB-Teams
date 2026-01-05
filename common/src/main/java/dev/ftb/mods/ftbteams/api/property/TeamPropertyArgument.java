@@ -16,7 +16,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,8 +38,8 @@ public class TeamPropertyArgument implements ArgumentType<TeamProperty<?>> {
 
 	@Override
 	public TeamProperty<?> parse(StringReader reader) throws CommandSyntaxException {
-		ResourceLocation id = ResourceLocation.read(reader);
-		Map<ResourceLocation, TeamProperty<?>> map = new LinkedHashMap<>();
+		Identifier id = Identifier.read(reader);
+		Map<Identifier, TeamProperty<?>> map = new LinkedHashMap<>();
 		TeamEvent.COLLECT_PROPERTIES.invoker().accept(new TeamCollectPropertiesEvent(property -> map.put(property.id, property)));
 		TeamProperty<?> property = map.get(id);
 

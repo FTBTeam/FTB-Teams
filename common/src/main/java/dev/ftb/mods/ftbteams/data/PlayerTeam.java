@@ -13,6 +13,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -107,7 +108,7 @@ public class PlayerTeam extends AbstractTeam {
 		try {
 			PartyTeam team = manager.createParty(playerId, player, name, description, Color4I.rgb(color));
 			if (player != null) {
-				team.invite(player, invited);
+				team.invite(player, invited.stream().map(e -> new NameAndId(e)).toList());
 			}
 			return team;
 		} catch (CommandSyntaxException ex) {

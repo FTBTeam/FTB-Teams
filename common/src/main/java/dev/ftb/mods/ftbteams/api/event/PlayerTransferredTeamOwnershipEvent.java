@@ -4,11 +4,12 @@ import com.mojang.authlib.GameProfile;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.data.PartyTeam;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import org.jetbrains.annotations.Nullable;
 
 public class PlayerTransferredTeamOwnershipEvent extends TeamEvent {
 	private final ServerPlayer from, to;
-	private final GameProfile toProfile;
+	private final NameAndId toProfile;
 
 	public PlayerTransferredTeamOwnershipEvent(Team team, ServerPlayer prevOwner, ServerPlayer newOwner) {
 		super(team);
@@ -17,7 +18,7 @@ public class PlayerTransferredTeamOwnershipEvent extends TeamEvent {
 		toProfile = null;
 	}
 
-	public PlayerTransferredTeamOwnershipEvent(PartyTeam t, ServerPlayer from, GameProfile toProfile) {
+	public PlayerTransferredTeamOwnershipEvent(PartyTeam t, ServerPlayer from, NameAndId toProfile) {
 		super(t);
 		this.from = from;
 		this.to = null;
@@ -35,6 +36,6 @@ public class PlayerTransferredTeamOwnershipEvent extends TeamEvent {
 	}
 
 	public GameProfile getToProfile() {
-		return to == null ? toProfile : to.getGameProfile();
+		return to == null ? new GameProfile(toProfile.id(), toProfile.name()) : to.getGameProfile();
 	}
 }

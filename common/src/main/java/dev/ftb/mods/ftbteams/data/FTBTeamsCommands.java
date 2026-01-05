@@ -17,7 +17,11 @@ import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -177,7 +181,7 @@ public class FTBTeamsCommands {
 						)
 				)
 				.then(Commands.literal("force-disband")
-						.requires(source -> source.hasPermission(2))
+						.requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
 						.then(createTeamArg(TeamType.PARTY)
 								.executes(ctx -> partyTeamArg(ctx, TeamRank.NONE).forceDisband(ctx.getSource()))
 						)
@@ -236,7 +240,7 @@ public class FTBTeamsCommands {
 
 		if (Platform.isDevelopmentEnvironment()) {
 			dispatcher.register(Commands.literal("ftbteams_add_fake_player")
-					.requires(source -> source.hasPermission(2))
+					.requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
 					.then(Commands.argument("profile", GameProfileArgument.gameProfile())
 							.executes(ctx -> addFakePlayer(GameProfileArgument.getGameProfiles(ctx, "profile")))
 					)
@@ -245,7 +249,7 @@ public class FTBTeamsCommands {
 	}
 
 	private static Predicate<CommandSourceStack> requiresOPorSP() {
-		return source -> source.getServer().isSingleplayer() || source.hasPermission(2);
+		return source -> source.getServer().isSingleplayer() || source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
 	}
 
 	private static RequiredArgumentBuilder<CommandSourceStack, TeamArgumentProvider> createTeamArg() {
@@ -384,7 +388,7 @@ public class FTBTeamsCommands {
 	private static int forceAddPlayers(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
 		int res = 0;
 		PartyTeam party = partyTeamArg(ctx, TeamRank.NONE);
-		for (GameProfile profile : GameProfileArgument.getGameProfiles(ctx, "players")) {
+		for (NameAndId profile : GameProfileArgument.getGameProfiles(ctx, "players")) {
 			res += party.join(null, profile);
 		}
 		return res;
@@ -394,9 +398,9 @@ public class FTBTeamsCommands {
 		return partyTeamArg(ctx, TeamRank.NONE).kick(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "players"));
 	}
 
-	private int addFakePlayer(Collection<GameProfile> profiles) {
-		for (GameProfile profile : profiles) {
-			TeamManagerImpl.INSTANCE.playerLoggedIn(null, profile.getId(), profile.getName());
+	private int addFakePlayer(Collection<NameAndId> profiles) {
+		for (NameAndId profile : profiles) {
+			TeamManagerImpl.INSTANCE.playerLoggedIn(null, profile.id(), profile.name());
 		}
 
 		return Command.SINGLE_SUCCESS;
@@ -413,9 +417,9 @@ public class FTBTeamsCommands {
 	private static int doTeamEdit(CommandContext<CommandSourceStack> ctx, ServerPlayer editor, Team team) {
 		if (team instanceof AbstractTeam abstractTeam) {
 			CompoundTag info = Util.make(new CompoundTag(), t -> {
-				t.putString("title", Component.Serializer.toJson(abstractTeam.getColoredName(), editor.registryAccess()));
+				t.store("title", ComponentSerialization.CODEC, abstractTeam.getColoredName());
 				t.putString("type", "ftbteams:team");
-				t.putUUID("id", team.getTeamId());
+				t.store("id", UUIDUtil.CODEC, team.getTeamId());
 				t.putString("team_type", abstractTeam.getType().getSerializedName());
 				t.put("text", FTBLibraryCommands.InfoBuilder.create(ctx)
 						.add("Team Type", Component.translatable(team.getTypeTranslationKey()))

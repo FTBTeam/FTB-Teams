@@ -6,12 +6,12 @@ import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyType;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyValue;
-import net.minecraft.ResourceLocationException;
+import net.minecraft.IdentifierException;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -114,7 +114,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	}
 
 	public void read(CompoundTag tag) {
-		tag.keySet().forEach(key -> map.findProperty(key).ifPresent(prop -> map.putNBTProperty(prop, tag.get(key))));
+		tag.keySet().forEach(key -> map.findProperty(key).ifPresent(prop -> map.putPropertyFromNBT(prop, tag.get(key))));
 	}
 
 	public CompoundTag write(CompoundTag tag) {
@@ -125,7 +125,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 
 	private static class PropertyMap {
 		final Map<Object, Object> backingMap = new LinkedHashMap<>();
-		final Map<ResourceLocation, TeamProperty<?>> byId = new HashMap<>();
+		final Map<Identifier, TeamProperty<?>> byId = new HashMap<>();
 
 		void clear() {
 			backingMap.clear();
@@ -172,8 +172,8 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 
 		Optional<TeamProperty<?>> findProperty(String key) {
 			try {
-				return Optional.ofNullable(byId.get(ResourceLocation.tryParse(key)));
-			} catch (ResourceLocationException e) {
+				return Optional.ofNullable(byId.get(Identifier.tryParse(key)));
+			} catch (IdentifierException e) {
 				return Optional.empty();
 			}
 		}

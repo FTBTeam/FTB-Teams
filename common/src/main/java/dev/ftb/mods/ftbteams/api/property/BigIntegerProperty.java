@@ -4,7 +4,7 @@ import dev.ftb.mods.ftblibrary.config.ConfigFromString;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
@@ -13,11 +13,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class BigIntegerProperty extends TeamProperty<BigInteger> {
-    public BigIntegerProperty(ResourceLocation id, Supplier<BigInteger> def) {
+    public BigIntegerProperty(Identifier id, Supplier<BigInteger> def) {
         super(id, def);
     }
 
-    public BigIntegerProperty(ResourceLocation id, BigInteger def) {
+    public BigIntegerProperty(Identifier id, BigInteger def) {
         this(id, () -> def);
     }
 
@@ -40,7 +40,7 @@ public class BigIntegerProperty extends TeamProperty<BigInteger> {
         buf.writeByteArray(getDefaultValue().toByteArray());
     }
 
-    public static TeamProperty<BigInteger> fromNetwork(ResourceLocation id, RegistryFriendlyByteBuf buf) {
+    public static TeamProperty<BigInteger> fromNetwork(Identifier id, RegistryFriendlyByteBuf buf) {
         return new BigIntegerProperty(id, new BigInteger(buf.readByteArray()));
     }
 

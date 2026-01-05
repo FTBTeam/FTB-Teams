@@ -7,7 +7,7 @@ import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import java.util.Optional;
@@ -17,21 +17,21 @@ public class DoubleProperty extends TeamProperty<Double> {
 	public final double minValue;
 	public final double maxValue;
 
-	public DoubleProperty(ResourceLocation id, Supplier<Double> def, double min, double max) {
+	public DoubleProperty(Identifier id, Supplier<Double> def, double min, double max) {
 		super(id, def);
 		minValue = min;
 		maxValue = max;
 	}
 
-	public DoubleProperty(ResourceLocation id, double def, double min, double max) {
+	public DoubleProperty(Identifier id, double def, double min, double max) {
 		this(id, () -> def, min, max);
 	}
 
-	public DoubleProperty(ResourceLocation id, Supplier<Double> def) {
+	public DoubleProperty(Identifier id, Supplier<Double> def) {
 		this(id, def, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
 	}
 
-	static DoubleProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+	static DoubleProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
 		return new DoubleProperty(id, buf.readDouble(), buf.readDouble(), buf.readDouble());
 	}
 
@@ -69,9 +69,12 @@ public class DoubleProperty extends TeamProperty<Double> {
 
 	@Override
 	public Optional<Double> fromNBT(Tag tag) {
-		if (tag instanceof NumericTag) {
-			return Optional.of(Mth.clamp(tag.asDouble().orElse(minValue), minValue, maxValue));
-		}
+        if (tag instanceof NumericTag) {
+            return Optional.of(Mth.clamp(tag.asDouble().orElse(minValue), minValue, maxValue));
+        }
+
+        return Optional.empty();
+    }
 
 	@Override
 	public Double readValue(RegistryFriendlyByteBuf buf) {

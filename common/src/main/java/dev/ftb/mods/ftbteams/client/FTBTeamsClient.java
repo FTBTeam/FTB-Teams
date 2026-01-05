@@ -16,13 +16,15 @@ import dev.ftb.mods.ftbteams.data.PlayerPermissions;
 import dev.ftb.mods.ftbteams.net.OpenGUIMessage;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.UUID;
 
 public class FTBTeamsClient {
-	public static final ResourceLocation OPEN_GUI_ID = FTBTeamsAPI.rl("open_gui");
+	public static final Identifier OPEN_GUI_ID = FTBTeamsAPI.rl("open_gui");
+    public static final KeyMapping.Category FTBTEAMS_KEY_CATEGORY = new KeyMapping.Category(FTBTeamsAPI.rl("ftbteams_key"));
 
 	public static KeyMapping openTeamsKey;
 	private static boolean chatRedirected = false;
@@ -42,15 +44,16 @@ public class FTBTeamsClient {
 	}
 
 	private static void registerKeys() {
-		openTeamsKey = new KeyMapping("key.ftbteams.open_gui", InputConstants.Type.KEYSYM, -1, "key.categories.ftbteams");
+		openTeamsKey = new KeyMapping("key.ftbteams.open_gui", InputConstants.Type.KEYSYM, -1, FTBTEAMS_KEY_CATEGORY);
 		KeyMappingRegistry.register(openTeamsKey);
 	}
 
-	private static EventResult keyPressed(Minecraft client, int keyCode, int scanCode, int action, int modifiers) {
+	private static EventResult keyPressed(Minecraft client, int keycode, KeyEvent event) {
 		if (openTeamsKey.isDown()) {
 			OpenGUIMessage.sendToServer();
 			return EventResult.interruptTrue();
 		}
+
 		return EventResult.pass();
 	}
 
@@ -76,14 +79,6 @@ public class FTBTeamsClient {
 
 	public static void updatePresence(KnownClientPlayer update) {
 		ClientTeamManagerImpl.ifPresent(mgr -> mgr.updatePresence(update));
-	}
-
-	public static void setChatRedirected(boolean chatRedirected) {
-		FTBTeamsClient.chatRedirected = chatRedirected;
-	}
-
-	public static boolean isChatRedirected() {
-		return chatRedirected;
 	}
 
 	public static void setChatRedirected(boolean chatRedirected) {

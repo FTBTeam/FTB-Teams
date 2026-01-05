@@ -8,7 +8,7 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,15 +17,15 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class StringListProperty extends TeamProperty<List<String>> {
-    public StringListProperty(ResourceLocation id, Supplier<List<String>> def) {
+    public StringListProperty(Identifier id, Supplier<List<String>> def) {
         super(id, def);
     }
 
-    public StringListProperty(ResourceLocation id, List<String> def) {
+    public StringListProperty(Identifier id, List<String> def) {
         this(id, () -> def);
     }
 
-    static StringListProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+    static StringListProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
         return new StringListProperty(id, buf.readList(b -> b.readUtf(Short.MAX_VALUE)));
     }
 

@@ -4,22 +4,22 @@ import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
 // TODO this should be moved to FTB Chunks
 public class PrivacyProperty extends TeamProperty<PrivacyMode> {
-	public PrivacyProperty(ResourceLocation id, Supplier<PrivacyMode> def) {
+	public PrivacyProperty(Identifier id, Supplier<PrivacyMode> def) {
 		super(id, def);
 	}
 
-	public PrivacyProperty(ResourceLocation id, PrivacyMode def) {
+	public PrivacyProperty(Identifier id, PrivacyMode def) {
 		this(id, () -> def);
 	}
 
-	static PrivacyProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+	static PrivacyProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
 		return new PrivacyProperty(id, buf.readEnum(PrivacyMode.class));
 	}
 

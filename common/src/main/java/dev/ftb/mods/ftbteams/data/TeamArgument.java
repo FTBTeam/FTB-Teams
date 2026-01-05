@@ -23,6 +23,7 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -98,8 +99,8 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 				return t.get();
 			}
 
-			return source.getServer().getProfileCache().get(id)
-							.map(GameProfile::getId)
+			return source.getServer().services().nameToIdCache().get(id)
+							.map(NameAndId::id)
 							.map(FTBTeamsAPI.api().getManager()::getTeamForPlayerID)
 							.orElseThrow()
 							.orElseThrow(this::error);

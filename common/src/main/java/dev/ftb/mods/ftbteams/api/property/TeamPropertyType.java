@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbteams.api.property;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @param <T>
  */
 public class TeamPropertyType<T> {
-	private static final Map<ResourceLocation, TeamPropertyType<?>> MAP = new ConcurrentHashMap<>();
+	private static final Map<Identifier, TeamPropertyType<?>> MAP = new ConcurrentHashMap<>();
 
 	// builtin types
 	public static final TeamPropertyType<Boolean> BOOLEAN = register("boolean", BooleanProperty::fromNetwork);
@@ -35,25 +35,25 @@ public class TeamPropertyType<T> {
 	public static final TeamPropertyType<Map<String,Boolean>> BOOL_MAP = register("bool_map", StringMapProperty.ToBoolean::fromNetwork);
 	public static final TeamPropertyType<Map<String,String>> STRING_MAP = register("string_map", StringMapProperty.ToString::fromNetwork);
 
-	private final ResourceLocation id;
+	private final Identifier id;
 	private final FromNet<T> deserializer;
 
-	private TeamPropertyType(ResourceLocation id, FromNet<T> deserializer) {
+	private TeamPropertyType(Identifier id, FromNet<T> deserializer) {
 		this.id = id;
 		this.deserializer = deserializer;
 	}
 
 	public static TeamProperty<?> read(RegistryFriendlyByteBuf buf) {
-		ResourceLocation typeId = buf.readResourceLocation();
-		ResourceLocation propId = buf.readResourceLocation();
+		Identifier typeId = buf.readIdentifier();
+		Identifier propId = buf.readIdentifier();
 		boolean playerEditable = buf.readBoolean();
 		TeamProperty<?> prop = MAP.get(typeId).deserializer.apply(propId, buf);
 		return playerEditable ? prop : prop.notPlayerEditable();
 	}
 
 	public static void write(RegistryFriendlyByteBuf buf, TeamProperty<?> prop) {
-		buf.writeResourceLocation(prop.getType().id);
-		buf.writeResourceLocation(prop.id);
+		buf.writeIdentifier(prop.getType().id);
+		buf.writeIdentifier(prop.id);
 		buf.writeBoolean(prop.isPlayerEditable());
 		prop.write(buf);
 	}
@@ -69,7 +69,7 @@ public class TeamPropertyType<T> {
 	 * @param deserializer the property deserializer, which must be able to read a property from the network
 	 * @return the type that has just been registered
 	 */
-	public static <Y> TeamPropertyType<Y> register(ResourceLocation id, FromNet<Y> deserializer) {
+	public static <Y> TeamPropertyType<Y> register(Identifier id, FromNet<Y> deserializer) {
 		TeamPropertyType<Y> t = new TeamPropertyType<>(id, deserializer);
 		if (MAP.containsKey(id)) {
 			throw new IllegalStateException("team property type '" + id + "' is already registered!");
@@ -79,6 +79,6 @@ public class TeamPropertyType<T> {
 	}
 
 	public interface FromNet<Y> {
-		TeamProperty<Y> apply(ResourceLocation id, RegistryFriendlyByteBuf buf);
+		TeamProperty<Y> apply(Identifier id, RegistryFriendlyByteBuf buf);
 	}
 }

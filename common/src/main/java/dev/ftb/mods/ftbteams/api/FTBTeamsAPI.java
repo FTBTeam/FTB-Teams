@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbteams.api;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,8 +30,8 @@ public class FTBTeamsAPI {
 	 * @param path the resource location path component
 	 * @return a new resource location
 	 */
-	public static ResourceLocation rl(String path) {
-		return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+	public static Identifier rl(String path) {
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
 	/**

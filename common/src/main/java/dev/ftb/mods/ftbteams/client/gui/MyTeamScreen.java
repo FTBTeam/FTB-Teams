@@ -28,7 +28,7 @@ import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatRedirectionMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -80,8 +80,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public boolean onInit() {
-		setWidth(getScreen().getGuiScaledWidth() * 4 / 5);
-		setHeight(getScreen().getGuiScaledHeight() * 4 / 5);
+		setWidth(getWindow().getGuiScaledWidth() * 4 / 5);
+		setHeight(getWindow().getGuiScaledHeight() * 4 / 5);
 		return true;
 	}
 

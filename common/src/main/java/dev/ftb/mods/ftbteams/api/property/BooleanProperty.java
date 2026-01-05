@@ -7,7 +7,7 @@ import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -16,15 +16,15 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 	private static final Optional<Boolean> TRUE = Optional.of(Boolean.TRUE);
 	private static final Optional<Boolean> FALSE = Optional.of(Boolean.FALSE);
 
-	public BooleanProperty(ResourceLocation id, Supplier<Boolean> def) {
+	public BooleanProperty(Identifier id, Supplier<Boolean> def) {
 		super(id, def);
 	}
 
-	public BooleanProperty(ResourceLocation id, Boolean def) {
+	public BooleanProperty(Identifier id, Boolean def) {
 		this(id, () -> def);
 	}
 
-	static BooleanProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+	static BooleanProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
 		return new BooleanProperty(id, buf.readBoolean());
 	}
 
@@ -61,10 +61,14 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 
 	@Override
 	public Optional<Boolean> fromNBT(Tag tag) {
-		if (tag instanceof NumericTag) {
-			if (tag.asByte().orElse((byte) 0) == 1) {
-				return TRUE;
-			}
+        if (tag instanceof NumericTag) {
+            if (tag.asByte().orElse((byte) 0) == 1) {
+                return TRUE;
+            }
+        }
+
+        return FALSE;
+    }
 
 	@Override
 	public void writeValue(RegistryFriendlyByteBuf buf, Boolean value) {

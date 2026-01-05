@@ -4,7 +4,7 @@ import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -14,24 +14,24 @@ import java.util.regex.Pattern;
 public class StringProperty extends TeamProperty<String> {
 	private final Pattern pattern;
 
-	public StringProperty(ResourceLocation id, Supplier<String> def, @Nullable Pattern pattern) {
+	public StringProperty(Identifier id, Supplier<String> def, @Nullable Pattern pattern) {
 		super(id, def);
 		this.pattern = pattern;
 	}
 
-	public StringProperty(ResourceLocation id, Supplier<String> def) {
+	public StringProperty(Identifier id, Supplier<String> def) {
 		this(id, def, null);
 	}
 
-	public StringProperty(ResourceLocation id, String def, @Nullable Pattern pattern) {
+	public StringProperty(Identifier id, String def, @Nullable Pattern pattern) {
 		this(id, () -> def, pattern);
 	}
 
-	public StringProperty(ResourceLocation id, String def) {
+	public StringProperty(Identifier id, String def) {
 		this(id, () -> def);
 	}
 
-	static StringProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+	static StringProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
 		String def = buf.readUtf(Short.MAX_VALUE);
 		int flags = buf.readVarInt();
 		String patVal = buf.readUtf(Short.MAX_VALUE);

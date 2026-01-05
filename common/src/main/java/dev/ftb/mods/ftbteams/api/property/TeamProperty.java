@@ -5,7 +5,7 @@ import dev.ftb.mods.ftblibrary.config.ConfigValue;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -19,12 +19,12 @@ import java.util.function.Supplier;
  * @param <T> the type of value that the property holds
  */
 public abstract class TeamProperty<T> {
-	protected final ResourceLocation id;
+	protected final Identifier id;
 	private final Supplier<T> defaultValue;
 	private boolean playerEditable;
 	private boolean shouldSyncToAll;
 
-	protected TeamProperty(ResourceLocation id, Supplier<T> defaultValue) {
+	protected TeamProperty(Identifier id, Supplier<T> defaultValue) {
 		this.id = id;
 		this.defaultValue = defaultValue;
 
@@ -32,13 +32,13 @@ public abstract class TeamProperty<T> {
 		shouldSyncToAll = false;
 	}
 
-	protected TeamProperty(ResourceLocation id, T defaultValue) {
+	protected TeamProperty(Identifier id, T defaultValue) {
 		this(id, () -> defaultValue);
 	}
 
 	/**
 	 * Get the unique type for this property, which must have already been registered
-	 * via {@link TeamPropertyType#register(ResourceLocation, TeamPropertyType.FromNet)}.
+	 * via {@link TeamPropertyType#register(Identifier, TeamPropertyType.FromNet)}.
 	 *
 	 * @return the property type
 	 */
@@ -48,7 +48,7 @@ public abstract class TeamProperty<T> {
 	 * {@return the unique ID for this instance, defined when the property was declared, and namespaced within the mod
 	 * that registered it}
 	 */
-	public ResourceLocation getId() {
+	public Identifier getId() {
 		return id;
 	}
 
@@ -160,9 +160,9 @@ public abstract class TeamProperty<T> {
 	 * @param value the value to write
 	 * @return the tag
 	 */
-	public Tag toNBT(T value) {
-		return StringTag.valueOf(toString(value));
-	}
+    public Tag toNBT(T value) {
+        return StringTag.valueOf(toString(value));
+    }
 
 	/**
 	 * Read one value of this property from a NBT tag.
@@ -170,9 +170,9 @@ public abstract class TeamProperty<T> {
 	 * @param tag the tag to read from
 	 * @return the value that has been read
 	 */
-	public Optional<T> fromNBT(Tag tag) {
-		return fromString(tag.getAsString());
-	}
+    public Optional<T> fromNBT(Tag tag) {
+        return fromString(tag.asString().orElseThrow());
+    }
 
 	/**
 	 * Add this property to a {@code ConfigGroup} object, to allow interactive configuration via GUI. Returning null
@@ -205,17 +205,6 @@ public abstract class TeamProperty<T> {
 	@Override
 	public final String toString() {
 		return id.toString();
-	}
-
-	public void config(ConfigGroup config, TeamPropertyValue<T> value) {
-	}
-
-	public Tag toNBT(T value) {
-		return StringTag.valueOf(toString(value));
-	}
-
-	public Optional<T> fromNBT(Tag tag) {
-		return fromString(tag.asString().orElseThrow());
 	}
 
 	@Deprecated(forRemoval = true)

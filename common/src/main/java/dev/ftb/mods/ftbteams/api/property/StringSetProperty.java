@@ -8,22 +8,22 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class StringSetProperty extends TeamProperty<Set<String>> {
-    public StringSetProperty(ResourceLocation id, Supplier<Set<String>> def) {
+    public StringSetProperty(Identifier id, Supplier<Set<String>> def) {
         super(id, def);
     }
 
-    public StringSetProperty(ResourceLocation id, Set<String> def) {
+    public StringSetProperty(Identifier id, Set<String> def) {
         this(id, () -> def);
     }
 
-    static StringSetProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+    static StringSetProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
         return new StringSetProperty(id, new HashSet<>(buf.readList(b -> b.readUtf(Short.MAX_VALUE))));
     }
 
@@ -64,7 +64,7 @@ public class StringSetProperty extends TeamProperty<Set<String>> {
     @Override
     public Optional<Set<String>> fromNBT(Tag tag) {
         return tag instanceof ListTag l ?
-                Optional.of(l.stream().map(Tag::getAsString).collect(Collectors.toSet())) :
+                Optional.of(l.stream().map(e -> e.asString().orElse("")).collect(Collectors.toSet())) :
                 Optional.empty();
     }
 

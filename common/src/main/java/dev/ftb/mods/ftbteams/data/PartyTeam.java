@@ -68,7 +68,7 @@ public class PartyTeam extends AbstractTeam {
 	}
 
 	public int join(ServerPlayer player) throws CommandSyntaxException {
-		return join(player, new NameAndId(player.getGameProfile()));
+		return join(player, player.nameAndId());
 	}
 
 	public int join(@Nullable ServerPlayer player, NameAndId playerProfile) throws CommandSyntaxException {

@@ -108,7 +108,7 @@ public class PlayerTeam extends AbstractTeam {
 		try {
 			PartyTeam team = manager.createParty(playerId, player, name, description, Color4I.rgb(color));
 			if (player != null) {
-				team.invite(player, invited.stream().map(e -> new NameAndId(e)).toList());
+				team.invite(player, invited.stream().map(NameAndId::new).toList());
 			}
 			return team;
 		} catch (CommandSyntaxException ex) {

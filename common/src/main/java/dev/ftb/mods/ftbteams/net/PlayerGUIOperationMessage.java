@@ -83,7 +83,7 @@ public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implem
                     if (senderRank.isAtLeast(TeamRank.OWNER)) {
                         ServerPlayer p = sourcePlayer.level().getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
-                            partyTeam.transferOwnership(sourcePlayer.createCommandSourceStack(), new NameAndId(p.getGameProfile()));
+                            partyTeam.transferOwnership(sourcePlayer.createCommandSourceStack(), p.nameAndId());
                         }
                     }
                 }
@@ -93,7 +93,7 @@ public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implem
                         ServerPlayer p = sourcePlayer.level().getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
                             // need the player to be online to receive an invitation
-                            partyTeam.invite(sourcePlayer, List.of(new NameAndId(p.getGameProfile())));
+                            partyTeam.invite(sourcePlayer, List.of(p.nameAndId()));
                         }
                     }
                 }

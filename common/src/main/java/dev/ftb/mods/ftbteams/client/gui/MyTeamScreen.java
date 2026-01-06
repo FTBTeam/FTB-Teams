@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import dev.architectury.networking.NetworkManager;
+import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.config.ColorConfig;
 import dev.ftb.mods.ftblibrary.config.ConfigGroup;
 import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
@@ -129,7 +130,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}) {
 			@Override
 			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-				icon.draw(graphics, x, y, w, h);
+				IconHelper.renderIcon(icon, graphics, x, y, w, h);
 			}
 		});
 
@@ -174,8 +175,8 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	@Override
 	public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
 		super.drawBackground(graphics, theme, x, y, w, h);
-		POLAR_NIGHT_0.draw(graphics, x, y + 21, w, 1);
-		POLAR_NIGHT_0.draw(graphics, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height + 1);
+		IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x, y + 21, w, 1);
+		IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + memberPanel.width + 1, y + memberPanel.posY, 1, memberPanel.height + 1);
 	}
 
 	@Override
@@ -309,7 +310,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-			NordColors.POLAR_NIGHT_2.draw(graphics, x, y, w, h);
+			IconHelper.renderIcon(NordColors.POLAR_NIGHT_2, graphics, x, y, w, h);
 		}
 	}
 
@@ -320,7 +321,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-			NordColors.POLAR_NIGHT_3.draw(graphics, x, y, w, h);
+			IconHelper.renderIcon(NordColors.POLAR_NIGHT_3, graphics, x, y, w, h);
 		}
 
 		@Override

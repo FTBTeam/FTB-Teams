@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
 import dev.architectury.networking.NetworkManager;
+import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
@@ -60,7 +61,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 		}) {
 			@Override
 			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-				icon.draw(graphics, x, y, w, h);
+				IconHelper.renderIcon(icon, graphics, x, y, w, h);
 			}
 		});
 
@@ -89,9 +90,9 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 	@Override
 	public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
 		GuiHelper.drawHollowRect(graphics, x, y, w, h, POLAR_NIGHT_0, true);
-		POLAR_NIGHT_1.draw(graphics, x + 1, y + 1, w - 2, h - 2);
-		POLAR_NIGHT_0.draw(graphics, x + 1, y + 21, w - 2, 1);
-		POLAR_NIGHT_0.draw(graphics, x + invitePanel.width + 1, y + invitePanel.posY, 1, invitePanel.height);
+		IconHelper.renderIcon(POLAR_NIGHT_1, graphics, x + 1, y + 1, w - 2, h - 2);
+		IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + 1, y + 21, w - 2, 1);
+		IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + invitePanel.width + 1, y + invitePanel.posY, 1, invitePanel.height);
 	}
 
 	@Override
@@ -132,7 +133,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			User self = Minecraft.getInstance().getUser();
 			var profile = Minecraft.getInstance().getGameProfile();
 
-			add(new NordButton(this, Component.literal("✦ ").withStyle(ChatFormatting.GOLD).append(self.getName()), FaceIcon.getFace(profile)) {
+			add(new NordButton(this, Component.literal("✦ ").withStyle(ChatFormatting.GOLD).append(self.getName()), FaceIcon.getFace(profile, true)) {
 				@Override
 				public void onClicked(MouseButton mouseButton) {
 				}
@@ -175,7 +176,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			add(nameTextBox = new TextBox(this) {
 				@Override
 				public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-					NordColors.POLAR_NIGHT_0.draw(graphics, x, y, w, h);
+					IconHelper.renderIcon(NordColors.POLAR_NIGHT_0, graphics, x, y, w, h);
 				}
 			});
 			add(new VerticalSpaceWidget(this, 4));
@@ -184,7 +185,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			add(descriptionTextBox = new TextBox(this) {
 				@Override
 				public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-					NordColors.POLAR_NIGHT_0.draw(graphics, x, y, w, h);
+					IconHelper.renderIcon(NordColors.POLAR_NIGHT_0, graphics, x, y, w, h);
 				}
 			});
 			add(new VerticalSpaceWidget(this, 4));
@@ -207,7 +208,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 
 		@Override
 		public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-			NordColors.POLAR_NIGHT_2.draw(graphics, x, y, w, h);
+			IconHelper.renderIcon(NordColors.POLAR_NIGHT_2, graphics, x, y, w, h);
 		}
 	}
 }

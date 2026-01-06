@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
+import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftblibrary.ui.*;
@@ -49,9 +50,9 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
     @Override
     public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
         GuiHelper.drawHollowRect(graphics, x, y, w, h, POLAR_NIGHT_0, true);
-        POLAR_NIGHT_0.draw(graphics, x + 1, y + 1, w - 2, h - 2);
-        POLAR_NIGHT_1.draw(graphics, x + playerPanel.posX, y + playerPanel.posY, playerPanel.width, playerPanel.height);
-        POLAR_NIGHT_0.draw(graphics, x + 1, y + h - 20, w - 2, 18);
+        IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + 1, y + 1, w - 2, h - 2);
+        IconHelper.renderIcon(POLAR_NIGHT_1, graphics, x + playerPanel.posX, y + playerPanel.posY, playerPanel.width, playerPanel.height);
+        IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + 1, y + h - 20, w - 2, 18);
     }
 
     @Override
@@ -116,7 +117,7 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
 
         @Override
         public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-            NordColors.POLAR_NIGHT_2.draw(graphics, x, y, w, h);
+            IconHelper.renderIcon(NordColors.POLAR_NIGHT_2, graphics, x, y, w, h);
         }
     }
 

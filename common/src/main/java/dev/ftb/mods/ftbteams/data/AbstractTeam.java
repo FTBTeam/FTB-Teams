@@ -33,6 +33,7 @@ import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -265,8 +266,12 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	void saveIfNeeded(Path directory, HolderLookup.Provider provider) {
 		if (shouldSave) {
-			SNBT.write(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT(provider));
-			shouldSave = false;
+            try {
+                SNBT.tryWrite(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT(provider));
+            } catch (IOException e) {
+                FTBTeams.LOGGER.error("Failed to save team {}", getId(), e);
+            }
+            shouldSave = false;
 		}
 	}
 

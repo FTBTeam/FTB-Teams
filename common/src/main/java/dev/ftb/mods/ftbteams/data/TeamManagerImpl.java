@@ -219,8 +219,12 @@ public class TeamManagerImpl implements TeamManager {
 
 		if (shouldSave) {
 			TeamManagerEvent.SAVED.invoker().accept(new TeamManagerEvent(this));
-			SNBT.write(directory.resolve("ftbteams.snbt"), serializeNBT());
-			shouldSave = false;
+            try {
+                SNBT.tryWrite(directory.resolve("ftbteams.snbt"), serializeNBT());
+            } catch (IOException e) {
+                FTBTeams.LOGGER.error("can't save ftbteams.snbt: {}", e.getMessage());
+            }
+            shouldSave = false;
 		}
 
 		for (AbstractTeam team : teamMap.values()) {

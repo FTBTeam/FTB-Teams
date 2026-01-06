@@ -22,9 +22,9 @@ public enum TeamRank implements StringRepresentable {
 
 	private final String name;
 	private final int power;
-	private final Icon icon;
+	private final Icon<?> icon;
 
-	TeamRank(String name, int power, Icon icon) {
+	TeamRank(String name, int power, Icon<?> icon) {
 		this.name = name;
 		this.power = power;
 		this.icon = icon;
@@ -77,7 +77,7 @@ public enum TeamRank implements StringRepresentable {
 		return isAtLeast(OWNER);
 	}
 
-	public Optional<Icon> getIcon() {
+	public Optional<Icon<?>> getIcon() {
 		return Optional.ofNullable(icon);
 	}
 

@@ -30,7 +30,7 @@ public class ColorProperty extends TeamProperty<Color4I> {
 
 	@Override
 	public Optional<Color4I> fromString(String string) {
-		Color4I c = Color4I.fromString(string);
+		Color4I c = Color4I.parse(string);
 		return c.isEmpty() ? Optional.empty() : Optional.of(c);
 	}
 

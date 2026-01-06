@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
+import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
 import dev.ftb.mods.ftblibrary.ui.NordButton;
@@ -22,7 +23,7 @@ public class InvitedButton extends NordButton {
 	public final KnownClientPlayer player;
 
 	InvitedButton(Panel panel, InvitationSetup setup, KnownClientPlayer knownClientPlayer) {
-		super(panel, checkbox(setup.isInvited(knownClientPlayer.profile())).append(" " + knownClientPlayer.name()), FaceIcon.getFace(knownClientPlayer.profile()));
+		super(panel, checkbox(setup.isInvited(knownClientPlayer.profile())).append(" " + knownClientPlayer.name()), FaceIcon.getFace(knownClientPlayer.profile(), true));
 
 		screen = setup;
 		player = knownClientPlayer;
@@ -43,7 +44,7 @@ public class InvitedButton extends NordButton {
 		if (player.online()) {
 			graphics.pose().pushMatrix();
 			graphics.pose().translate(x + w - 1.5F, y - 0.5F);
-			Color4I.GREEN.draw(graphics, 0, 0, 2, 2);
+			IconHelper.renderIcon(Color4I.GREEN, graphics, 0, 0, 2, 2);
 			graphics.pose().popMatrix();
 		}
 	}

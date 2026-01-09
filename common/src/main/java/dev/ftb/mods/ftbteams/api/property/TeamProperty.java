@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -182,7 +182,7 @@ public abstract class TeamProperty<T> {
 	 * @param value  the property value to be added
 	 * @return the added config value, or null if no config value was added to the config group
 	 */
-	public @Nullable ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<T> value) {
+	public @Nullable EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<T> value) {
 		return null;
 	}
 

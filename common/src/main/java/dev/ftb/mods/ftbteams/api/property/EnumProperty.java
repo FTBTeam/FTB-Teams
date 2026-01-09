@@ -1,8 +1,8 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
-import dev.ftb.mods.ftblibrary.config.NameMap;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
+import dev.ftb.mods.ftblibrary.util.NameMap;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -71,7 +71,7 @@ public class EnumProperty extends TeamProperty<String> {
 	}
 
 	@Override
-	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<String> value) {
+	public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<String> value) {
 		return config.addEnum(id.getPath(), value.getValue(), value::setValue, NameMap.of(getDefaultValue(), values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
 	}
 

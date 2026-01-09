@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
 import net.minecraft.nbt.ByteTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
@@ -50,7 +50,7 @@ public class BooleanProperty extends TeamProperty<Boolean> {
 	}
 
 	@Override
-	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<Boolean> value) {
+	public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<Boolean> value) {
 		return config.addBool(id.getPath(), value.getValue(), value::setValue, getDefaultValue());
 	}
 

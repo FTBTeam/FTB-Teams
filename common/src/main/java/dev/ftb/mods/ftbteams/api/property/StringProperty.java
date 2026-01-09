@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
@@ -62,7 +62,7 @@ public class StringProperty extends TeamProperty<String> {
 	}
 
 	@Override
-	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<String> value) {
+	public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<String> value) {
 		return config.addString(id.getPath(), value.getValue(), value::setValue, getDefaultValue(), pattern);
 	}
 }

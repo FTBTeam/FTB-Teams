@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.api;
 
-import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
+
+import dev.ftb.mods.ftblibrary.client.gui.input.MouseButton;
 
 @FunctionalInterface
 @Deprecated

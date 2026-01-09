@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.NameMap;
+import dev.ftb.mods.ftblibrary.util.NameMap;
 import net.minecraft.util.StringRepresentable;
 
 // TODO this should be moved to FTB Chunks

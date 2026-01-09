@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
 import net.minecraft.nbt.DoubleTag;
 import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.Tag;
@@ -58,7 +58,7 @@ public class DoubleProperty extends TeamProperty<Double> {
 	}
 
 	@Override
-	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<Double> value) {
+	public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<Double> value) {
 		return config.addDouble(id.getPath(), value.getValue(), value::setValue, getDefaultValue(), minValue, maxValue);
 	}
 

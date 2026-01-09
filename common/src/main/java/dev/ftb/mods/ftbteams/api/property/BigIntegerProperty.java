@@ -1,8 +1,8 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigFromString;
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableStringifiedConfig;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -55,11 +55,11 @@ public class BigIntegerProperty extends TeamProperty<BigInteger> {
     }
 
     @Override
-    public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<BigInteger> value) {
+    public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<BigInteger> value) {
         return config.add(id.getPath(), new BigIntegerConfig(), value.getValue(), value::setValue, getDefaultValue());
     }
 
-    private static class BigIntegerConfig extends ConfigFromString<BigInteger> {
+    private static class BigIntegerConfig extends EditableStringifiedConfig<BigInteger> {
         @Override
         public boolean parse(@Nullable Consumer<BigInteger> consumer, String s) {
             try {

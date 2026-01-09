@@ -1,16 +1,17 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import dev.architectury.networking.NetworkManager;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableColor;
+import dev.ftb.mods.ftblibrary.client.config.gui.EditConfigScreen;
+import dev.ftb.mods.ftblibrary.client.gui.input.Key;
+import dev.ftb.mods.ftblibrary.client.gui.layout.WidgetLayout;
+import dev.ftb.mods.ftblibrary.client.gui.theme.NordColors;
+import dev.ftb.mods.ftblibrary.client.gui.theme.Theme;
+import dev.ftb.mods.ftblibrary.client.gui.widget.*;
 import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
-import dev.ftb.mods.ftblibrary.config.ColorConfig;
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ui.EditConfigScreen;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.Icons;
-import dev.ftb.mods.ftblibrary.ui.*;
-import dev.ftb.mods.ftblibrary.ui.input.Key;
-import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
-import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftblibrary.util.TooltipList;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
@@ -29,10 +30,10 @@ import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatRedirectionMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Util;
 import org.lwjgl.glfw.GLFW;
 
 import java.text.DateFormat;
@@ -90,7 +91,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	public void addWidgets() {
 		add(settingsButton = new SettingsButton());
 
-		add(infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (w,mb) -> {}) {
+		add(infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (w, mb) -> {}) {
 			@Override
 			public void addMouseOverText(TooltipList list) {
 				addTeamInfo(list);
@@ -115,7 +116,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 
 		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), properties.get(TeamProperties.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
-			ColorConfig config = new ColorConfig();
+			EditableColor config = new EditableColor();
 			config.setValue(properties.get(TeamProperties.COLOR));
 			ColorSelectorPanel.popupAtMouse(getGui(), config, accepted -> {
 				if (accepted) {
@@ -380,17 +381,17 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	private class SettingsButton extends SimpleButton {
 		public SettingsButton() {
 			super(MyTeamScreen.this, Component.translatable("gui.settings"), Icons.SETTINGS.withTint(NordColors.SNOW_STORM_2), (simpleButton, mouseButton) -> {
-				ConfigGroup config = new ConfigGroup("ftbteamsconfig", accepted -> {
+				EditableConfigGroup config = new EditableConfigGroup("ftbteamsconfig", accepted -> {
 					if (accepted) {
 						NetworkManager.sendToServer(new UpdatePropertiesRequestMessage(MyTeamScreen.this.properties));
 					}
 					MyTeamScreen.this.openGui();
 				});
 
-				Map<String,ConfigGroup> subGroups = new HashMap<>();
+				Map<String,EditableConfigGroup> subGroups = new HashMap<>();
 				MyTeamScreen.this.properties.forEach((key, value) -> {
 					String groupName = key.getId().getNamespace();
-					ConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getOrCreateSubgroup(groupName));
+					EditableConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getOrCreateSubgroup(groupName));
 					var val = key.config(cfg, value);
 					if (val != null && !key.isPlayerEditable()) {
 						val.setCanEdit(false);

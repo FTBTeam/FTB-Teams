@@ -1,8 +1,8 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
-import dev.ftb.mods.ftblibrary.config.StringConfig;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableString;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
@@ -50,8 +50,8 @@ public class StringSetProperty extends TeamProperty<Set<String>> {
     }
 
     @Override
-    public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<Set<String>> value) {
-        return config.addList(id.getPath(), new ArrayList<>(value.getValue()), new StringConfig(), "");
+    public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<Set<String>> value) {
+        return config.addList(id.getPath(), new ArrayList<>(value.getValue()), new EditableString(), "");
     }
 
     @Override

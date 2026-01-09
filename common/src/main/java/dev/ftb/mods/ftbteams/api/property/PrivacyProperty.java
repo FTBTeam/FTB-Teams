@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.ConfigValue;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
@@ -44,7 +44,7 @@ public class PrivacyProperty extends TeamProperty<PrivacyMode> {
 	}
 
 	@Override
-	public ConfigValue<?> config(ConfigGroup config, TeamPropertyValue<PrivacyMode> value) {
+	public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<PrivacyMode> value) {
 		return config.addEnum(id.getPath(), value.getValue(), value::setValue, PrivacyMode.NAME_MAP);
 	}
 }

@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2001.3.2]
+
+### Added
+* Added API methods to create server teams, possibly with a fixed team UUID
+
+### Fixed
+* Fixed "internal error" message when using `/ftbteams transfer_ownership` command
+* Fixed output formatting for error message when trying to transfer ownership to an invalid player
+
 ## [2001.3.1]
 
 ### Fixed

@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
@@ -24,7 +23,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.storage.LevelResource;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -100,7 +98,7 @@ public class TeamManagerImpl implements TeamManager {
 
 	@Override
 	public Optional<Team> getTeamByID(UUID teamId) {
-		return Optional.of(teamMap.get(teamId));
+		return Optional.ofNullable(teamMap.get(teamId));
 	}
 
 	@Override
@@ -239,17 +237,6 @@ public class TeamManagerImpl implements TeamManager {
 		return nbt;
 	}
 
-	private ServerTeam createServerTeam(UUID playerId, ServerPlayer player, String name) {
-		ServerTeam team = new ServerTeam(this, UUID.randomUUID());
-		teamMap.put(team.id, team);
-
-		team.setProperty(TeamProperties.DISPLAY_NAME, name.isEmpty() ? team.id.toString().substring(0, 8) : name);
-		team.setProperty(TeamProperties.COLOR, FTBTUtils.randomColor());
-
-		team.onCreated(player, playerId);
-		return team;
-	}
-
 	private PartyTeam createPartyTeamInternal(UUID playerId, @Nullable ServerPlayer player, String name) {
 		PartyTeam team = new PartyTeam(this, UUID.randomUUID());
 		team.owner = playerId;
@@ -368,17 +355,42 @@ public class TeamManagerImpl implements TeamManager {
 
 	@Override
 	public Team createPartyTeam(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
-		var res = createParty(player.getUUID(), player, name, description, color);
-		return res.getRight();
+		return createParty(player.getUUID(), player, name, description, color);
+	}
+
+	@Override
+	public Team createServerTeam(CommandSourceStack source, String name, @Nullable String description, @Nullable Color4I color, @Nullable UUID teamUUID) throws CommandSyntaxException {
+		if (name.length() < 3) {
+			throw TeamArgument.NAME_TOO_SHORT.create();
+		}
+		if (teamUUID != null && getTeamByID(teamUUID).isPresent()) {
+			throw TeamArgument.TEAM_ALREADY_EXISTS.create(teamUUID.toString());
+		}
+
+		ServerPlayer player = source.getPlayer();
+		UUID ownerId = player == null ? Util.NIL_UUID : player.getUUID();
+
+		ServerTeam team = new ServerTeam(this, Objects.requireNonNullElse(teamUUID, UUID.randomUUID()));
+		teamMap.put(team.id, team);
+
+		team.setProperty(TeamProperties.DISPLAY_NAME, name);
+		if (description != null) team.setProperty(TeamProperties.DESCRIPTION, description);
+		if (color != null) team.setProperty(TeamProperties.COLOR, color);
+
+		team.onCreated(player, ownerId);
+		source.sendSuccess(() -> Component.translatable("ftbteams.message.created_server_team", team.getName()), true);
+		syncToAll(team);
+
+		return team;
 	}
 
 	// Command Handlers //
 
-	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name) throws CommandSyntaxException {
+	public PartyTeam createParty(ServerPlayer player, String name) throws CommandSyntaxException {
 		return createParty(player.getUUID(), player, name, null, null);
 	}
 
-	public Pair<Integer, PartyTeam> createParty(UUID playerId, @Nullable ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
+	public PartyTeam createParty(UUID playerId, @Nullable ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
 		if (player != null && !FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.create")) {
 			throw TeamArgument.NO_PERMISSION.create();
 		}
@@ -406,19 +418,7 @@ public class TeamManagerImpl implements TeamManager {
 		playerTeam.updatePresence();
 		syncToAll(team, playerTeam);
 		team.onPlayerChangeTeam(playerTeam, playerId, player, false);
-		return Pair.of(Command.SINGLE_SUCCESS, team);
-	}
-
-	public Pair<Integer, ServerTeam> createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
-		if (name.length() < 3) {
-			throw TeamArgument.NAME_TOO_SHORT.create();
-		}
-		ServerPlayer player = source.getPlayer();
-		UUID playerId = player == null ? Util.NIL_UUID : player.getUUID();
-		ServerTeam team = createServerTeam(playerId, source.getPlayer(), name);
-		source.sendSuccess(() -> Component.translatable("ftbteams.message.created_server_team", team.getName()), true);
-		syncToAll(team);
-		return Pair.of(Command.SINGLE_SUCCESS, team);
+		return team;
 	}
 
 	public Component getPlayerName(@Nullable UUID id) {

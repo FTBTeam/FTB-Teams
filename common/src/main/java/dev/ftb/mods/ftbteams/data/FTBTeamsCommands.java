@@ -117,7 +117,13 @@ public class FTBTeamsCommands {
 		if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
 			throw TeamArgument.API_OVERRIDE.create();
 		}
-		return TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName).getLeft();
+		TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName);
+		return Command.SINGLE_SUCCESS;
+	}
+
+	private int tryCreateServerTeam(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
+		FTBTeamsAPI.api().getManager().createServerTeam(ctx.getSource(), string(ctx, "name"), null, null);
+		return Command.SINGLE_SUCCESS;
 	}
 
 	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -161,7 +167,7 @@ public class FTBTeamsCommands {
 						.then(Commands.literal("transfer_ownership")
 								.requires(source -> hasParty(source, TeamRank.OWNER))
 								.then(Commands.argument("player_id", GameProfileArgument.gameProfile())
-										.executes(ctx -> partyTeamArg(ctx, TeamRank.OWNER).transferOwnership(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player_id")))
+										.executes(ctx -> getPartyTeam(ctx, TeamRank.OWNER).transferOwnership(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player_id")))
 								)
 						)
 						.then(Commands.literal("transfer_ownership_for")
@@ -216,7 +222,7 @@ public class FTBTeamsCommands {
 						.requires(requiresOPorSP())
 						.then(Commands.literal("create")
 								.then(Commands.argument("name", StringArgumentType.greedyString())
-										.executes(ctx -> TeamManagerImpl.INSTANCE.createServer(ctx.getSource(), string(ctx, "name")).getLeft())
+										.executes(this::tryCreateServerTeam)
 								)
 						)
 						.then(Commands.literal("delete")

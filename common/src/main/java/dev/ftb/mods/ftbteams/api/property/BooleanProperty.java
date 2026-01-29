@@ -13,7 +13,9 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class BooleanProperty extends TeamProperty<Boolean> {
-	private static final Optional<Boolean> TRUE = Optional.of(Boolean.TRUE);
+	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private static final Optional<Boolean> TRUE = Optional.of(Boolean.TRUE);
+	@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 	private static final Optional<Boolean> FALSE = Optional.of(Boolean.FALSE);
 
 	public BooleanProperty(Identifier id, Supplier<Boolean> def) {

@@ -12,6 +12,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -68,7 +69,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	@Override
 	public <T> void set(TeamProperty<T> key, T value) {
 		if (map.hasProperty(key)) {
-			map.getProperty(key).setValue(value);
+			Objects.requireNonNull(map.getProperty(key)).setValue(value);
 		} else {
 			map.putProperty(key, new TeamPropertyValue<>(key, value));
 		}
@@ -114,7 +115,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 	}
 
 	public void read(CompoundTag tag) {
-		tag.keySet().forEach(key -> map.findProperty(key).ifPresent(prop -> map.putPropertyFromNBT(prop, tag.get(key))));
+		tag.forEach((key, val) -> map.findProperty(key).ifPresent(prop -> map.putPropertyFromNBT(prop, val)));
 	}
 
 	public CompoundTag write(CompoundTag tag) {
@@ -160,6 +161,7 @@ public class TeamPropertyCollectionImpl implements TeamPropertyCollection {
 			byId.put(prop.getId(), prop);
 		}
 
+		@Nullable
 		<T> TeamPropertyValue<T> getProperty(TeamProperty<T> property) {
 			//noinspection unchecked
 			return (TeamPropertyValue<T>) backingMap.get(property);

@@ -23,10 +23,11 @@ import net.minecraft.resources.Identifier;
 import java.util.UUID;
 
 public class FTBTeamsClient {
-	public static final Identifier OPEN_GUI_ID = FTBTeamsAPI.rl("open_gui");
-    public static final KeyMapping.Category FTBTEAMS_KEY_CATEGORY = new KeyMapping.Category(FTBTeamsAPI.rl("ftbteams_key"));
+	public static final Identifier OPEN_GUI_ID = FTBTeamsAPI.id("open_gui");
+    public static final KeyMapping.Category FTBTEAMS_KEY_CATEGORY = new KeyMapping.Category(FTBTeamsAPI.id("ftbteams_key"));
 
-	public static KeyMapping openTeamsKey;
+	public static final KeyMapping openTeamsKey
+			= new KeyMapping("key.ftbteams.open_gui", InputConstants.Type.KEYSYM, -1, FTBTEAMS_KEY_CATEGORY);
 	private static boolean chatRedirected = false;
 
 	public static void init() {
@@ -44,7 +45,6 @@ public class FTBTeamsClient {
 	}
 
 	private static void registerKeys() {
-		openTeamsKey = new KeyMapping("key.ftbteams.open_gui", InputConstants.Type.KEYSYM, -1, FTBTEAMS_KEY_CATEGORY);
 		KeyMappingRegistry.register(openTeamsKey);
 	}
 

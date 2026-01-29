@@ -9,7 +9,6 @@ import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
-import dev.ftb.mods.ftbteams.api.TeamMessage;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.event.*;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
@@ -17,21 +16,18 @@ import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesResponseMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.Util;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -75,7 +71,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		return getOnlineRanked(TeamRank.MEMBER);
 	}
 
-	void onCreated(@Nullable ServerPlayer player, @NotNull UUID playerId) {
+	void onCreated(@Nullable ServerPlayer player, UUID playerId) {
 		if (player != null) {
 			TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, player, playerId));
 		}

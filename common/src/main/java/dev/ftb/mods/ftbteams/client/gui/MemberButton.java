@@ -54,7 +54,7 @@ public class MemberButton extends NordButton {
 		KnownClientPlayer self = ClientTeamManagerImpl.getInstance().self();
 		ClientTeam selfTeam = ClientTeamManagerImpl.getInstance().selfTeam();
 
-		if (selfTeam == null || self == null) return;
+		if (!selfTeam.isValid() || !self.online()) return;
 
 		TeamRank selfRank = selfTeam.getRankForPlayer(self.id());
 		TeamRank playerRank = selfTeam.getRankForPlayer(player.id());

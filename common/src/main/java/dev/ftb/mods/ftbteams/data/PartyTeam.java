@@ -10,8 +10,6 @@ import dev.ftb.mods.ftbteams.api.event.PlayerTransferredTeamOwnershipEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamAllyEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import net.minecraft.ChatFormatting;
-import net.minecraft.server.players.NameAndId;
-import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.UUIDUtil;
@@ -20,6 +18,8 @@ import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -147,28 +147,31 @@ public class PartyTeam extends AbstractTeam {
 				throw TeamArgument.CANT_KICK_OWNER.create();
 			}
 
-			PlayerTeam team = manager.getPersonalTeamForPlayerID(id);
-			team.setEffectiveTeam(team);
+			PlayerTeam playerTeam = manager.getPersonalTeamForPlayerID(id);
+			if (playerTeam == null) {
+				throw TeamArgument.TEAM_NOT_FOUND.create(id);
+			}
+			playerTeam.setEffectiveTeam(playerTeam);
 
 			ServerPlayer playerToKick = FTBTUtils.getPlayerByUUID(manager.getServer(), id);
 
-			team.ranks.put(id, TeamRank.OWNER);
+			playerTeam.ranks.put(id, TeamRank.OWNER);
 			UUID fromId = from.getPlayer() != null ? from.getPlayer().getUUID() : Util.NIL_UUID;
 			sendMessage(fromId, Component.translatable("ftbteams.message.kicked", manager.getPlayerName(id).copy().withStyle(ChatFormatting.YELLOW), getName()).withStyle(ChatFormatting.GOLD));
-			team.markDirty();
+			playerTeam.markDirty();
 
 			ranks.remove(id);
 			markDirty();
 
-			team.updatePresence();
-			manager.syncToAll(this, team);
+			playerTeam.updatePresence();
+			manager.syncToAll(this, playerTeam);
 
 			if (playerToKick != null) {
 				playerToKick.displayClientMessage(Component.translatable("ftbteams.message.kicked", playerToKick.getName().copy().withStyle(ChatFormatting.YELLOW), getName().copy().withStyle(ChatFormatting.AQUA)), false);
 				updateCommands(playerToKick);
 			}
 
-			team.onPlayerChangeTeam(this, id, playerToKick, false);
+			playerTeam.onPlayerChangeTeam(this, id, playerToKick, false);
 		}
 
 		return Command.SINGLE_SUCCESS;
@@ -273,6 +276,9 @@ public class PartyTeam extends AbstractTeam {
 
 		// mark the player as being back in their personal team
 		PlayerTeam playerTeam = manager.getPersonalTeamForPlayerID(id);
+		if (playerTeam == null) {
+			throw TeamArgument.TEAM_NOT_FOUND.create(id);
+		}
 		playerTeam.setEffectiveTeam(playerTeam);
 		playerTeam.ranks.put(id, TeamRank.OWNER);
 		String playerName = player == null ? id.toString() : player.getGameProfile().name();

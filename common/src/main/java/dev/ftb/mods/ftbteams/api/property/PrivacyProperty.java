@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-// TODO this should be moved to FTB Chunks
+// TODO should this be moved to FTB Chunks?
 public class PrivacyProperty extends TeamProperty<PrivacyMode> {
 	public PrivacyProperty(Identifier id, Supplier<PrivacyMode> def) {
 		super(id, def);

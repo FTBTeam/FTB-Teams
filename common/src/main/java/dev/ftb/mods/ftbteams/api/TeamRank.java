@@ -5,6 +5,7 @@ import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftblibrary.util.NameMap;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -22,9 +23,10 @@ public enum TeamRank implements StringRepresentable {
 
 	private final String name;
 	private final int power;
+	@Nullable
 	private final Icon<?> icon;
 
-	TeamRank(String name, int power, Icon<?> icon) {
+	TeamRank(String name, int power, @Nullable Icon<?> icon) {
 		this.name = name;
 		this.power = power;
 		this.icon = icon;

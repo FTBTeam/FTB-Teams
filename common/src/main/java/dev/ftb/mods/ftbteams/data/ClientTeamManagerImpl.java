@@ -1,22 +1,21 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.mojang.authlib.GameProfile;
 import dev.ftb.mods.ftbteams.FTBTeams;
-import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
-import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.client.KnownClientPlayerNet;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -28,7 +27,8 @@ import java.util.function.Consumer;
  * on the client.
  */
 public class ClientTeamManagerImpl implements ClientTeamManager {
-	private static ClientTeamManagerImpl INSTANCE;  // instantiated whenever the client receives a full team sync from server
+	private static final ClientTeamManagerImpl NONE = new ClientTeamManagerImpl(Util.NIL_UUID);
+	private static ClientTeamManagerImpl instance = NONE;  // instantiated whenever the client receives a full team sync from server
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, ClientTeamManagerImpl> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC, m -> m.managerId,
@@ -36,22 +36,22 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 			ByteBufCodecs.map(HashMap::new, UUIDUtil.STREAM_CODEC, KnownClientPlayerNet.STREAM_CODEC), m -> m.knownPlayers,
 			ClientTeamManagerImpl::new
 	);
-	
+
 	private final UUID managerId;
 	private final Map<UUID, ClientTeam> teamMap;
 	private final Map<UUID, KnownClientPlayer> knownPlayers;
 
 	private UUID selfTeamId = Util.NIL_UUID;
 	private boolean valid;
-	private ClientTeam selfTeam;
-	private KnownClientPlayer selfKnownPlayer;
+	private ClientTeam selfTeam = ClientTeam.NONE;
+	private KnownClientPlayer selfKnownPlayer = KnownClientPlayer.NONE;
 
 	public static ClientTeamManagerImpl getInstance() {
-		return INSTANCE;
+		return instance;
 	}
 
 	public static void ifPresent(Consumer<ClientTeamManagerImpl> mgr) {
-		if (INSTANCE != null) mgr.accept(INSTANCE);
+		if (instance != NONE) mgr.accept(instance);
 	}
 
 	private ClientTeamManagerImpl(UUID managerId) {
@@ -110,7 +110,7 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 
 	@Override
 	public boolean isValid() {
-		return valid;
+		return valid && selfTeam().isValid() && selfKnownPlayer.online();
 	}
 
 	@Override
@@ -143,16 +143,6 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 		return selfKnownPlayer;
 	}
 
-	public void initSelfDetails(UUID selfTeamID) {
-		selfTeam = teamMap.get(selfTeamID);
-		UUID userId = Minecraft.getInstance().getUser().getProfileId();
-		selfKnownPlayer = knownPlayers.get(userId);
-		if (selfKnownPlayer == null) {
-			FTBTeams.LOGGER.error("Local player id {} was not found in the known players list [{}]! FTB Teams will not be able to function correctly!",
-					userId, String.join(",", knownPlayers.keySet().stream().map(UUID::toString).toList()));
-		}
-	}
-
 	@Override
 	public Optional<KnownClientPlayer> getKnownPlayer(UUID id) {
 		return Optional.ofNullable(knownPlayers.get(id));
@@ -178,56 +168,63 @@ public class ClientTeamManagerImpl implements ClientTeamManager {
 
 	private void invalidate() {
 		teamMap.clear();
+		knownPlayers.clear();
+		selfTeam = ClientTeam.NONE;
+		selfKnownPlayer = KnownClientPlayer.NONE;
 		valid = false;
 	}
 
 	public static void syncFromServer(ClientTeamManagerImpl syncedData, UUID selfTeamID, boolean fullSync) {
 		if (fullSync) {
 			// complete live team manager invalidation and replacement
-			syncedData.initSelfDetails(selfTeamID);
-			if (INSTANCE != null) {
-				INSTANCE.invalidate();
+			if (instance != NONE) {
+				instance.invalidate();
 			}
-			INSTANCE = syncedData;
-		} else if (ClientTeamManagerImpl.INSTANCE != null) {
+			instance = syncedData;
+		} else if (instance != NONE) {
 			// just copy the sync'd team(s) into the live client team manager
 			syncedData.teamMap.forEach((teamID, clientTeam) -> {
 				if (clientTeam.toBeRemoved()) {
 					FTBTeams.LOGGER.debug("remove {} from client team map", teamID);
-					INSTANCE.teamMap.remove(teamID);
+					instance.teamMap.remove(teamID);
 				} else {
-					ClientTeam existing = INSTANCE.teamMap.get(teamID);
+					ClientTeam existing = instance.teamMap.get(teamID);
 					if (existing != null) {
 						FTBTeams.LOGGER.debug("update {} in client team map", teamID);
 					} else {
 						FTBTeams.LOGGER.debug("insert {} into client team map", teamID);
 					}
-					INSTANCE.teamMap.put(teamID, clientTeam);
+					instance.teamMap.put(teamID, clientTeam);
 				}
 			});
-			INSTANCE.knownPlayers.putAll(syncedData.knownPlayers);
-			INSTANCE.initSelfDetails(selfTeamID);
+			instance.knownPlayers.putAll(syncedData.knownPlayers);
+		}
+		instance.initSelfDetails(selfTeamID);
+	}
+
+	private void initSelfDetails(UUID selfTeamID) {
+		selfTeam = teamMap.getOrDefault(selfTeamID, ClientTeam.NONE);
+		UUID userId = Minecraft.getInstance().getUser().getProfileId();
+		selfKnownPlayer = knownPlayers.getOrDefault(userId, KnownClientPlayer.NONE);
+		if (selfKnownPlayer == KnownClientPlayer.NONE) {
+			FTBTeams.LOGGER.error("Local player id {} was not found in the known players list [{}]! FTB Teams will not be able to function correctly!",
+					userId, String.join(",", knownPlayers.keySet().stream().map(UUID::toString).toList()));
 		}
 	}
 
 	public void updatePresence(KnownClientPlayer newPlayer) {
-		KnownClientPlayer existing = ClientTeamManagerImpl.INSTANCE.knownPlayers.get(newPlayer.id());
-		KnownClientPlayer toUpdate = existing == null ? newPlayer : updateFrom(existing.id(), newPlayer);
+		KnownClientPlayer existing = ClientTeamManagerImpl.instance.knownPlayers.getOrDefault(newPlayer.id(), KnownClientPlayer.NONE);
+		KnownClientPlayer toUpdate = existing.updateFrom(newPlayer);
 
 		knownPlayers.put(toUpdate.id(), newPlayer);
+		if (toUpdate.id().equals(Minecraft.getInstance().getUser().getProfileId())) {
+			selfKnownPlayer = newPlayer;
+		}
 
         FTBTeams.LOGGER.debug("Updated presence of {}", newPlayer.name());
 	}
 
 	private KnownClientPlayer updateFrom(UUID id, KnownClientPlayer other) {
-		return new KnownClientPlayer(id, other.name(), other.online(), other.teamId(), other.profile(), other.extraData());
-	}
-
-	public void updateDisplayName(UUID teamId, String newName) {
-		Team team = teamMap.get(teamId);
-		if (team != null) {
-			team.setProperty(TeamProperties.DISPLAY_NAME, newName);
-			FTBTeams.LOGGER.debug("Updated display name of {} to {}", teamId, newName);
-		}
+		return new KnownClientPlayer(other.online(), other.teamId(), new GameProfile(id, other.name()), other.extraData());
 	}
 }

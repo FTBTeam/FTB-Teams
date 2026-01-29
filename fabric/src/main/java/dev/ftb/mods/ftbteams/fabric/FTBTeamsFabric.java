@@ -12,7 +12,7 @@ public class FTBTeamsFabric implements ModInitializer {
 	public void onInitialize() {
 		new FTBTeams();
 
-		ArgumentTypeRegistry.registerArgumentType(FTBTeamsAPI.rl("team"), TeamArgument.class, new TeamArgument.Info());
-		ArgumentTypeRegistry.registerArgumentType(FTBTeamsAPI.rl("team_property"), TeamPropertyArgument.class, new TeamPropertyArgument.Info());
+		ArgumentTypeRegistry.registerArgumentType(FTBTeamsAPI.id("team"), TeamArgument.class, new TeamArgument.Info());
+		ArgumentTypeRegistry.registerArgumentType(FTBTeamsAPI.id("team_property"), TeamPropertyArgument.class, new TeamPropertyArgument.Info());
 	}
 }

@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbteams.api;
 
-import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
@@ -8,7 +7,10 @@ import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Utility class providing some convenience methods for querying and modifying the team stages for a team. These methods

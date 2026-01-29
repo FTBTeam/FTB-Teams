@@ -1,5 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
@@ -15,7 +16,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -200,10 +201,14 @@ public abstract class AbstractTeamBase implements Team {
 		});
 
 		if (color == null) color = FTBTUtils.randomColor();
-		MinecraftServer server = TeamManagerImpl.INSTANCE.getServer();
+		MinecraftServer server = FTBTeamsAPI.api().getManager().getServer();
 		ServerPlayer player = server.getPlayerList().getPlayer(playerId);
-		return playerTeam.createParty(playerId, player, FTBTUtils.getDefaultPartyName(server, playerId, player), description, color.rgb(), Set.of());
-	}
+        try {
+            return playerTeam.createParty(playerId, player, FTBTUtils.getDefaultPartyName(server, playerId, player), description, color.rgb(), Set.of());
+        } catch (CommandSyntaxException e) {
+            throw new IllegalStateException("party creation failed: " + e.getMessage());
+        }
+    }
 
 	public boolean isAllyOrBetter(UUID profile) {
 		return getRankForPlayer(profile).isAllyOrBetter();

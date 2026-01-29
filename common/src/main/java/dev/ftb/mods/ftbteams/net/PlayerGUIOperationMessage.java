@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implements CustomPacketPayload {
-    public static final Type<PlayerGUIOperationMessage> TYPE = new Type<>(FTBTeamsAPI.rl("player_gui_operation"));
+    public static final Type<PlayerGUIOperationMessage> TYPE = new Type<>(FTBTeamsAPI.id("player_gui_operation"));
 
     public static final StreamCodec<FriendlyByteBuf, PlayerGUIOperationMessage> STREAM_CODEC = StreamCodec.composite(
             NetworkHelper.enumStreamCodec(Operation.class), PlayerGUIOperationMessage::op,

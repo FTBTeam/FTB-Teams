@@ -55,32 +55,31 @@ public class FTBTeams {
 	}
 
 	private void serverStarted(MinecraftServer server) {
-		NBTEditResponseHandlers.INSTANCE.registerHandler("ftbteams:team", (serverPlayer, info, data) -> {
-            info.read("id", UUIDUtil.CODEC).flatMap(e -> TeamManagerImpl.INSTANCE.getTeamByID(e)).ifPresent(team -> {
-                if (team instanceof AbstractTeam abstractTeam) {
-                    abstractTeam.deserializeNBT(data, server.registryAccess());
-                    abstractTeam.markDirty();
-                }
-            });
-        });
+		NBTEditResponseHandlers.INSTANCE.registerHandler("ftbteams:team", (serverPlayer, info, data) ->
+				info.read("id", UUIDUtil.CODEC).flatMap(e -> FTBTeamsAPI.api().getManager().getTeamByID(e)).ifPresent(team -> {
+					if (team instanceof AbstractTeam abstractTeam) {
+						abstractTeam.deserializeNBT(data, server.registryAccess());
+						abstractTeam.markDirty();
+					}
+				}));
 	}
 
 	private void serverAboutToStart(MinecraftServer server) {
 		TeamManagerImpl.INSTANCE = new TeamManagerImpl(server);
 		TeamManagerEvent.CREATED.invoker().accept(new TeamManagerEvent(TeamManagerImpl.INSTANCE));
-        try {
-            TeamManagerImpl.INSTANCE.load();
-        } catch (IOException e) {
-            FTBTeams.LOGGER.error("Load failure for ");
-        }
-    }
+		try {
+			TeamManagerImpl.INSTANCE.load();
+		} catch (IOException e) {
+			FTBTeams.LOGGER.error("Load failure for ");
+		}
+	}
 
 	private void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext, Commands.CommandSelection selection) {
 		new FTBTeamsCommands().register(dispatcher);
 	}
 
 	private void serverStopped(MinecraftServer server) {
-		TeamManagerEvent.DESTROYED.invoker().accept(new TeamManagerEvent(TeamManagerImpl.INSTANCE));
+		TeamManagerEvent.DESTROYED.invoker().accept(new TeamManagerEvent(FTBTeamsAPI.api().getManager()));
 		TeamManagerImpl.INSTANCE = null;
 	}
 

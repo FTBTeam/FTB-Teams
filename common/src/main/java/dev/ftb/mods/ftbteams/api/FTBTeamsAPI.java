@@ -7,12 +7,14 @@ import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class FTBTeamsAPI {
 	public static final String MOD_ID = "ftbteams";
 	public static final String MOD_NAME = "FTB Teams";
 
+	@Nullable
 	private static API instance;
 
 	/**
@@ -21,7 +23,7 @@ public class FTBTeamsAPI {
 	 * @return the API handler
 	 */
 	public static FTBTeamsAPI.API api() {
-		return instance;
+		return Objects.requireNonNull(instance);
 	}
 
 	/**
@@ -30,7 +32,7 @@ public class FTBTeamsAPI {
 	 * @param path the resource location path component
 	 * @return a new resource location
 	 */
-	public static Identifier rl(String path) {
+	public static Identifier id(String path) {
 		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 	}
 
@@ -62,7 +64,7 @@ public class FTBTeamsAPI {
 		 * Get the server-side team manager instance.
 		 *
 		 * @return the team manager
-		 * @throws NullPointerException if the manager is not yet loaded, or this is called from the client
+		 * @throws NullPointerException if the manager is not yet loaded (server not started), or this is called from the client
 		 */
 		TeamManager getManager();
 
@@ -81,28 +83,6 @@ public class FTBTeamsAPI {
 		 * @throws NullPointerException if the manager is not yet loaded, or this is called from the client
 		 */
 		ClientTeamManager getClientManager();
-
-		/**
-		 * Set a custom handler for creating parties via the GUI, i.e. when the "Create Party" button is clicked in
-		 * the player's team GUI. The presence of a custom creation handler also prevents parties from being created
-		 * via the API.
-		 *
-		 * @param handler the new handler to use
-		 * @return the previous handler
-		 * @deprecated use {@link #setPartyCreationFromAPIOnly(boolean)}
-		 */
-		@Deprecated
-		@Nullable
-		CustomPartyCreationHandler setCustomPartyCreationHandler(@Nullable CustomPartyCreationHandler handler);
-
-		/**
-		 * Get the custom party creation handler in effect, if any
-		 * @return the current custom handler, or null if none is in effect
-		 * @deprecated see {@link #setPartyCreationFromAPIOnly(boolean)}
-		 */
-		@Deprecated
-		@Nullable
-		CustomPartyCreationHandler getCustomPartyCreationHandler();
 
 		/**
 		 * By setting api-only team creation to true, this prevents players from creating party teams using either the

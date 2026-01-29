@@ -47,19 +47,23 @@ public class TeamPropertyType<T> {
 		Identifier typeId = buf.readIdentifier();
 		Identifier propId = buf.readIdentifier();
 		boolean playerEditable = buf.readBoolean();
+		boolean hidden = buf.readBoolean();
 		TeamProperty<?> prop = MAP.get(typeId).deserializer.apply(propId, buf);
-		return playerEditable ? prop : prop.notPlayerEditable();
+		if (!playerEditable) prop = prop.notPlayerEditable();
+		if (hidden) prop = prop.hidden();
+		return prop;
 	}
 
 	public static void write(RegistryFriendlyByteBuf buf, TeamProperty<?> prop) {
 		buf.writeIdentifier(prop.getType().id);
 		buf.writeIdentifier(prop.id);
 		buf.writeBoolean(prop.isPlayerEditable());
+		buf.writeBoolean(prop.isHidden());
 		prop.write(buf);
 	}
 
 	private static <Y> TeamPropertyType<Y> register(String id, FromNet<Y> deserializer) {
-		return register(FTBTeamsAPI.rl(id), deserializer);
+		return register(FTBTeamsAPI.id(id), deserializer);
 	}
 
 	/**

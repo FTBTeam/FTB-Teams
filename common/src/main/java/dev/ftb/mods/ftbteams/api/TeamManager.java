@@ -132,7 +132,7 @@ public interface TeamManager {
     /**
      * Attempt to create a server team for the given command source stack.
      *
-     * @param commandSourceStack the command source, typically either {@link Player#createCommandSourceStack()} or {@link MinecraftServer#createCommandSourceStack()}
+     * @param commandSourceStack the command source, typically {@link MinecraftServer#createCommandSourceStack()}
      * @param name the server team's displayed name
      * @param description the server team's description, may be null
      * @param color the color to use, may be null (if null, a random color is picked)

@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbteams.data;
 
 import com.google.gson.JsonObject;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -24,7 +23,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,13 +47,14 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType NO_PERMISSION = new SimpleCommandExceptionType(Component.translatable("ftbteams.server_permissions_prevent"));
 	public static final DynamicCommandExceptionType TEAM_ALREADY_EXISTS = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.team_already_exists", object));
 
+	@Nullable
 	private final TeamType type;
 
     public static TeamArgument create() {
 		return new TeamArgument(null);
 	}
 
-	public static TeamArgument create(TeamType type) {
+	public static TeamArgument create(@Nullable TeamType type) {
 		return new TeamArgument(type);
 	}
 
@@ -176,9 +176,10 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 		}
 
 		public final class Template implements ArgumentTypeInfo.Template<TeamArgument> {
+			@Nullable
 			private final TeamType teamType;
 
-			public Template(TeamType teamType) {
+			public Template(@Nullable TeamType teamType) {
 				this.teamType = teamType;
 			}
 

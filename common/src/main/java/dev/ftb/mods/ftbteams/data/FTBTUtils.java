@@ -1,11 +1,8 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.tree.CommandNode;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.math.MathUtils;
-import net.minecraft.server.players.NameAndId;
-import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -13,6 +10,8 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.util.Util;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
@@ -21,23 +20,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class FTBTUtils {
-	public static final GameProfile NO_PROFILE = new GameProfile(new UUID(0L, 0L), "-");
-
 	@Nullable
 	public static ServerPlayer getPlayerByUUID(MinecraftServer server, @Nullable UUID id) {
 		return id == null || id == Util.NIL_UUID ? null : server.getPlayerList().getPlayer(id);
-	}
-
-	public static GameProfile normalize(@Nullable GameProfile profile) {
-		if (profile == null || profile.id() == null || profile.name() == null || profile.equals(NO_PROFILE)) {
-			return NO_PROFILE;
-		}
-
-		if (!profile.properties().isEmpty()) {
-			return new GameProfile(profile.id(), profile.name());
-		}
-
-		return profile;
 	}
 
 	public static Color4I randomColor() {

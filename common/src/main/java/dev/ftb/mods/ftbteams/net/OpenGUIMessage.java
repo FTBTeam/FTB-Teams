@@ -10,7 +10,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
 public record OpenGUIMessage() implements CustomPacketPayload {
-	public static final Type<OpenGUIMessage> TYPE = new Type<>(FTBTeamsAPI.rl("open_gui"));
+	public static final Type<OpenGUIMessage> TYPE = new Type<>(FTBTeamsAPI.id("open_gui"));
 
 	private static final OpenGUIMessage INSTANCE = new OpenGUIMessage();
 

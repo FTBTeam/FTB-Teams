@@ -10,7 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 
 public record UpdatePresenceMessage(KnownClientPlayer update) implements CustomPacketPayload {
-	public static final Type<UpdatePresenceMessage> TYPE = new Type<>(FTBTeamsAPI.rl("update_presence"));
+	public static final Type<UpdatePresenceMessage> TYPE = new Type<>(FTBTeamsAPI.id("update_presence"));
 
 	public static final StreamCodec<FriendlyByteBuf, UpdatePresenceMessage> STREAM_CODEC = StreamCodec.composite(
 			KnownClientPlayerNet.STREAM_CODEC, UpdatePresenceMessage::update,

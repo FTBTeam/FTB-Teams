@@ -3,7 +3,6 @@ package dev.ftb.mods.ftbteams.api.client;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
@@ -87,7 +86,7 @@ public interface ClientTeamManager {
      * Get a formatted name for the given player ID, for display purposes. This is used in the team chat window, for
      * example.
      *
-     * @param id a player's unique id, may be null or {@link net.minecraft.Util#NIL_UUID} to indicate a "system" user.
+     * @param id a player's unique id, may be null or {@link net.minecraft.util.Util#NIL_UUID} to indicate a "system" user.
      * @return a formatted and colored name for the given id, or {@code "Unknown"} if the ID is not known to the client at this time
      */
     Component formatName(@Nullable UUID id);

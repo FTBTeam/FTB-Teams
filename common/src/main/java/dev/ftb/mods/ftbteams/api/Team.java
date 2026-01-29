@@ -235,6 +235,7 @@ public interface Team {
      * @param description the long description text (an empty string is acceptable)
      * @param color the color for the new team; if null, then a random color is chosen
      * @return the newly-created party team
+     * @throws IllegalStateException if there is a problem creating the party
      */
     Team createParty(String description, @Nullable Color4I color);
 

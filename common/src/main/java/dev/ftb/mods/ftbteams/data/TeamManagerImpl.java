@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
@@ -18,7 +17,6 @@ import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatResponseMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -27,8 +25,9 @@ import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.storage.LevelResource;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,25 +35,26 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
-/**
- * @author LatvianModder
- */
 public class TeamManagerImpl implements TeamManager {
 	public static final LevelResource FOLDER_NAME = new LevelResource("ftbteams");
 
+	@Nullable
 	public static TeamManagerImpl INSTANCE;
 
 	private final MinecraftServer server;
+	@Nullable
 	private UUID id;
 	private boolean shouldSave;
 	private final Map<UUID, PlayerTeam> knownPlayers;
 	private final Map<UUID, AbstractTeam> teamMap;
 	private final Set<UUID> chatRedirected;
+	@Nullable
 	Map<String, Team> nameMap;
 	private CompoundTag extraData;
 
-	public TeamManagerImpl(MinecraftServer s) {
-		server = s;
+	public TeamManagerImpl(MinecraftServer server) {
+		this.server = server;
+
 		knownPlayers = new LinkedHashMap<>();
 		teamMap = new LinkedHashMap<>();
 		extraData = new CompoundTag();
@@ -115,6 +115,7 @@ public class TeamManagerImpl implements TeamManager {
 		return Optional.ofNullable(getPersonalTeamForPlayerID(uuid));
 	}
 
+	@Nullable
 	public PlayerTeam getPersonalTeamForPlayerID(UUID uuid) {
 		return knownPlayers.get(uuid);
 	}
@@ -122,7 +123,7 @@ public class TeamManagerImpl implements TeamManager {
 	@Override
 	public Optional<Team> getTeamForPlayerID(UUID uuid) {
 		PlayerTeam t = knownPlayers.get(uuid);
-		return t == null ? Optional.empty() : Optional.ofNullable(t.getEffectiveTeam());
+		return t == null ? Optional.empty() : Optional.of(t.getEffectiveTeam());
 	}
 
 	@Override

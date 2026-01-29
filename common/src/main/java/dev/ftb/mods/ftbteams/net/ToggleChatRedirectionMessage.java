@@ -12,7 +12,7 @@ public enum ToggleChatRedirectionMessage implements CustomPacketPayload {
     INSTANCE;
 
     public static final StreamCodec<FriendlyByteBuf, ToggleChatRedirectionMessage> STREAM_CODEC = StreamCodec.unit(INSTANCE);
-    public static final Type<ToggleChatRedirectionMessage> TYPE = new Type<>(FTBTeamsAPI.rl("toggle_chat_redirection"));
+    public static final Type<ToggleChatRedirectionMessage> TYPE = new Type<>(FTBTeamsAPI.id("toggle_chat_redirection"));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

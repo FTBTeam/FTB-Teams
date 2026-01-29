@@ -27,9 +27,9 @@ import static dev.ftb.mods.ftblibrary.client.gui.theme.NordColors.*;
 public abstract class BaseInvitationScreen extends BaseScreen implements InvitationSetup {
     protected final Set<KnownClientPlayer> available;
     protected final Set<GameProfile> invites = new HashSet<>();
-    private Panel playerPanel;
-    private Button executeButton;
-    private Button closeButton;
+    private final Panel playerPanel;
+    private final Button executeButton;
+    private final Button closeButton;
     private final Component title;
 
     public BaseInvitationScreen(Component title) {
@@ -38,6 +38,15 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
         this.available = FTBTeamsAPI.api().getClientManager().knownClientPlayers().stream()
                 .filter(this::shouldIncludePlayer)
                 .collect(Collectors.toSet());
+
+        closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
+            @Override
+            public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+                drawIcon(graphics, theme, x, y, w, h);
+            }
+        };
+        playerPanel = new PlayerButtonPanel();
+        executeButton = makeExecuteButton();
     }
 
     protected abstract boolean shouldIncludePlayer(KnownClientPlayer player);
@@ -66,16 +75,9 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
 
     @Override
     public void addWidgets() {
-        add(closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
-            @Override
-            public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-                drawIcon(graphics, theme, x, y, w, h);
-            }
-        });
-
-        add(playerPanel = new PlayerButtonPanel());
-
-        add(executeButton = makeExecuteButton());
+        add(closeButton);
+        add(playerPanel);
+        add(executeButton);
     }
 
     @Override

@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import java.util.UUID;
 
 public record SendMessageResponseMessage(UUID senderId, Component text) implements CustomPacketPayload {
-	public static final Type<SendMessageResponseMessage> TYPE = new Type<>(FTBTeamsAPI.rl("send_message_response"));
+	public static final Type<SendMessageResponseMessage> TYPE = new Type<>(FTBTeamsAPI.id("send_message_response"));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, SendMessageResponseMessage> STREAM_CODEC = StreamCodec.composite(
 			UUIDUtil.STREAM_CODEC, SendMessageResponseMessage::senderId,

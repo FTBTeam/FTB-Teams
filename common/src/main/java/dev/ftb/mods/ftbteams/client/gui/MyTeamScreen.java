@@ -43,16 +43,16 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	private final TeamPropertyCollection properties;
 	private final PlayerPermissions permissions;
 	private final UUID teamID;
-	private Button settingsButton;
-	private Button infoButton;
-	private Button missingDataButton;
-	private Button colorButton;
-	private Button toggleChatButton;
-	private Button inviteButton;
-	private Button allyButton;
-	private Panel memberPanel;
-	private Panel chatPanel;
-	private TextBox chatBox;
+	private final Button settingsButton;
+	private final Button infoButton;
+	private final Button missingDataButton;
+	private final Button colorButton;
+	private final Button toggleChatButton;
+	private final Button inviteButton;
+	private final Button allyButton;
+	private final Panel memberPanel;
+	private final Panel chatPanel;
+	private final TextBox chatBox;
 
 	// ranks which will appear in the member list, in descending order of seniority
 	private static final List<TeamRank> PARTY_RANKS = List.of(TeamRank.OWNER, TeamRank.OFFICER, TeamRank.MEMBER, TeamRank.ALLY);
@@ -63,6 +63,36 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		this.properties = properties;
 		this.permissions = permissions;
 		teamID = getManager().selfTeam().getId();
+
+		settingsButton = new SettingsButton(this);
+		infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (w, mb) -> {}) {
+			@Override
+			public void addMouseOverText(TooltipList list) {
+				addTeamInfo(list);
+			}
+
+			@Override
+			public void playClickSound() {
+			}
+		};
+		missingDataButton = new SimpleButton(this, Component.empty(), Icons.CANCEL, (w, mb) -> {}) {
+			@Override
+			public void addMouseOverText(TooltipList list) {
+				list.add(Component.translatable("ftbteams.missing_data").withStyle(ChatFormatting.RED));
+			}
+
+			@Override
+			public void playClickSound() {
+			}
+		};
+		colorButton = new ColorButton(this);
+		toggleChatButton = new ToggleChatButton(this);
+		inviteButton = new InviteButton(this);
+		allyButton = new AllyButton(this);
+
+		memberPanel = new MemberPanel();
+		chatPanel = new ChatPanel();
+		chatBox = new ChatBox();
 	}
 
 	public static void refreshIfOpen() {
@@ -89,59 +119,21 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public void addWidgets() {
-		add(settingsButton = new SettingsButton());
-
-		add(infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (w, mb) -> {}) {
-			@Override
-			public void addMouseOverText(TooltipList list) {
-				addTeamInfo(list);
-			}
-
-			@Override
-			public void playClickSound() {
-			}
-		});
-
-		if (ClientTeamManagerImpl.getInstance().self() == null) {
-			add(missingDataButton = new SimpleButton(this, Component.empty(), Icons.CANCEL, (w, mb) -> {}) {
-				@Override
-				public void addMouseOverText(TooltipList list) {
-					list.add(Component.translatable("ftbteams.missing_data").withStyle(ChatFormatting.RED));
-				}
-
-				@Override
-				public void playClickSound() {
-				}
-			});
+		add(settingsButton);
+		add(infoButton);
+		if (!getManager().isValid()) {
+			add(missingDataButton);
 		}
 
-		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), properties.get(TeamProperties.COLOR).withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
-			EditableColor config = new EditableColor();
-			config.setValue(properties.get(TeamProperties.COLOR));
-			ColorSelectorPanel.popupAtMouse(getGui(), config, accepted -> {
-				if (accepted) {
-					Color4I c = config.getValue();
-					properties.set(TeamProperties.COLOR, c);
-					simpleButton.setIcon(c.withBorder(POLAR_NIGHT_0, false));
-					TeamPropertyCollection properties = new TeamPropertyCollectionImpl();
-					properties.set(TeamProperties.COLOR, c);
-					NetworkManager.sendToServer(new UpdatePropertiesRequestMessage(properties));
-				}
-			});
-		}) {
-			@Override
-			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-				IconHelper.renderIcon(icon, graphics, x, y, w, h);
-			}
-		});
+		add(colorButton);
 
-		add(toggleChatButton = new ToggleChatButton(this));
-		add(inviteButton = new InviteButton(this));
-		add(allyButton = new AllyButton(this));
+		add(toggleChatButton);
+		add(inviteButton );
+		add(allyButton );
 
-		add(memberPanel = new MemberPanel());
-		add(chatPanel = new ChatPanel());
-		add(chatBox = new ChatBox());
+		add(memberPanel);
+		add(chatPanel);
+		add(chatBox);
 	}
 
 	@Override
@@ -150,7 +142,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		colorButton.setPosAndSize(5, 5, 12, 12);
 		infoButton.setPosAndSize(20, 3, 16, 16);
-		if (missingDataButton != null) missingDataButton.setPosAndSize(40, 3, 16, 16);
+		if (!getManager().isValid()) missingDataButton.setPosAndSize(40, 3, 16, 16);
 
 		settingsButton.setPosAndSize(width - 19, 3, 16, 16);
 		inviteButton.setPosAndSize(width - 37, 3, 16, 16);
@@ -161,8 +153,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	}
 
 	private void addTeamInfo(TooltipList list) {
-		ClientTeamManager manager = getManager();
-		if (manager != null) {
+		if (getManager().isValid()) {
 			Team team = getManager().selfTeam();
 			list.add(Component.translatable(team.getTypeTranslationKey()).withStyle(ChatFormatting.AQUA));
 			list.add(Component.translatable("ftbteams.info.id", Component.literal(team.getId().toString()).withStyle(ChatFormatting.YELLOW)));
@@ -210,7 +201,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
-			return knownPlayer != null && ClientTeamManagerImpl.getInstance().selfTeam().isOfficerOrBetter(knownPlayer.id());
+			return knownPlayer.online() && ClientTeamManagerImpl.getInstance().selfTeam().isOfficerOrBetter(knownPlayer.id());
 		}
 
 		@Override
@@ -230,7 +221,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
-			return knownPlayer != null && ClientTeamManagerImpl.getInstance().selfTeam().isOfficerOrBetter(knownPlayer.id());
+			return knownPlayer.online() && ClientTeamManagerImpl.getInstance().selfTeam().isOfficerOrBetter(knownPlayer.id());
 		}
 
 		@Override
@@ -278,7 +269,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			UUID prev = null;
 
 			ClientTeamManager manager = getManager();
-			if (manager == null) return;
+			if (!manager.isValid()) {
+				return;
+			}
 
 			for (TeamMessage message : manager.selfTeam().getMessageHistory()) {
 				if (!message.sender().equals(prev)) {
@@ -341,7 +334,9 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		@Override
 		public void addWidgets() {
 			ClientTeamManager manager = getManager();
-			if (manager == null || !manager.isValid()) return;
+			if (!manager.isValid()) {
+				return;
+			}
 
 			Map<TeamRank, List<KnownClientPlayer>> byRank = new EnumMap<>(TeamRank.class);
 			manager.selfTeam().getPlayersByRank(TeamRank.NONE).forEach((id, rank) ->
@@ -378,27 +373,61 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		}
 	}
 
-	private class SettingsButton extends SimpleButton {
-		public SettingsButton() {
-			super(MyTeamScreen.this, Component.translatable("gui.settings"), Icons.SETTINGS.withTint(NordColors.SNOW_STORM_2), (simpleButton, mouseButton) -> {
-				EditableConfigGroup config = new EditableConfigGroup("ftbteamsconfig", accepted -> {
-					if (accepted) {
-						NetworkManager.sendToServer(new UpdatePropertiesRequestMessage(MyTeamScreen.this.properties));
-					}
-					MyTeamScreen.this.openGui();
-				});
+	private static class SettingsButton extends SimpleButton {
+		public SettingsButton(MyTeamScreen screen) {
+			super(screen, Component.translatable("gui.settings"), Icons.SETTINGS.withTint(NordColors.SNOW_STORM_2),
+					(b, mb) -> onClick(screen));
+		}
 
-				Map<String,EditableConfigGroup> subGroups = new HashMap<>();
-				MyTeamScreen.this.properties.forEach((key, value) -> {
+		private static void onClick(MyTeamScreen screen) {
+			EditableConfigGroup config = new EditableConfigGroup("ftbteamsconfig", accepted -> {
+				if (accepted) {
+					NetworkManager.sendToServer(new UpdatePropertiesRequestMessage(screen.properties));
+				}
+				screen.openGui();
+			});
+
+			Map<String,EditableConfigGroup> subGroups = new HashMap<>();
+			screen.properties.forEach((key, value) -> {
+				if (!key.isHidden()) {
 					String groupName = key.getId().getNamespace();
 					EditableConfigGroup cfg = subGroups.computeIfAbsent(groupName, k -> config.getOrCreateSubgroup(groupName));
 					var val = key.config(cfg, value);
 					if (val != null && !key.isPlayerEditable()) {
 						val.setCanEdit(false);
 					}
-				});
+				}
+			});
 
-				new EditConfigScreen(config).openGui();
+			new EditConfigScreen(config).openGui();
+		}
+
+		@Override
+		public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+			drawIcon(graphics, theme, x, y, w, h);
+		}
+	}
+
+	private class ColorButton extends SimpleButton {
+		public ColorButton(MyTeamScreen screen) {
+			super(MyTeamScreen.this, Component.translatable("gui.color"),
+					screen.properties.get(TeamProperties.COLOR).withBorder(NordColors.POLAR_NIGHT_0, false),
+					(b, mb) -> onClick(screen, b)
+			);
+		}
+
+		private static void onClick(MyTeamScreen screen, SimpleButton simpleButton) {
+			EditableColor config = new EditableColor();
+			config.setValue(screen.properties.get(TeamProperties.COLOR));
+			ColorSelectorPanel.popupAtMouse(screen.getGui(), config, accepted -> {
+				if (accepted) {
+					Color4I c = config.getValue();
+					screen.properties.set(TeamProperties.COLOR, c);
+					simpleButton.setIcon(c.withBorder(NordColors.POLAR_NIGHT_0, false));
+					TeamPropertyCollection properties = new TeamPropertyCollectionImpl();
+					properties.set(TeamProperties.COLOR, c);
+					NetworkManager.sendToServer(new UpdatePropertiesRequestMessage(properties));
+				}
 			});
 		}
 

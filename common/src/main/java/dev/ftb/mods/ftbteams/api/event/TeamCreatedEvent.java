@@ -2,8 +2,7 @@ package dev.ftb.mods.ftbteams.api.event;
 
 import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -11,10 +10,11 @@ import java.util.UUID;
  * Fired server-side when a new team is created; could be a player, party, or server team.
  */
 public class TeamCreatedEvent extends TeamEvent {
+	@Nullable
 	private final ServerPlayer creator;
 	private final UUID creatorId;
 
-	public TeamCreatedEvent(Team team, @Nullable ServerPlayer creator, @NotNull UUID creatorId) {
+	public TeamCreatedEvent(Team team, @Nullable ServerPlayer creator, UUID creatorId) {
 		super(team);
 		this.creator = creator;
 		this.creatorId = creatorId;
@@ -25,6 +25,7 @@ public class TeamCreatedEvent extends TeamEvent {
 	 *
 	 * @return the creating player
 	 */
+	@Nullable
 	public ServerPlayer getCreator() {
 		return creator;
 	}

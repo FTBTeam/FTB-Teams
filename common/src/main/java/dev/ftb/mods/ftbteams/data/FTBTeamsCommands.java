@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -17,18 +16,19 @@ import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.UUIDUtil;
-import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.server.permissions.Permissions;
-import net.minecraft.server.players.NameAndId;
-import net.minecraft.util.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.util.Util;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -256,7 +256,7 @@ public class FTBTeamsCommands {
 		return createTeamArg(null);
 	}
 
-	private static RequiredArgumentBuilder<CommandSourceStack, TeamArgumentProvider> createTeamArg(TeamType type) {
+	private static RequiredArgumentBuilder<CommandSourceStack, TeamArgumentProvider> createTeamArg(@Nullable TeamType type) {
 		return Commands.argument("team", TeamArgument.create(type));
 	}
 
@@ -336,11 +336,14 @@ public class FTBTeamsCommands {
 	}
 
 	private static int tryCreateParty(CommandSourceStack source, String partyName) throws CommandSyntaxException {
-		if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
-			throw TeamArgument.API_OVERRIDE.create();
+		if (TeamManagerImpl.INSTANCE != null) {
+			if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
+				throw TeamArgument.API_OVERRIDE.create();
+			}
+			TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName);
+			return Command.SINGLE_SUCCESS;
 		}
-		TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName);
-		return Command.SINGLE_SUCCESS;
+		return 0;
 	}
 
 	private static int tryCreateServerTeam(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
@@ -399,11 +402,13 @@ public class FTBTeamsCommands {
 	}
 
 	private int addFakePlayer(Collection<NameAndId> profiles) {
-		for (NameAndId profile : profiles) {
-			TeamManagerImpl.INSTANCE.playerLoggedIn(null, profile.id(), profile.name());
+		if (TeamManagerImpl.INSTANCE != null) {
+			for (NameAndId profile : profiles) {
+				TeamManagerImpl.INSTANCE.playerLoggedIn(null, profile.id(), profile.name());
+			}
+			return Command.SINGLE_SUCCESS;
 		}
-
-		return Command.SINGLE_SUCCESS;
+		return 0;
 	}
 
 	private int editPlayerTeamNBT(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {

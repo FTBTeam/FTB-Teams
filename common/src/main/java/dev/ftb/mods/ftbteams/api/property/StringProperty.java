@@ -5,13 +5,14 @@ import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public class StringProperty extends TeamProperty<String> {
+	@Nullable
 	private final Pattern pattern;
 
 	public StringProperty(Identifier id, Supplier<String> def, @Nullable Pattern pattern) {

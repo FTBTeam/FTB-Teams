@@ -14,7 +14,7 @@ public record ToggleChatResponseMessage(boolean chatRedirected) implements Custo
             ToggleChatResponseMessage::new
     );
 
-    public static final Type<ToggleChatResponseMessage> TYPE = new Type<>(FTBTeamsAPI.rl("toggle_chat_response"));
+    public static final Type<ToggleChatResponseMessage> TYPE = new Type<>(FTBTeamsAPI.id("toggle_chat_response"));
 
     @Override
     public Type<? extends CustomPacketPayload> type() {

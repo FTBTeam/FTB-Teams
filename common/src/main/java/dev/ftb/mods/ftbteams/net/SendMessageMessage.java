@@ -9,7 +9,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 
 public record SendMessageMessage(String msg) implements CustomPacketPayload {
-	public static final Type<SendMessageMessage> TYPE = new Type<>(FTBTeamsAPI.rl("send_message"));
+	public static final Type<SendMessageMessage> TYPE = new Type<>(FTBTeamsAPI.id("send_message"));
 
 	public static final StreamCodec<FriendlyByteBuf, SendMessageMessage> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.STRING_UTF8, SendMessageMessage::msg,

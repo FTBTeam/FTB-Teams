@@ -6,18 +6,16 @@ import dev.ftb.mods.ftbteams.api.event.ClientTeamPropertiesChangedEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
-import net.minecraft.util.Util;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.util.Util;
+import org.jspecify.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BooleanSupplier;
 
 public class ClientTeam extends AbstractTeamBase {
@@ -25,6 +23,8 @@ public class ClientTeam extends AbstractTeamBase {
             ClientTeam::toNet,
             ClientTeam::fromNet
     );
+
+	public static final ClientTeam NONE = invalidTeam(null);
 
 	private final TeamType type;
 	private final UUID ownerID;
@@ -39,14 +39,14 @@ public class ClientTeam extends AbstractTeamBase {
 		this.toBeRemoved = toBeRemoved;
     }
 
-	public static ClientTeam invalidTeam(AbstractTeam team) {
-		return new ClientTeam(team.getId(), Util.NIL_UUID, team.getType(), true, new TeamPropertyCollectionImpl());
+	public static ClientTeam invalidTeam(@Nullable AbstractTeam team) {
+		return new ClientTeam(team == null ? Util.NIL_UUID : team.getId(), Util.NIL_UUID, team == null ? TeamType.PLAYER : team.getType(), true, new TeamPropertyCollectionImpl());
 	}
 
 	public static ClientTeam copyOf(AbstractTeam team) {
 		ClientTeam clientTeam = new ClientTeam(team.id, team.getOwner(), team.getType(), false, team.properties.copy());
 		clientTeam.ranks.putAll(team.ranks);
-		clientTeam.extraData = team.extraData == null ? null : team.extraData.copy();
+		clientTeam.extraData = team.extraData.copy();
 		return clientTeam;
 	}
 
@@ -135,7 +135,7 @@ public class ClientTeam extends AbstractTeamBase {
 		this.fullSyncSupplier = fullSyncSupplier;
 	}
 
-	private static @NotNull ClientTeam fromNet(RegistryFriendlyByteBuf buffer) {
+	private static ClientTeam fromNet(RegistryFriendlyByteBuf buffer) {
 		UUID id = buffer.readUUID();
 		UUID ownerID = buffer.readBoolean() ? buffer.readUUID() : Util.NIL_UUID;
 		TeamType type = buffer.readEnum(TeamType.class);
@@ -149,7 +149,7 @@ public class ClientTeam extends AbstractTeamBase {
 			clientTeam.addMember(buffer.readUUID(), buffer.readEnum(TeamRank.class));
 		}
 
-		clientTeam.extraData = buffer.readNbt();
+		clientTeam.extraData = Objects.requireNonNullElse(buffer.readNbt(), new CompoundTag());
 
 		return clientTeam;
 	}

@@ -22,6 +22,7 @@ public abstract class TeamProperty<T> {
 	protected final Identifier id;
 	private final Supplier<T> defaultValue;
 	private boolean playerEditable;
+	private boolean hidden;
 	private boolean shouldSyncToAll;
 
 	protected TeamProperty(Identifier id, Supplier<T> defaultValue) {
@@ -29,6 +30,7 @@ public abstract class TeamProperty<T> {
 		this.defaultValue = defaultValue;
 
 		playerEditable = true;
+		hidden = false;
 		shouldSyncToAll = false;
 	}
 
@@ -68,6 +70,13 @@ public abstract class TeamProperty<T> {
 	}
 
 	/**
+	 * {@return if the property should be hidden from the properties editor GUI}
+	 */
+	public boolean isHidden() {
+		return hidden;
+	}
+
+	/**
 	 * Mark a property as not player-editable (see {@link #isPlayerEditable()}). Should be called during property
 	 * declaration.
 	 *
@@ -75,6 +84,11 @@ public abstract class TeamProperty<T> {
 	 */
 	public TeamProperty<T> notPlayerEditable() {
 		playerEditable = false;
+		return this;
+	}
+
+	public TeamProperty<T> hidden() {
+		hidden = true;
 		return this;
 	}
 

@@ -13,6 +13,7 @@ import dev.ftb.mods.ftbteams.api.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
+import dev.ftb.mods.ftbteams.command.TeamArgument;
 import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatResponseMessage;
@@ -147,6 +148,7 @@ public class TeamManagerImpl implements TeamManager {
 		}
 
 		CompoundTag dataFileTag = SNBT.tryRead(directory.resolve("ftbteams.snbt"));
+		//noinspection DataFlowIssue this won't crash... nbt isn't actually null
         var compoundUuid = dataFileTag.read("id", UUIDUtil.CODEC);
         compoundUuid.ifPresent(uuid -> id = uuid);
 
@@ -170,7 +172,8 @@ public class TeamManagerImpl implements TeamManager {
 					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
                         try {
                             CompoundTag nbt = SNBT.tryRead(file);
-							AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
+							//noinspection DataFlowIssue this won't crash... nbt isn't actually null
+                            AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt, server.registryAccess());
                         } catch (IOException e) {

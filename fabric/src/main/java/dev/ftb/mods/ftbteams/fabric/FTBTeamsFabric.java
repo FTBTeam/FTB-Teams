@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbteams.fabric;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;
-import dev.ftb.mods.ftbteams.data.TeamArgument;
+import dev.ftb.mods.ftbteams.command.TeamArgument;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 

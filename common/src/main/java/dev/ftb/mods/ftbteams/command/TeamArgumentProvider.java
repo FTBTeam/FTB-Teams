@@ -1,4 +1,4 @@
-package dev.ftb.mods.ftbteams.data;
+package dev.ftb.mods.ftbteams.command;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.api.Team;

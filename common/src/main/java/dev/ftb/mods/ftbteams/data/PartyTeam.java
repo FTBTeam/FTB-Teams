@@ -9,6 +9,7 @@ import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.event.PlayerTransferredTeamOwnershipEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamAllyEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
+import dev.ftb.mods.ftbteams.command.TeamArgument;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
@@ -75,7 +76,7 @@ public class PartyTeam extends AbstractTeam {
 		UUID id = playerProfile.id();
 
 		Team oldTeam = manager.getTeamForPlayerID(id)
-				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(id));
+				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(playerProfile.name()));
 
 		if (!(oldTeam instanceof PlayerTeam playerTeam)) {
 			throw TeamArgument.ALREADY_IN_PARTY.create();

@@ -1,4 +1,4 @@
-package dev.ftb.mods.ftbteams.data;
+package dev.ftb.mods.ftbteams.command;
 
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
@@ -12,6 +12,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
+import dev.ftb.mods.ftbteams.data.TeamType;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;

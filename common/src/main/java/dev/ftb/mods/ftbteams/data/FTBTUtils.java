@@ -46,7 +46,7 @@ public class FTBTUtils {
 		return playerName + "'s Party";
 	}
 
-	static MutableComponent makeCopyableComponent(String id) {
+	public static MutableComponent makeCopyableComponent(String id) {
 		return Component.literal(id)
 				.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(Component.translatable("chat.copy.click"))))
 				.withStyle(style -> style.withClickEvent(new ClickEvent.CopyToClipboard(id)));

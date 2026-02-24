@@ -16,7 +16,7 @@ import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.data.AbstractTeam;
-import dev.ftb.mods.ftbteams.data.FTBTeamsCommands;
+import dev.ftb.mods.ftbteams.command.FTBTeamsCommands;
 import dev.ftb.mods.ftbteams.data.TeamManagerImpl;
 import dev.ftb.mods.ftbteams.net.FTBTeamsNet;
 import net.minecraft.commands.CommandBuildContext;

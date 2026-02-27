@@ -3,6 +3,7 @@ package dev.ftb.mods.ftbteams.api.client;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -10,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Used to track known teams and player on each client in the game. You can retrieve an instance of this via
+ * Used to track known teams and players on each client in the game. You can retrieve an instance of this via
  * {@link FTBTeamsAPI.API#getClientManager()}.
  */
 public interface ClientTeamManager {
@@ -51,6 +52,15 @@ public interface ClientTeamManager {
     Optional<Team> getTeamByID(UUID teamId);
 
     /**
+     * Get the current team for the given player. This will only succeed if the details for the player in question
+     * are in the known players list as returned by {@link #knownClientPlayers()}.
+     *
+     * @param player the player to check
+     * @return the team, or {@code Optional.empty()} if no team could be found
+     */
+    Optional<Team> getTeamForPlayer(Player player);
+
+    /**
      * Get the client team data for this client player (i.e. {@link net.minecraft.client.Minecraft#player})
      *
      * @return this player's own team
@@ -76,7 +86,7 @@ public interface ClientTeamManager {
      * Get a formatted name for the given player ID, for display purposes. This is used in the team chat window, for
      * example.
      *
-     * @param id a player's unique id, may be null or {@link net.minecraft.Util#NIL_UUID} to indicate a "system" user.
+     * @param id a player's unique id, may be null or {@link net.minecraft.util.Util#NIL_UUID} to indicate a "system" user.
      * @return a formatted and colored name for the given id, or {@code "Unknown"} if the ID is not known to the client at this time
      */
     Component formatName(@Nullable UUID id);

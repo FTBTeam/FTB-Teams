@@ -1,29 +1,33 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
-import dev.ftb.mods.ftblibrary.config.NameMap;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
+import dev.ftb.mods.ftblibrary.util.NameMap;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class EnumProperty extends TeamProperty<String> {
 	private final List<String> values;
 	private final Map<String, Component> names;
 
-	public EnumProperty(ResourceLocation id, Supplier<String> def, List<String> values, Map<String,Component> names) {
+	public EnumProperty(Identifier id, Supplier<String> def, List<String> values, Map<String,Component> names) {
 		super(id, def);
 		this.values = values;
 		this.names = names;
 	}
 
-	public <T> EnumProperty(ResourceLocation id, NameMap<T> nameMap) {
+	public <T> EnumProperty(Identifier id, NameMap<T> nameMap) {
 		this(id, () -> nameMap.getName(nameMap.defaultValue), nameMap.keys, buildMap(nameMap));
 	}
 
@@ -33,7 +37,7 @@ public class EnumProperty extends TeamProperty<String> {
 		return res;
 	}
 
-	static EnumProperty fromNetwork(ResourceLocation id, RegistryFriendlyByteBuf buf) {
+	static EnumProperty fromNetwork(Identifier id, RegistryFriendlyByteBuf buf) {
 		String def = buf.readUtf(Short.MAX_VALUE);
 		List<String> values = buf.readList(b -> b.readUtf(Short.MAX_VALUE));
 		int len = buf.readVarInt();
@@ -67,8 +71,8 @@ public class EnumProperty extends TeamProperty<String> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<String> value) {
-		config.addEnum(id.getPath(), value.value, value.consumer, NameMap.of(getDefaultValue(), values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
+	public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<String> value) {
+		return config.addEnum(id.getPath(), value.getValue(), value::setValue, NameMap.of(getDefaultValue(), values).name(s -> names.getOrDefault(s, Component.literal(s))).create());
 	}
 
 	@Override
@@ -79,7 +83,7 @@ public class EnumProperty extends TeamProperty<String> {
 	@Override
 	public Optional<String> fromNBT(Tag tag) {
 		if (tag instanceof StringTag) {
-			return Optional.of(tag.getAsString());
+			return tag.asString();
 		}
 
 		return Optional.empty();

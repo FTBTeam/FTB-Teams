@@ -1,12 +1,10 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
+import dev.ftb.mods.ftblibrary.client.gui.input.MouseButton;
+import dev.ftb.mods.ftblibrary.client.gui.widget.NordButton;
+import dev.ftb.mods.ftblibrary.client.gui.widget.Panel;
 import dev.ftb.mods.ftblibrary.icon.Icons;
-import dev.ftb.mods.ftblibrary.ui.NordButton;
-import dev.ftb.mods.ftblibrary.ui.Panel;
-import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.util.TooltipList;
-import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
-import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -33,11 +31,7 @@ public class CreatePartyButton extends NordButton {
 	@Override
 	public void onClicked(MouseButton button) {
 		if (enabled) {
-			if (FTBTeamsAPI.api().getCustomPartyCreationHandler() != null) {
-				FTBTeamsAPIImpl.INSTANCE.getCustomPartyCreationHandler().createParty(button);
-			} else {
-				new CreatePartyScreen().openGui();
-			}
+			new CreatePartyScreen().openGui();
 		}
 	}
 }

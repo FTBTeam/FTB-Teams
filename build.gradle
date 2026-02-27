@@ -1,7 +1,7 @@
 plugins {
 	id "architectury-plugin" version "3.4-SNAPSHOT"
-	id "dev.architectury.loom" version "1.7-SNAPSHOT" apply false
-	id "me.modmuss50.mod-publish-plugin" version "0.5.1"
+	id "dev.architectury.loom" version "1.13-SNAPSHOT" apply false
+	id "me.modmuss50.mod-publish-plugin" version "1.1.0"
 }
 
 apply from: 'https://raw.githubusercontent.com/FTBTeam/mods-meta/main/gradle/changelog.gradle'
@@ -47,6 +47,9 @@ allprojects {
 
 		maven {
 			url "https://maven.architectury.dev/"
+			content {
+				includeGroup "dev.architectury"
+			}
 		}
 
 		maven {
@@ -57,16 +60,14 @@ allprojects {
 		}
 
 		maven {
-			url "https://maven.saps.dev/minecraft"
+			url "https://maven.ftb.dev/releases"
 			content {
-				includeGroup "dev.latvian.mods"
 				includeGroup "dev.ftb.mods"
 			}
 		}
 		maven {
-			url "https://maven.saps.dev/snapshots"
+			url "https://maven.ftb.dev/snapshots"
 			content {
-				includeGroup "dev.latvian.mods"
 				includeGroup "dev.ftb.mods"
 			}
 		}
@@ -84,16 +85,6 @@ allprojects {
 					credentials {
 						username = ftbPublishing.ftbUser
 						password = ftbPublishing.ftbToken
-					}
-				}
-			}
-
-			if (ftbPublishing.sapsToken) {
-				maven {
-					url ftbPublishing.sapsURL
-					credentials {
-						username = ftbPublishing.sapsUser
-						password = ftbPublishing.sapsToken
 					}
 				}
 			}

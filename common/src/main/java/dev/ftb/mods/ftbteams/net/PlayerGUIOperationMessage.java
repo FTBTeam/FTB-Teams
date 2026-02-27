@@ -17,13 +17,14 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implements CustomPacketPayload {
-    public static final Type<PlayerGUIOperationMessage> TYPE = new Type<>(FTBTeamsAPI.rl("player_gui_operation"));
+    public static final Type<PlayerGUIOperationMessage> TYPE = new Type<>(FTBTeamsAPI.id("player_gui_operation"));
 
     public static final StreamCodec<FriendlyByteBuf, PlayerGUIOperationMessage> STREAM_CODEC = StreamCodec.composite(
             NetworkHelper.enumStreamCodec(Operation.class), PlayerGUIOperationMessage::op,
@@ -36,7 +37,7 @@ public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implem
     }
 
     public static PlayerGUIOperationMessage forGameProfiles(Operation op, Collection<GameProfile> targets) {
-        return new PlayerGUIOperationMessage(op, targets.stream().map(GameProfile::getId).toList());
+        return new PlayerGUIOperationMessage(op, targets.stream().map(GameProfile::id).toList());
     }
 
     public static void handle(PlayerGUIOperationMessage message, NetworkManager.PacketContext context) {
@@ -61,7 +62,7 @@ public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implem
         FTBTeams.LOGGER.debug("received teams operation msg {} from {} (rank {}), team {}, target {} (rank {})", op, sourcePlayer.getUUID(), senderRank, partyTeam.getName().getString(), targetId, targetRank);
 
         try {
-            final List<GameProfile> targetProfile = List.of(new GameProfile(targetId, ""));
+            final List<NameAndId> targetProfile = List.of(new NameAndId(targetId, ""));
             switch (op) {
                 case KICK -> {
                     if (senderRank.getPower() > targetRank.getPower()) {
@@ -80,19 +81,19 @@ public record PlayerGUIOperationMessage(Operation op, List<UUID> targets) implem
                 }
                 case TRANSFER_OWNER -> {
                     if (senderRank.isAtLeast(TeamRank.OWNER)) {
-                        ServerPlayer p = sourcePlayer.getServer().getPlayerList().getPlayer(targetId);
+                        ServerPlayer p = sourcePlayer.level().getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
-                            partyTeam.transferOwnership(sourcePlayer.createCommandSourceStack(), p.getGameProfile());
+                            partyTeam.transferOwnership(sourcePlayer.createCommandSourceStack(), p.nameAndId());
                         }
                     }
                 }
                 case LEAVE -> partyTeam.leave(sourcePlayer.getUUID());
                 case INVITE -> {
                     if (senderRank.isAtLeast(TeamRank.OFFICER)) {
-                        ServerPlayer p = sourcePlayer.getServer().getPlayerList().getPlayer(targetId);
+                        ServerPlayer p = sourcePlayer.level().getServer().getPlayerList().getPlayer(targetId);
                         if (p != null) {
                             // need the player to be online to receive an invitation
-                            partyTeam.invite(sourcePlayer, List.of(p.getGameProfile()));
+                            partyTeam.invite(sourcePlayer, List.of(p.nameAndId()));
                         }
                     }
                 }

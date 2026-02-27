@@ -6,6 +6,7 @@ import dev.ftb.mods.ftbteams.api.property.TeamProperty;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +47,7 @@ public interface Team {
     /**
      * Get the unique player ID for the team's owner.
      *
-     * @return the owner's ID; a valid player UUID
+     * @return the owner's ID; a valid player UUID or {@link net.minecraft.util.Util#NIL_UUID} representing the server console
      */
     UUID getOwner();
 
@@ -138,6 +139,14 @@ public interface Team {
     void sendMessage(UUID senderId, String message);
 
     /**
+     * Send a team message to this team. This is a no-op if called on a client-side team.
+     *
+     * @param senderId UUID of the player sending the message
+     * @param message the message text
+     */
+    void sendMessage(UUID senderId, Component message);
+
+    /**
      * Return a nicely marked-up block of text info for this team, for display purposes.
      *
      * @return a component list of team information
@@ -226,6 +235,28 @@ public interface Team {
      * @param description the long description text (an empty string is acceptable)
      * @param color the color for the new team; if null, then a random color is chosen
      * @return the newly-created party team
+     * @throws IllegalStateException if there is a problem creating the party
      */
     Team createParty(String description, @Nullable Color4I color);
+
+    /**
+     * Synchronise the value of one team property for this team to all players on the server. This method does nothing
+     * if the property was not declared syncable (via {@link TeamProperty#syncToAll()}), or if called on the client.
+     *
+     * @param server the server
+     * @param property the property to sync
+     * @param value the value to sync
+     * @param <T> the property type
+     */
+    <T> void syncOnePropertyToAll(MinecraftServer server, TeamProperty<T> property, T value);
+
+    /**
+     * Synchronise the value of one team property for this team to all online players on this team. This method does nothing
+     *  if called on the client.
+     *
+     * @param property the property to sync
+     * @param value the value to sync
+     * @param <T> the property type
+     */
+    <T> void syncOnePropertyToTeam(TeamProperty<T> property, T value);
 }

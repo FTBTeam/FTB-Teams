@@ -1,14 +1,15 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
+import dev.ftb.mods.ftblibrary.client.gui.input.MouseButton;
+import dev.ftb.mods.ftblibrary.client.gui.theme.Theme;
+import dev.ftb.mods.ftblibrary.client.gui.widget.ContextMenuItem;
+import dev.ftb.mods.ftblibrary.client.gui.widget.NordButton;
+import dev.ftb.mods.ftblibrary.client.gui.widget.Panel;
+import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
-import dev.ftb.mods.ftblibrary.ui.ContextMenuItem;
-import dev.ftb.mods.ftblibrary.ui.NordButton;
-import dev.ftb.mods.ftblibrary.ui.Panel;
-import dev.ftb.mods.ftblibrary.ui.Theme;
-import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.data.ClientTeam;
@@ -25,7 +26,7 @@ public class MemberButton extends NordButton {
 	private final KnownClientPlayer player;
 
 	MemberButton(Panel panel, KnownClientPlayer p) {
-		super(panel, Component.literal(p.name()), FaceIcon.getFace(p.profile()));
+		super(panel, Component.literal(p.name()), FaceIcon.getFace(p.profile(), true));
 		setWidth(width + 18);  // to fit in the rank icon
 		player = p;
 	}
@@ -35,16 +36,16 @@ public class MemberButton extends NordButton {
 		super.drawIcon(graphics, theme, x, y, w, h);
 
 		if (player.online()) {
-			graphics.pose().pushPose();
-			graphics.pose().translate(x + w - 1.5D, y - 0.5D, 0);
-			Color4I.GREEN.draw(graphics, 0, 0, 2, 2);
-			graphics.pose().popPose();
+			graphics.pose().pushMatrix();
+			graphics.pose().translate(x + w - 1.5F, y - 0.5F);
+			IconHelper.renderIcon(Color4I.GREEN, graphics, 0, 0, 2, 2);
+			graphics.pose().popMatrix();
 		}
 
 		ClientTeam selfTeam = ClientTeamManagerImpl.getInstance().selfTeam();
 		if (selfTeam.getType() == TeamType.PARTY) {
 			TeamRank tr = selfTeam.getRankForPlayer(player.id());
-			tr.getIcon().ifPresent(icon -> icon.draw(graphics, getX() + width - 14, getY() + 2, 12, 12));
+			tr.getIcon().ifPresent(icon -> IconHelper.renderIcon(icon, graphics, getX() + width - 14, getY() + 2, 12, 12));
 		}
 	}
 
@@ -53,7 +54,7 @@ public class MemberButton extends NordButton {
 		KnownClientPlayer self = ClientTeamManagerImpl.getInstance().self();
 		ClientTeam selfTeam = ClientTeamManagerImpl.getInstance().selfTeam();
 
-		if (selfTeam == null || self == null) return;
+		if (!selfTeam.isValid() || !self.online()) return;
 
 		TeamRank selfRank = selfTeam.getRankForPlayer(self.id());
 		TeamRank playerRank = selfTeam.getRankForPlayer(player.id());
@@ -105,7 +106,7 @@ public class MemberButton extends NordButton {
 
 		if (!items0.isEmpty()) {
 			List<ContextMenuItem> items = new ArrayList<>(List.of(
-					new ContextMenuItem(playerRank.getDisplayName(), FaceIcon.getFace(new GameProfile(player.id(), "")), null).setCloseMenu(false),
+					new ContextMenuItem(playerRank.getDisplayName(), FaceIcon.getFace(new GameProfile(player.id(), ""), true), null).setCloseMenu(false),
 					ContextMenuItem.SEPARATOR
 			));
 			items.addAll(items0);

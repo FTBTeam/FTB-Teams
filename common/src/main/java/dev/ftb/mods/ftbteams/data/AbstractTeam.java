@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
 import dev.ftb.mods.ftblibrary.util.NetworkHelper;
@@ -10,7 +9,6 @@ import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
-import dev.ftb.mods.ftbteams.api.TeamMessage;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.event.*;
 import dev.ftb.mods.ftbteams.api.property.TeamProperty;
@@ -18,20 +16,20 @@ import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.net.SendMessageResponseMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesResponseMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.Util;
+import org.jspecify.annotations.Nullable;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -73,7 +71,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		return getOnlineRanked(TeamRank.MEMBER);
 	}
 
-	void onCreated(@Nullable ServerPlayer player, @NotNull UUID playerId) {
+	void onCreated(@Nullable ServerPlayer player, UUID playerId) {
 		if (player != null) {
 			TeamEvent.CREATED.invoker().accept(new TeamCreatedEvent(this, player, playerId));
 		}
@@ -83,7 +81,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 	}
 
 	void updateCommands(ServerPlayer player) {
-		player.getServer().getPlayerList().sendPlayerPermissionLevel(player);
+		player.level().getServer().getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
 	void onPlayerChangeTeam(@Nullable Team prev, UUID player, @Nullable ServerPlayer p, boolean deleted) {
@@ -108,7 +106,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	public SNBTCompoundTag serializeNBT(HolderLookup.Provider provider) {
 		SNBTCompoundTag tag = new SNBTCompoundTag();
-		tag.putString("id", getId().toString());
+		tag.store("id", UUIDUtil.CODEC, getId());
 		tag.putString("type", getType().getSerializedName());
 		serializeExtraNBT(tag);
 
@@ -120,12 +118,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		tag.put("ranks", ranksNBT);
 		tag.put("properties", properties.write(new SNBTCompoundTag()));
-
-		ListTag messageHistoryTag = new ListTag();
-		for (TeamMessage msg : getMessageHistory()) {
-			messageHistoryTag.add(TeamMessageImpl.toNBT(msg, provider));
-		}
-		tag.put("message_history", messageHistoryTag);
+		tag.store("message_history", TeamMessageImpl.LIST_CODEC, getMessageHistory());
 
 		TeamEvent.SAVED.invoker().accept(new TeamEvent(this));
 		tag.put("extra", extraData);
@@ -138,20 +131,17 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
 		ranks.clear();
-		CompoundTag ranksNBT = tag.getCompound("ranks");
+		CompoundTag ranksNBT = tag.getCompoundOrEmpty("ranks");
 
-		for (String s : ranksNBT.getAllKeys()) {
-			ranks.put(UUID.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s)));
+		for (String s : ranksNBT.keySet()) {
+			ranks.put(UUID.fromString(s), TeamRank.NAME_MAP.get(ranksNBT.getString(s).orElseThrow()));
 		}
 
-		properties.read(tag.getCompound("properties"));
-		extraData = tag.getCompound("extra");
+		properties.read(tag.getCompoundOrEmpty("properties"));
+		extraData = tag.getCompoundOrEmpty("extra");
 		messageHistory.clear();
 
-		ListTag messageHistoryTag = tag.getList("message_history", Tag.TAG_COMPOUND);
-		for (int i = 0; i < messageHistoryTag.size(); i++) {
-			addMessage(TeamMessageImpl.fromNBT(messageHistoryTag.getCompound(i), provider));
-		}
+		tag.read("message_history", TeamMessageImpl.LIST_CODEC).orElse(List.of()).forEach(this::addMessage);
 
 		TeamEvent.LOADED.invoker().accept(new TeamEvent(this));
 	}
@@ -160,24 +150,24 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		MutableComponent keyc = Component.translatable(key.getTranslationKey("ftbteamsconfig")).withStyle(ChatFormatting.YELLOW);
 		if (value.isEmpty()) {
 			Component valuec = Component.literal(key.toString(getProperty(key))).withStyle(ChatFormatting.AQUA);
-			source.sendSuccess(() -> keyc.append(" is set to ").append(valuec), true);
-		} else {
+			source.sendSuccess(() -> keyc.append(" = ").append(valuec), true);
+		} else if (key.isPlayerEditable()) {
 			Optional<T> optional = key.fromString(value);
 
 			if (optional.isPresent()) {
 				TeamPropertyCollection old = properties.copy();
 				setProperty(key, optional.get());
 				Component valuec = Component.literal(value).withStyle(ChatFormatting.AQUA);
-				source.sendSuccess(() -> Component.literal("Set ").append(keyc).append(" to ").append(valuec), true);
+				source.sendSuccess(() -> Component.translatable("ftbteams.message.set_property", keyc, valuec), true);
 
 				TeamEvent.PROPERTIES_CHANGED.invoker().accept(new TeamPropertiesChangedEvent(this, old));
-				if (ClientTeam.isSyncableProperty(key)) {
-					NetworkHelper.sendToAll(source.getServer(), UpdatePropertiesResponseMessage.oneProperty(getId(), key, optional.get()));
-				}
+				syncOnePropertyToAll(source.getServer(), key, optional.get());
 			} else {
-				source.sendFailure(Component.literal("Failed to parse value!"));
+				source.sendFailure(Component.translatable("ftbteams.message.parse_failed", value));
 				return 0;
 			}
+		} else {
+			source.sendFailure(Component.translatable("ftbteams.message.property_not_editable", keyc));
 		}
 		return Command.SINGLE_SUCCESS;
 	}
@@ -230,7 +220,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	private Component playerWithId(UUID member) {
 		return manager.getPlayerName(member).copy().withStyle(Style.EMPTY
-				.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(member.toString())))
+				.withHoverEvent(new HoverEvent.ShowText(Component.literal(member.toString())))
 		);
 	}
 
@@ -244,7 +234,8 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		sendMessage(senderId, TextComponentUtils.withLinks(message));
 	}
 
-	void sendMessage(UUID from, Component text) {
+	@Override
+	public void sendMessage(UUID from, Component text) {
 		addMessage(FTBTeamsAPI.api().createMessage(from, text));
 
 		MutableComponent component = Component.literal("<");
@@ -256,7 +247,7 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 		for (ServerPlayer p : getOnlineMembers()) {
 			p.displayClientMessage(component, false);
-			NetworkManager.sendToPlayer(p, new SendMessageResponseMessage(from, text));
+			NetworkHelper.sendTo(p, new SendMessageResponseMessage(from, text));
 		}
 
 		markDirty();
@@ -271,8 +262,28 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 
 	void saveIfNeeded(Path directory, HolderLookup.Provider provider) {
 		if (shouldSave) {
-			SNBT.write(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT(provider));
-			shouldSave = false;
+            try {
+                SNBT.tryWrite(directory.resolve(getType().getSerializedName() + "/" + getId() + ".snbt"), serializeNBT(provider));
+            } catch (IOException e) {
+                FTBTeams.LOGGER.error("Failed to save team {}", getId(), e);
+            }
+            shouldSave = false;
 		}
+	}
+
+	void copyExtraData(Team from) {
+		extraData = from.getExtraData().copy();
+	}
+
+	@Override
+	public <T> void syncOnePropertyToAll(MinecraftServer server, TeamProperty<T> property, T value) {
+		if (property.shouldSyncToAll()) {
+			NetworkHelper.sendToAll(server, UpdatePropertiesResponseMessage.oneProperty(getId(), property, value));
+		}
+	}
+
+	@Override
+	public <T> void syncOnePropertyToTeam(TeamProperty<T> property, T value) {
+		getOnlineMembers().forEach(sp -> NetworkHelper.sendTo(sp, UpdatePropertiesResponseMessage.oneProperty(getId(), property, value)));
 	}
 }

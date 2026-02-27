@@ -2,6 +2,7 @@ package dev.ftb.mods.ftbteams.api;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -115,7 +116,8 @@ public interface TeamManager {
     void markDirty();
 
     /**
-     * Attempt to create a party team for the given player
+     * Attempt to create a party team for the given player.
+     *
      * @param player the player to create the team for
      * @param name the human-readable team name (something like "{player}'s team" is suggested)
      * @param description a text description of the team, may be null
@@ -125,4 +127,44 @@ public interface TeamManager {
      * most commonly that the player is already in a party
      */
     Team createPartyTeam(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException;
+
+    /**
+     * Attempt to create a server team for the given command source stack.
+     *
+     * @param commandSourceStack the command source, typically {@link MinecraftServer#createCommandSourceStack()}
+     * @param name the server team's displayed name
+     * @param description the server team's description, may be null
+     * @param color the color to use, may be null (if null, a random color is picked)
+     * @param teamUUID the team's UUID, may be null (if null, a new random UUID is picked)
+     * @return the new server team
+     * @throws CommandSyntaxException if there was any kind of failure creating the team,
+     * most commonly that a team with the given UUID already exists
+     */
+    Team createServerTeam(CommandSourceStack commandSourceStack, String name, @Nullable String description, @Nullable Color4I color, @Nullable UUID teamUUID) throws CommandSyntaxException;
+
+    /**
+     * See {@link #createServerTeam(CommandSourceStack, String, String, Color4I, UUID)}. This variant passes a null UUID,
+     * indicating that a random UUID should be used for the new server team ID.
+     */
+    default Team createServerTeam(CommandSourceStack commandSourceStack, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
+        return createServerTeam(commandSourceStack, name, description, color, null);
+    }
+
+    /**
+     * Set chat redirection for the given player. When chat redirection is enabled, all chat messages from the player
+     * are instead sent to FTB Teams team chat, to be seen by the player's team only.
+     *
+     * @param player the player
+     * @param redirected true if messages should go to team chat, false if they should be broadcast as normal
+     */
+    void setChatRedirected(ServerPlayer player, boolean redirected);
+
+    /**
+     * {@return true if messages should go to team chat, false if they should be broadcast as normal}
+     * See {@link #setChatRedirected(ServerPlayer, boolean)} for more information.
+     *
+     * @param player the player
+     */
+    boolean isChatRedirected(ServerPlayer player);
+
 }

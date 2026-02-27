@@ -1,23 +1,25 @@
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftblibrary.config.ConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
+import dev.ftb.mods.ftblibrary.client.config.editable.EditableConfigValue;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Optional;
 import java.util.function.Supplier;
 
+// TODO should this be moved to FTB Chunks?
 public class PrivacyProperty extends TeamProperty<PrivacyMode> {
-	public PrivacyProperty(ResourceLocation id, Supplier<PrivacyMode> def) {
+	public PrivacyProperty(Identifier id, Supplier<PrivacyMode> def) {
 		super(id, def);
 	}
 
-	public PrivacyProperty(ResourceLocation id, PrivacyMode def) {
+	public PrivacyProperty(Identifier id, PrivacyMode def) {
 		this(id, () -> def);
 	}
 
-	static PrivacyProperty fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+	static PrivacyProperty fromNetwork(Identifier id, FriendlyByteBuf buf) {
 		return new PrivacyProperty(id, buf.readEnum(PrivacyMode.class));
 	}
 
@@ -42,7 +44,7 @@ public class PrivacyProperty extends TeamProperty<PrivacyMode> {
 	}
 
 	@Override
-	public void config(ConfigGroup config, TeamPropertyValue<PrivacyMode> value) {
-		config.addEnum(id.getPath(), value.value, value.consumer, PrivacyMode.NAME_MAP);
+	public EditableConfigValue<?> config(EditableConfigGroup config, TeamPropertyValue<PrivacyMode> value) {
+		return config.addEnum(id.getPath(), value.getValue(), value::setValue, PrivacyMode.NAME_MAP);
 	}
 }

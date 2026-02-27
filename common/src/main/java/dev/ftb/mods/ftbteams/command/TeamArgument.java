@@ -1,7 +1,6 @@
-package dev.ftb.mods.ftbteams.data;
+package dev.ftb.mods.ftbteams.command;
 
 import com.google.gson.JsonObject;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -13,6 +12,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
+import dev.ftb.mods.ftbteams.data.TeamType;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -23,7 +23,8 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.players.NameAndId;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
@@ -45,14 +46,16 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType API_OVERRIDE = new SimpleCommandExceptionType(Component.translatable("ftbteams.party_api_only"));
 	public static final SimpleCommandExceptionType NAME_TOO_SHORT = new SimpleCommandExceptionType(Component.translatable("ftbteams.name_too_short"));
 	public static final SimpleCommandExceptionType NO_PERMISSION = new SimpleCommandExceptionType(Component.translatable("ftbteams.server_permissions_prevent"));
+	public static final DynamicCommandExceptionType TEAM_ALREADY_EXISTS = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.team_already_exists", object));
 
+	@Nullable
 	private final TeamType type;
 
     public static TeamArgument create() {
 		return new TeamArgument(null);
 	}
 
-	public static TeamArgument create(TeamType type) {
+	public static TeamArgument create(@Nullable TeamType type) {
 		return new TeamArgument(type);
 	}
 
@@ -97,8 +100,8 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 				return t.get();
 			}
 
-			return source.getServer().getProfileCache().get(id)
-							.map(GameProfile::getId)
+			return source.getServer().services().nameToIdCache().get(id)
+							.map(NameAndId::id)
 							.map(FTBTeamsAPI.api().getManager()::getTeamForPlayerID)
 							.orElseThrow()
 							.orElseThrow(this::error);
@@ -174,9 +177,10 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 		}
 
 		public final class Template implements ArgumentTypeInfo.Template<TeamArgument> {
+			@Nullable
 			private final TeamType teamType;
 
-			public Template(TeamType teamType) {
+			public Template(@Nullable TeamType teamType) {
 				this.teamType = teamType;
 			}
 

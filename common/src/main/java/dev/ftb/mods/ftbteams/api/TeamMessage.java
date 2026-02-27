@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 public interface TeamMessage {
     /**
-     * The sender's ID. System messages use a sender ID of {@link net.minecraft.Util#NIL_UUID}.
+     * The sender's ID. System messages use a sender ID of {@link net.minecraft.util.Util#NIL_UUID}.
      *
      * @return the sender's ID
      */

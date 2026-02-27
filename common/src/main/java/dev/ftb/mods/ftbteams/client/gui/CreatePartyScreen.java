@@ -2,13 +2,17 @@ package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
 import dev.architectury.networking.NetworkManager;
+import dev.ftb.mods.ftblibrary.client.gui.GuiHelper;
+import dev.ftb.mods.ftblibrary.client.gui.input.Key;
+import dev.ftb.mods.ftblibrary.client.gui.input.MouseButton;
+import dev.ftb.mods.ftblibrary.client.gui.layout.WidgetLayout;
+import dev.ftb.mods.ftblibrary.client.gui.theme.NordColors;
+import dev.ftb.mods.ftblibrary.client.gui.theme.Theme;
+import dev.ftb.mods.ftblibrary.client.gui.widget.*;
+import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.FaceIcon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
-import dev.ftb.mods.ftblibrary.ui.*;
-import dev.ftb.mods.ftblibrary.ui.input.Key;
-import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
-import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
@@ -29,46 +33,21 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 	private final ClientTeamManager manager;
 	private final Set<GameProfile> invitedMembers;
 
-	private Panel invitePanel;
-	private Panel settingsPanel;
-	private Button createTeamButton;
+	private final Panel invitePanel;
+	private final SettingsPanel settingsPanel;
+	private final Button createTeamButton;
 	private Color4I teamColor;
-	private TextBox nameTextBox;
-	private TextBox descriptionTextBox;
 
 	public CreatePartyScreen() {
 		setSize(300, 200);
+
 		manager = FTBTeamsAPI.api().getClientManager();
 		invitedMembers = new HashSet<>();
 		teamColor = manager.selfTeam().getProperty(TeamProperties.COLOR);
-	}
 
-	@Override
-	public void addWidgets() {
-		Button closeButton;
-		add(closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
-			@Override
-			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-				drawIcon(graphics, theme, x, y, w, h);
-			}
-		});
-
-		Button colorButton;
-		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), teamColor.withBorder(POLAR_NIGHT_0, false), (simpleButton, mouseButton) -> {
-			teamColor = FTBTUtils.randomColor();
-			simpleButton.setIcon(teamColor.withBorder(POLAR_NIGHT_0, false));
-		}) {
-			@Override
-			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-				icon.draw(graphics, x, y, w, h);
-			}
-		});
-
-		add(invitePanel = new InvitePanel());
-
-		add(settingsPanel = new SettingsPanel());
-
-		add(createTeamButton = new NordButton(this, Component.translatable("ftbteams.create_party").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(NordColors.GREEN.rgb()))), Icons.ACCEPT) {
+		invitePanel = new InvitePanel();
+		settingsPanel = new SettingsPanel();
+		createTeamButton = new NordButton(this, Component.translatable("ftbteams.create_party").withStyle(Style.EMPTY.withColor(TextColor.fromRgb(NordColors.GREEN.rgb()))), Icons.ACCEPT) {
 			@Override
 			public boolean renderTitleInCenter() {
 				return true;
@@ -77,9 +56,35 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			@Override
 			public void onClicked(MouseButton mouseButton) {
 				closeGui(false);
-				NetworkManager.sendToServer(new CreatePartyMessage(nameTextBox.getText(), descriptionTextBox.getText(), teamColor.rgb(), invitedMembers));
+				NetworkManager.sendToServer(new CreatePartyMessage(settingsPanel.nameTextBox.getText(), settingsPanel.descriptionTextBox.getText(), teamColor.rgb(), invitedMembers));
+			}
+		};
+	}
+
+	@Override
+	public void addWidgets() {
+		Button closeButton;
+		add(closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (b, mb) -> closeGui()) {
+			@Override
+			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+				drawIcon(graphics, theme, x, y, w, h);
 			}
 		});
+
+		Button colorButton;
+		add(colorButton = new SimpleButton(this, Component.translatable("gui.color"), teamColor.withBorder(POLAR_NIGHT_0, false), (b, mb) -> {
+			teamColor = FTBTUtils.randomColor();
+			b.setIcon(teamColor.withBorder(POLAR_NIGHT_0, false));
+		}) {
+			@Override
+			public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+				drawIcon(graphics, theme, x, y, w, h);
+			}
+		});
+
+		add(invitePanel);
+		add(settingsPanel);
+		add(createTeamButton);
 
 		closeButton.setPosAndSize(width - 18, 5, 12, 12);
 		colorButton.setPosAndSize(5, 5, 12, 12);
@@ -89,9 +94,9 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 	@Override
 	public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
 		GuiHelper.drawHollowRect(graphics, x, y, w, h, POLAR_NIGHT_0, true);
-		POLAR_NIGHT_1.draw(graphics, x + 1, y + 1, w - 2, h - 2);
-		POLAR_NIGHT_0.draw(graphics, x + 1, y + 21, w - 2, 1);
-		POLAR_NIGHT_0.draw(graphics, x + invitePanel.width + 1, y + invitePanel.posY, 1, invitePanel.height);
+		IconHelper.renderIcon(POLAR_NIGHT_1, graphics, x + 1, y + 1, w - 2, h - 2);
+		IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + 1, y + 21, w - 2, 1);
+		IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + invitePanel.width + 1, y + invitePanel.posY, 1, invitePanel.height);
 	}
 
 	@Override
@@ -132,7 +137,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 			User self = Minecraft.getInstance().getUser();
 			var profile = Minecraft.getInstance().getGameProfile();
 
-			add(new NordButton(this, Component.literal("✦ ").withStyle(ChatFormatting.GOLD).append(self.getName()), FaceIcon.getFace(profile)) {
+			add(new NordButton(this, Component.literal("✦ ").withStyle(ChatFormatting.GOLD).append(self.getName()), FaceIcon.getFace(profile, true)) {
 				@Override
 				public void onClicked(MouseButton mouseButton) {
 				}
@@ -165,28 +170,36 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 	}
 
 	private class SettingsPanel extends Panel {
+		private final TextBox nameTextBox;
+		private final TextBox descriptionTextBox;
+
 		public SettingsPanel() {
 			super(CreatePartyScreen.this);
+
+			nameTextBox = new TextBox(this) {
+				@Override
+				public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+					IconHelper.renderIcon(NordColors.POLAR_NIGHT_0, graphics, x, y, w, h);
+				}
+			};
+			descriptionTextBox = new TextBox(this) {
+				@Override
+				public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+					IconHelper.renderIcon(NordColors.POLAR_NIGHT_0, graphics, x, y, w, h);
+				}
+			};
 		}
 
 		@Override
 		public void addWidgets() {
 			add(new TextField(this).setMaxWidth(width - 6).setText(Component.translatable("ftbteams.gui.party_name")));
-			add(nameTextBox = new TextBox(this) {
-				@Override
-				public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-					NordColors.POLAR_NIGHT_0.draw(graphics, x, y, w, h);
-				}
-			});
+			add(nameTextBox);
+
 			add(new VerticalSpaceWidget(this, 4));
 
 			add(new TextField(this).setMaxWidth(width - 6).setText(Component.translatable("ftbteams.gui.party_description")));
-			add(descriptionTextBox = new TextBox(this) {
-				@Override
-				public void drawTextBox(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-					NordColors.POLAR_NIGHT_0.draw(graphics, x, y, w, h);
-				}
-			});
+			add(descriptionTextBox);
+
 			add(new VerticalSpaceWidget(this, 4));
 
 			nameTextBox.setHeight(14);
@@ -207,7 +220,7 @@ public class CreatePartyScreen extends BaseScreen implements NordColors, Invitat
 
 		@Override
 		public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-			NordColors.POLAR_NIGHT_2.draw(graphics, x, y, w, h);
+			IconHelper.renderIcon(NordColors.POLAR_NIGHT_2, graphics, x, y, w, h);
 		}
 	}
 }

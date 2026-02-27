@@ -1,11 +1,15 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import com.mojang.authlib.GameProfile;
+import dev.ftb.mods.ftblibrary.client.gui.GuiHelper;
+import dev.ftb.mods.ftblibrary.client.gui.input.MouseButton;
+import dev.ftb.mods.ftblibrary.client.gui.layout.WidgetLayout;
+import dev.ftb.mods.ftblibrary.client.gui.theme.NordColors;
+import dev.ftb.mods.ftblibrary.client.gui.theme.Theme;
+import dev.ftb.mods.ftblibrary.client.gui.widget.*;
+import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.icon.Icon;
 import dev.ftb.mods.ftblibrary.icon.Icons;
-import dev.ftb.mods.ftblibrary.ui.*;
-import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
-import dev.ftb.mods.ftblibrary.ui.misc.NordColors;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import net.minecraft.ChatFormatting;
@@ -17,14 +21,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static dev.ftb.mods.ftblibrary.ui.misc.NordColors.*;
+import static dev.ftb.mods.ftblibrary.client.gui.theme.NordColors.*;
+
 
 public abstract class BaseInvitationScreen extends BaseScreen implements InvitationSetup {
     protected final Set<KnownClientPlayer> available;
     protected final Set<GameProfile> invites = new HashSet<>();
-    private Panel playerPanel;
-    private Button executeButton;
-    private Button closeButton;
+    private final Panel playerPanel;
+    private final Button executeButton;
+    private final Button closeButton;
     private final Component title;
 
     public BaseInvitationScreen(Component title) {
@@ -33,6 +38,15 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
         this.available = FTBTeamsAPI.api().getClientManager().knownClientPlayers().stream()
                 .filter(this::shouldIncludePlayer)
                 .collect(Collectors.toSet());
+
+        closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
+            @Override
+            public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
+                drawIcon(graphics, theme, x, y, w, h);
+            }
+        };
+        playerPanel = new PlayerButtonPanel();
+        executeButton = makeExecuteButton();
     }
 
     protected abstract boolean shouldIncludePlayer(KnownClientPlayer player);
@@ -42,16 +56,16 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
     @Override
     public boolean onInit() {
         setWidth(200);
-        setHeight(getScreen().getGuiScaledHeight() * 3 / 4);
+        setHeight(getWindow().getGuiScaledHeight() * 3 / 4);
         return true;
     }
 
     @Override
     public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
         GuiHelper.drawHollowRect(graphics, x, y, w, h, POLAR_NIGHT_0, true);
-        POLAR_NIGHT_0.draw(graphics, x + 1, y + 1, w - 2, h - 2);
-        POLAR_NIGHT_1.draw(graphics, x + playerPanel.posX, y + playerPanel.posY, playerPanel.width, playerPanel.height);
-        POLAR_NIGHT_0.draw(graphics, x + 1, y + h - 20, w - 2, 18);
+        IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + 1, y + 1, w - 2, h - 2);
+        IconHelper.renderIcon(POLAR_NIGHT_1, graphics, x + playerPanel.posX, y + playerPanel.posY, playerPanel.width, playerPanel.height);
+        IconHelper.renderIcon(POLAR_NIGHT_0, graphics, x + 1, y + h - 20, w - 2, 18);
     }
 
     @Override
@@ -61,16 +75,9 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
 
     @Override
     public void addWidgets() {
-        add(closeButton = new SimpleButton(this, Component.translatable("gui.cancel"), Icons.CANCEL.withTint(SNOW_STORM_2), (simpleButton, mouseButton) -> closeGui()) {
-            @Override
-            public void draw(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-                drawIcon(graphics, theme, x, y, w, h);
-            }
-        });
-
-        add(playerPanel = new PlayerButtonPanel());
-
-        add(executeButton = makeExecuteButton());
+        add(closeButton);
+        add(playerPanel);
+        add(executeButton);
     }
 
     @Override
@@ -116,7 +123,7 @@ public abstract class BaseInvitationScreen extends BaseScreen implements Invitat
 
         @Override
         public void drawBackground(GuiGraphics graphics, Theme theme, int x, int y, int w, int h) {
-            NordColors.POLAR_NIGHT_2.draw(graphics, x, y, w, h);
+            IconHelper.renderIcon(NordColors.POLAR_NIGHT_2, graphics, x, y, w, h);
         }
     }
 

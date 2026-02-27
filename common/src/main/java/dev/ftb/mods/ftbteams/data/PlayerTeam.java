@@ -2,18 +2,17 @@ package dev.ftb.mods.ftbteams.data;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.client.KnownClientPlayer;
 import dev.ftb.mods.ftbteams.net.UpdatePresenceMessage;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.players.NameAndId;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
@@ -80,7 +79,7 @@ public class PlayerTeam extends AbstractTeam {
 	@Override
 	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider provider) {
 		super.deserializeNBT(tag, provider);
-		playerName = tag.getString("player_name");
+		playerName = tag.getStringOr("player_name", "");
 	}
 
 	@Nullable
@@ -100,22 +99,15 @@ public class PlayerTeam extends AbstractTeam {
 	}
 
 	public void updatePresence() {
-		NetworkManager.sendToPlayers(manager.getServer().getPlayerList().getPlayers(), new UpdatePresenceMessage(createClientPlayer()));
+		NetworkHelper.sendToAll(manager.getServer(), new UpdatePresenceMessage(createClientPlayer()));
 	}
 
-	public Team createParty(UUID playerId, @Nullable ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) {
-		try {
-			PartyTeam team = manager.createParty(playerId, player, name, description, Color4I.rgb(color)).getRight();
-			if (player != null) {
-				team.invite(player, invited);
-			}
-			return team;
-		} catch (CommandSyntaxException ex) {
-			if (player != null) {
-				player.displayClientMessage(Component.literal(ex.getMessage()).withStyle(ChatFormatting.RED), false);
-			}
-			return null;
+	public Team createParty(UUID playerId, @Nullable ServerPlayer player, String name, String description, int color, Set<GameProfile> invited) throws CommandSyntaxException {
+		PartyTeam team = manager.createParty(playerId, player, name, description, Color4I.rgb(color));
+		if (player != null) {
+			team.invite(player, invited.stream().map(NameAndId::new).toList());
 		}
+		return team;
 	}
 
 	public boolean hasTeam() {
@@ -124,8 +116,6 @@ public class PlayerTeam extends AbstractTeam {
 
 	public KnownClientPlayer createClientPlayer() {
 		return new KnownClientPlayer(
-				getId(),
-				getPlayerName(),
 				isOnline(),
 				getTeamId(),
 				new GameProfile(getId(), getPlayerName()),

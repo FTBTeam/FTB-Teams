@@ -1,4 +1,4 @@
-@MethodsReturnNonnullByDefault
+@NullMarked
 package dev.ftb.mods.ftbteams.api.property;
 
-import dev.ftb.mods.ftbteams.api.MethodsReturnNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

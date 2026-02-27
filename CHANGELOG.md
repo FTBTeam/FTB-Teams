@@ -4,6 +4,75 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2111.1.0]
+
+### Changed
+* Ported to Minecraft 1.21.11
+
+## [2101.1.9]
+
+### Added
+* Added `TeamStagesHelper#hasTeamStage` convenience method variant which takes a player argument
+
+### Fixed
+* Fixed a typo in team property type for new String set property (thanks @Mgazul)
+
+## [2101.1.8]
+
+### Added
+* Expanded the team properties system somewhat
+  * New team property types: Big Integer, String set, and String to int/bool/string map
+  * Added API to make it easier to register more custom property types if needed
+  * Added new builtin "Team Stage" team property, a team-based game stages system
+
+## [2101.1.7]
+
+### Added
+* Added API method to create server teams with fixed UUIDs
+
+## [2101.1.6]
+
+### Added
+* Added `/ftbteams nbtedit` admin command to allow direct NBT viewing/editing of team data
+  * FTB Library 2021.1.25+ required
+  * Use with caution; incorrect edits could leave the team in an unusable state. Make backups!
+
+### Fixed
+* Team "extra data" is now copied from player to party team when the party team is initially formed.
+
+## [2101.1.5]
+
+### Added
+
+* Added `/ftbteams force-add` and `/ftbteams force-remove` commands
+  * Allows an admin user to quickly add/remove any player (including offline players if known to server) to/from any team
+
+### Fixed
+* Fixed "internal error" message when using `/ftbteams transfer_ownership` command
+* Fixed output formatting for error message when trying to transfer ownership to an invalid player
+* Fixed a server crash if vanilla clients attempt to connect, and no other installed mod has already prevented a connection
+  * This technically means FTB Teams can now be used as a (limited) server-only mod, without any GUI functionality or translations
+  * Lack of translations could be fixed by making a resource pack containing the files in https://github.com/FTBTeam/FTB-Teams/blob/dev/common/src/main/resources/assets/ftbteams/lang/
+
+## [2101.1.4]
+
+### Fixed
+* Fixed a FTB Team Bases related crash when attempting to visit bases of disbanded teams
+
+## [2101.1.3]
+
+### Added 
+* Added per-player toggle to redirect chat into ftb teams chat
+  * When enabled, all messages typed into chat will go only to the player's team instead of the usual broadcast 
+  * Use `/ftbteams redirect_chat` command to toggle
+  * Or use the new toggle button on the teams GUI (chat icon, top right)
+* Updated `es_es` and `es_mx` translations (thanks @ArrivedBog593)
+* Updated `fr_fr` translation (thanks @nogapra)
+* Added `ja_jp` translation (thanks @Twister)
+* Added `pt_br` translation (thanks @Xlr11)
+* Added `uk_ua` translation (thanks @GIGABAIT93)
+* Added `ru_ru` translation (thanks @BazZziliuS)
+
 ## [2101.1.2]
 
 ### Changed

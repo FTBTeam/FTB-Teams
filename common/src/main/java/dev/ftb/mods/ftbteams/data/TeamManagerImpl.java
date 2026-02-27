@@ -1,12 +1,10 @@
 package dev.ftb.mods.ftbteams.data;
 
-import com.google.common.collect.ImmutableList;
-import com.mojang.brigadier.Command;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.snbt.SNBT;
 import dev.ftb.mods.ftblibrary.snbt.SNBTCompoundTag;
+import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.FTBTeams;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamManager;
@@ -15,18 +13,22 @@ import dev.ftb.mods.ftbteams.api.event.PlayerLoggedInAfterTeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
+import dev.ftb.mods.ftbteams.command.TeamArgument;
 import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
+import dev.ftb.mods.ftbteams.net.ToggleChatResponseMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Util;
 import net.minecraft.world.level.storage.LevelResource;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,27 +36,30 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
-/**
- * @author LatvianModder
- */
 public class TeamManagerImpl implements TeamManager {
 	public static final LevelResource FOLDER_NAME = new LevelResource("ftbteams");
 
+	@Nullable
 	public static TeamManagerImpl INSTANCE;
 
 	private final MinecraftServer server;
+	@Nullable
 	private UUID id;
 	private boolean shouldSave;
 	private final Map<UUID, PlayerTeam> knownPlayers;
 	private final Map<UUID, AbstractTeam> teamMap;
+	private final Set<UUID> chatRedirected;
+	@Nullable
 	Map<String, Team> nameMap;
 	private CompoundTag extraData;
 
-	public TeamManagerImpl(MinecraftServer s) {
-		server = s;
+	public TeamManagerImpl(MinecraftServer server) {
+		this.server = server;
+
 		knownPlayers = new LinkedHashMap<>();
 		teamMap = new LinkedHashMap<>();
 		extraData = new CompoundTag();
+		chatRedirected = new HashSet<>();
 	}
 
 	@Override
@@ -98,7 +103,7 @@ public class TeamManagerImpl implements TeamManager {
 
 	@Override
 	public Optional<Team> getTeamByID(UUID teamId) {
-		return Optional.of(teamMap.get(teamId));
+		return Optional.ofNullable(teamMap.get(teamId));
 	}
 
 	@Override
@@ -111,6 +116,7 @@ public class TeamManagerImpl implements TeamManager {
 		return Optional.ofNullable(getPersonalTeamForPlayerID(uuid));
 	}
 
+	@Nullable
 	public PlayerTeam getPersonalTeamForPlayerID(UUID uuid) {
 		return knownPlayers.get(uuid);
 	}
@@ -118,7 +124,7 @@ public class TeamManagerImpl implements TeamManager {
 	@Override
 	public Optional<Team> getTeamForPlayerID(UUID uuid) {
 		PlayerTeam t = knownPlayers.get(uuid);
-		return t == null ? Optional.empty() : Optional.ofNullable(t.getEffectiveTeam());
+		return t == null ? Optional.empty() : Optional.of(t.getEffectiveTeam());
 	}
 
 	@Override
@@ -129,11 +135,11 @@ public class TeamManagerImpl implements TeamManager {
 	@Override
 	public boolean arePlayersInSameTeam(UUID id1, UUID id2) {
 		return getTeamForPlayerID(id1).map(team1 -> getTeamForPlayerID(id2)
-				.map(team2 -> team1.getId().equals(team2.getId())).orElse(false))
+						.map(team2 -> team1.getId().equals(team2.getId())).orElse(false))
 				.orElse(false);
 	}
 
-	public void load() {
+	public void load() throws IOException {
 		id = null;
 		Path directory = server.getWorldPath(FOLDER_NAME);
 
@@ -141,16 +147,22 @@ public class TeamManagerImpl implements TeamManager {
 			return;
 		}
 
-		CompoundTag dataFileTag = SNBT.read(directory.resolve("ftbteams.snbt"));
+		CompoundTag dataFileTag = SNBT.tryRead(directory.resolve("ftbteams.snbt"));
+		//noinspection DataFlowIssue this won't crash... nbt isn't actually null
+        var compoundUuid = dataFileTag.read("id", UUIDUtil.CODEC);
+        compoundUuid.ifPresent(uuid -> id = uuid);
 
-		if (dataFileTag != null) {
-			if (dataFileTag.contains("id")) {
-				id = UUID.fromString(dataFileTag.getString("id"));
+		extraData = dataFileTag.getCompoundOrEmpty("extra");
+		TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
+
+		chatRedirected.clear();
+		dataFileTag.getListOrEmpty("chat_redirected").forEach(tag -> {
+			try {
+				chatRedirected.add(UUID.fromString(tag.toString()));
+			} catch (IllegalArgumentException e) {
+				FTBTeams.LOGGER.error("invalid uuid {} in 'chat_redirection', ignoring", tag.toString());
 			}
-
-			extraData = dataFileTag.getCompound("extra");
-			TeamManagerEvent.LOADED.invoker().accept(new TeamManagerEvent(this));
-		}
+		});
 
 		for (TeamType type : TeamType.values()) {
 			Path dir = directory.resolve(type.getSerializedName());
@@ -158,12 +170,15 @@ public class TeamManagerImpl implements TeamManager {
 			if (Files.exists(dir) && Files.isDirectory(dir)) {
 				try (Stream<Path> s = Files.list(dir)) {
 					s.filter(path -> path.getFileName().toString().endsWith(".snbt")).forEach(file -> {
-						CompoundTag nbt = SNBT.read(file);
-						if (nbt != null) {
-							AbstractTeam team = type.createTeam(this, UUID.fromString(nbt.getString("id")));
+                        try {
+                            CompoundTag nbt = SNBT.tryRead(file);
+							//noinspection DataFlowIssue this won't crash... nbt isn't actually null
+                            AbstractTeam team = type.createTeam(this, nbt.read("id", UUIDUtil.CODEC).orElseThrow());
 							teamMap.put(team.id, team);
 							team.deserializeNBT(nbt, server.registryAccess());
-						}
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
 					});
 				} catch (Exception ex) {
 					FTBTeams.LOGGER.error("can't list directory {}: {}", dir, ex.getMessage());
@@ -208,8 +223,12 @@ public class TeamManagerImpl implements TeamManager {
 
 		if (shouldSave) {
 			TeamManagerEvent.SAVED.invoker().accept(new TeamManagerEvent(this));
-			SNBT.write(directory.resolve("ftbteams.snbt"), serializeNBT());
-			shouldSave = false;
+            try {
+                SNBT.tryWrite(directory.resolve("ftbteams.snbt"), serializeNBT());
+            } catch (IOException e) {
+                FTBTeams.LOGGER.error("can't save ftbteams.snbt: {}", e.getMessage());
+            }
+            shouldSave = false;
 		}
 
 		for (AbstractTeam team : teamMap.values()) {
@@ -227,20 +246,10 @@ public class TeamManagerImpl implements TeamManager {
 
 	public SNBTCompoundTag serializeNBT() {
 		SNBTCompoundTag nbt = new SNBTCompoundTag();
-		nbt.putString("id", getId().toString());
+		nbt.store("id", UUIDUtil.CODEC, getId());
 		nbt.put("extra", extraData);
+		nbt.put("chat_redirected", Util.make(new ListTag(), l -> chatRedirected.forEach(id -> l.add(StringTag.valueOf(id.toString())))));
 		return nbt;
-	}
-
-	private ServerTeam createServerTeam(UUID playerId, ServerPlayer player, String name) {
-		ServerTeam team = new ServerTeam(this, UUID.randomUUID());
-		teamMap.put(team.id, team);
-
-		team.setProperty(TeamProperties.DISPLAY_NAME, name.isEmpty() ? team.id.toString().substring(0, 8) : name);
-		team.setProperty(TeamProperties.COLOR, FTBTUtils.randomColor());
-
-		team.onCreated(player, playerId);
-		return team;
 	}
 
 	private PartyTeam createPartyTeamInternal(UUID playerId, @Nullable ServerPlayer player, String name) {
@@ -333,8 +342,9 @@ public class TeamManagerImpl implements TeamManager {
 	public void syncAllToPlayer(ServerPlayer player, AbstractTeam selfTeam) {
 		ClientTeamManagerImpl manager = ClientTeamManagerImpl.forSyncing(this, teamMap.values());
 
-		NetworkManager.sendToPlayer(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.id), selfTeam.getTeamId(), true));
-		NetworkManager.sendToPlayer(player, SyncMessageHistoryMessage.forTeam(selfTeam));
+		NetworkHelper.sendTo(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.id), selfTeam.getTeamId(), true));
+		NetworkHelper.sendTo(player, SyncMessageHistoryMessage.forTeam(selfTeam));
+		NetworkHelper.sendTo(player, new ToggleChatResponseMessage(isChatRedirected(player)));
 		server.getPlayerList().sendPlayerPermissionLevel(player);
 	}
 
@@ -351,9 +361,9 @@ public class TeamManagerImpl implements TeamManager {
 
 		for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 			getTeamForPlayer(player).ifPresent(selfTeam -> {
-				NetworkManager.sendToPlayer(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.getTeamId()), selfTeam.getTeamId(), false));
+				NetworkHelper.sendTo(player, new SyncTeamsMessage(manager.setSelfTeamId(selfTeam.getTeamId()), selfTeam.getTeamId(), false));
 				if (teams.length > 1) {
-					NetworkManager.sendToPlayer(player, SyncMessageHistoryMessage.forTeam(selfTeam));
+					NetworkHelper.sendTo(player, SyncMessageHistoryMessage.forTeam(selfTeam));
 				}
 			});
 		}
@@ -361,17 +371,55 @@ public class TeamManagerImpl implements TeamManager {
 
 	@Override
 	public Team createPartyTeam(ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
-		var res = createParty(player.getUUID(), player, name, description, color);
-		return res.getRight();
+		return createParty(player.getUUID(), player, name, description, color);
+	}
+
+	@Override
+	public Team createServerTeam(CommandSourceStack source, String name, @Nullable String description, @Nullable Color4I color, @Nullable UUID teamUUID) throws CommandSyntaxException {
+		if (name.length() < 3) {
+			throw TeamArgument.NAME_TOO_SHORT.create();
+		}
+		if (teamUUID != null && getTeamByID(teamUUID).isPresent()) {
+			throw TeamArgument.TEAM_ALREADY_EXISTS.create(teamUUID.toString());
+		}
+
+		ServerPlayer player = source.getPlayer();
+		UUID ownerId = player == null ? Util.NIL_UUID : player.getUUID();
+
+		ServerTeam team = new ServerTeam(this, Objects.requireNonNullElse(teamUUID, UUID.randomUUID()));
+		teamMap.put(team.id, team);
+
+		team.setProperty(TeamProperties.DISPLAY_NAME, name);
+		if (description != null) team.setProperty(TeamProperties.DESCRIPTION, description);
+		if (color != null) team.setProperty(TeamProperties.COLOR, color);
+
+		team.onCreated(player, ownerId);
+		source.sendSuccess(() -> Component.translatable("ftbteams.message.created_server_team", team.getName()), true);
+		syncToAll(team);
+
+		return team;
+	}
+
+	@Override
+	public void setChatRedirected(ServerPlayer player, boolean redirect) {
+		if (redirect && chatRedirected.add(player.getUUID()) || !redirect && chatRedirected.remove(player.getUUID())) {
+			NetworkHelper.sendTo(player, new ToggleChatResponseMessage(redirect));
+			shouldSave = true;
+		}
+	}
+
+	@Override
+	public boolean isChatRedirected(ServerPlayer player) {
+		return chatRedirected.contains(player.getUUID());
 	}
 
 	// Command Handlers //
 
-	public Pair<Integer, PartyTeam> createParty(ServerPlayer player, String name) throws CommandSyntaxException {
+	public PartyTeam createParty(ServerPlayer player, String name) throws CommandSyntaxException {
 		return createParty(player.getUUID(), player, name, null, null);
 	}
 
-	public Pair<Integer, PartyTeam> createParty(UUID playerId, @Nullable ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
+	public PartyTeam createParty(UUID playerId, @Nullable ServerPlayer player, String name, @Nullable String description, @Nullable Color4I color) throws CommandSyntaxException {
 		if (player != null && !FTBTUtils.canPlayerUseCommand(player, "ftbteams.party.create")) {
 			throw TeamArgument.NO_PERMISSION.create();
 		}
@@ -385,6 +433,7 @@ public class TeamManagerImpl implements TeamManager {
 		PartyTeam team = createPartyTeamInternal(playerId, player, name);
 		if (description != null) team.setProperty(TeamProperties.DESCRIPTION, description);
 		if (color != null) team.setProperty(TeamProperties.COLOR, color);
+		team.copyExtraData(playerTeam);
 
 		playerTeam.setEffectiveTeam(team);
 
@@ -399,19 +448,7 @@ public class TeamManagerImpl implements TeamManager {
 		playerTeam.updatePresence();
 		syncToAll(team, playerTeam);
 		team.onPlayerChangeTeam(playerTeam, playerId, player, false);
-		return Pair.of(Command.SINGLE_SUCCESS, team);
-	}
-
-	public Pair<Integer, ServerTeam> createServer(CommandSourceStack source, String name) throws CommandSyntaxException {
-		if (name.length() < 3) {
-			throw TeamArgument.NAME_TOO_SHORT.create();
-		}
-		ServerPlayer player = source.getPlayer();
-		UUID playerId = player == null ? Util.NIL_UUID : player.getUUID();
-		ServerTeam team = createServerTeam(playerId, source.getPlayer(), name);
-		source.sendSuccess(() -> Component.translatable("ftbteams.message.created_server_team", team.getName()), true);
-		syncToAll(team);
-		return Pair.of(Command.SINGLE_SUCCESS, team);
+		return team;
 	}
 
 	public Component getPlayerName(@Nullable UUID id) {
@@ -428,12 +465,14 @@ public class TeamManagerImpl implements TeamManager {
 		return extraData;
 	}
 
-	void deleteTeam(Team team) {
+	void deleteTeam(AbstractTeam team) {
 		teamMap.remove(team.getId());
 		markDirty();
+		saveNow();
+		tryDeleteTeamFile(team.getId() + ".snbt", team.getType().getSerializedName());
 	}
 
-	void tryDeleteTeamFile(String teamFileName, String subfolderName) {
+	private void tryDeleteTeamFile(String teamFileName, String subfolderName) {
 		Path deletedPath = getServer().getWorldPath(FOLDER_NAME).resolve("deleted");
 		Path teamFilePath = getServer().getWorldPath(FOLDER_NAME).resolve(subfolderName).resolve(teamFileName);
 		try {

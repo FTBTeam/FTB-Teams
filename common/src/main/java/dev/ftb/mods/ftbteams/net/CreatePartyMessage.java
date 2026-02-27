@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.net;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 public record CreatePartyMessage(String name, String description, int color, Set<GameProfile> invited) implements CustomPacketPayload {
-	public static final Type<CreatePartyMessage> TYPE = new Type<>(FTBTeamsAPI.rl("create_party"));
+	public static final Type<CreatePartyMessage> TYPE = new Type<>(FTBTeamsAPI.id("create_party"));
 
 	public static final StreamCodec<FriendlyByteBuf, CreatePartyMessage> STREAM_CODEC = StreamCodec.composite(
 			ByteBufCodecs.STRING_UTF8, CreatePartyMessage::name,
@@ -34,8 +35,12 @@ public record CreatePartyMessage(String name, String description, int color, Set
 				if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
 					player.displayClientMessage(Component.translatable("ftbteams.party_api_only").withStyle(ChatFormatting.RED), false);
 				} else if (team instanceof PlayerTeam playerTeam) {
-					playerTeam.createParty(player.getUUID(), player, message.name, message.description, message.color, message.invited);
-				}
+                    try {
+                        playerTeam.createParty(player.getUUID(), player, message.name, message.description, message.color, message.invited);
+                    } catch (CommandSyntaxException e) {
+                        player.displayClientMessage(Component.translatable("ftbteams.party_creation_failed", e.getMessage()), false);
+                    }
+                }
 			});
 		});
 	}

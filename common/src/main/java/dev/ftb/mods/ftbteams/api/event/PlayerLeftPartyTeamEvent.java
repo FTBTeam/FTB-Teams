@@ -2,16 +2,14 @@ package dev.ftb.mods.ftbteams.api.event;
 
 import dev.ftb.mods.ftbteams.api.Team;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
 
-/**
- * @author LatvianModder
- */
 public class PlayerLeftPartyTeamEvent extends TeamEvent {
 	private final Team playerTeam;
 	private final UUID playerId;
+	@Nullable
 	private final ServerPlayer player;
 	private final boolean teamDeleted;
 

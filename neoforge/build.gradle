@@ -25,7 +25,7 @@ dependencies {
 	neoForge "net.neoforged:neoforge:${rootProject.neoforge_version}"
 
 	modApi "dev.architectury:architectury-neoforge:${rootProject.architectury_api_version}"
-	modApi("dev.ftb.mods:ftb-library-neoforge:${rootProject.ftb_library_version}") { transitive false }
+	modApi("dev.ftb.mods:ftb-library-neoforge:${rootProject.ftb_library_version}")
 
 	common(project(path: ":common", configuration: "namedElements")) { transitive false }
 	shadowCommon(project(path: ":common", configuration: "transformProductionNeoForge")) { transitive false }

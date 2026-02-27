@@ -1,50 +1,88 @@
 package dev.ftb.mods.ftbteams.api.property;
 
 import dev.ftb.mods.ftblibrary.icon.Color4I;
+import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import java.util.HashMap;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Represents the unique type for a {@link TeamProperty}. This is distinct from the property <em>value</em> type, and is
+ * used for network encoding/decoding.
+ *
+ * @param <T>
+ */
 public class TeamPropertyType<T> {
-	private static final Map<String, TeamPropertyType<?>> MAP = new HashMap<>();
+	private static final Map<Identifier, TeamPropertyType<?>> MAP = new ConcurrentHashMap<>();
 
-	public static final TeamPropertyType<Boolean> BOOLEAN = TeamPropertyType.register("boolean", BooleanProperty::fromNetwork);
-	public static final TeamPropertyType<String> STRING = TeamPropertyType.register("string", StringProperty::fromNetwork);
-	public static final TeamPropertyType<List<String>> STRING_LIST = TeamPropertyType.register("string_list", StringListProperty::fromNetwork);
-	public static final TeamPropertyType<Integer> INT = TeamPropertyType.register("int", IntProperty::fromNetwork);
-	public static final TeamPropertyType<Double> DOUBLE = TeamPropertyType.register("double", DoubleProperty::fromNetwork);
-	public static final TeamPropertyType<Color4I> COLOR = TeamPropertyType.register("color", ColorProperty::fromNetwork);
-	public static final TeamPropertyType<String> ENUM = TeamPropertyType.register("enum", EnumProperty::fromNetwork);
-	public static final TeamPropertyType<PrivacyMode> PRIVACY_MODE = TeamPropertyType.register("privacy_mode", PrivacyProperty::fromNetwork);
+	// builtin types
+	public static final TeamPropertyType<Boolean> BOOLEAN = register("boolean", BooleanProperty::fromNetwork);
+	public static final TeamPropertyType<String> STRING = register("string", StringProperty::fromNetwork);
+	public static final TeamPropertyType<List<String>> STRING_LIST = register("string_list", StringListProperty::fromNetwork);
+	public static final TeamPropertyType<Set<String>> STRING_SET = register("string_set", StringSetProperty::fromNetwork);
+	public static final TeamPropertyType<Integer> INT = register("int", IntProperty::fromNetwork);
+	public static final TeamPropertyType<Double> DOUBLE = register("double", DoubleProperty::fromNetwork);
+	public static final TeamPropertyType<Color4I> COLOR = register("color", ColorProperty::fromNetwork);
+	public static final TeamPropertyType<String> ENUM = register("enum", EnumProperty::fromNetwork);
+	public static final TeamPropertyType<PrivacyMode> PRIVACY_MODE = register("privacy_mode", PrivacyProperty::fromNetwork);
+	public static final TeamPropertyType<BigInteger> BIG_INTEGER = register("big_integer", BigIntegerProperty::fromNetwork);
+	public static final TeamPropertyType<Map<String,Integer>> INT_MAP = register("int_map", StringMapProperty.ToInteger::fromNetwork);
+	public static final TeamPropertyType<Map<String,Boolean>> BOOL_MAP = register("bool_map", StringMapProperty.ToBoolean::fromNetwork);
+	public static final TeamPropertyType<Map<String,String>> STRING_MAP = register("string_map", StringMapProperty.ToString::fromNetwork);
 
-	private final String id;
+	private final Identifier id;
 	private final FromNet<T> deserializer;
 
-	private TeamPropertyType(String id, FromNet<T> deserializer) {
+	private TeamPropertyType(Identifier id, FromNet<T> deserializer) {
 		this.id = id;
 		this.deserializer = deserializer;
 	}
 
 	public static TeamProperty<?> read(RegistryFriendlyByteBuf buf) {
-		return MAP.get(buf.readUtf(Short.MAX_VALUE)).deserializer.apply(buf.readResourceLocation(), buf);
+		Identifier typeId = buf.readIdentifier();
+		Identifier propId = buf.readIdentifier();
+		boolean playerEditable = buf.readBoolean();
+		boolean hidden = buf.readBoolean();
+		TeamProperty<?> prop = MAP.get(typeId).deserializer.apply(propId, buf);
+		if (!playerEditable) prop = prop.notPlayerEditable();
+		if (hidden) prop = prop.hidden();
+		return prop;
 	}
 
-	public static void write(RegistryFriendlyByteBuf buf, TeamProperty<?> p) {
-		buf.writeUtf(p.getType().id, Short.MAX_VALUE);
-		buf.writeResourceLocation(p.id);
-		p.write(buf);
+	public static void write(RegistryFriendlyByteBuf buf, TeamProperty<?> prop) {
+		buf.writeIdentifier(prop.getType().id);
+		buf.writeIdentifier(prop.id);
+		buf.writeBoolean(prop.isPlayerEditable());
+		buf.writeBoolean(prop.isHidden());
+		prop.write(buf);
 	}
 
-	private static <Y> TeamPropertyType<Y> register(String id, FromNet<Y> p) {
-		TeamPropertyType<Y> t = new TeamPropertyType<>(id, p);
+	private static <Y> TeamPropertyType<Y> register(String id, FromNet<Y> deserializer) {
+		return register(FTBTeamsAPI.id(id), deserializer);
+	}
+
+	/**
+	 * Register a new type. This is safe to do via a static initializer.
+	 *
+	 * @param id the type ID
+	 * @param deserializer the property deserializer, which must be able to read a property from the network
+	 * @return the type that has just been registered
+	 */
+	public static <Y> TeamPropertyType<Y> register(Identifier id, FromNet<Y> deserializer) {
+		TeamPropertyType<Y> t = new TeamPropertyType<>(id, deserializer);
+		if (MAP.containsKey(id)) {
+			throw new IllegalStateException("team property type '" + id + "' is already registered!");
+		}
 		MAP.put(id, t);
 		return t;
 	}
 
 	public interface FromNet<Y> {
-		TeamProperty<Y> apply(ResourceLocation id, RegistryFriendlyByteBuf buf);
+		TeamProperty<Y> apply(Identifier id, RegistryFriendlyByteBuf buf);
 	}
 }

@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import java.util.UUID;
 
 public record SyncTeamsMessage(ClientTeamManagerImpl manager, UUID selfTeamID, boolean fullSync) implements CustomPacketPayload {
-	public static final Type<SyncTeamsMessage> TYPE = new Type<>(FTBTeamsAPI.rl("sync_teams"));
+	public static final Type<SyncTeamsMessage> TYPE = new Type<>(FTBTeamsAPI.id("sync_teams"));
 
 	public static final StreamCodec<RegistryFriendlyByteBuf, SyncTeamsMessage> STREAM_CODEC = StreamCodec.composite(
 			ClientTeamManagerImpl.STREAM_CODEC, SyncTeamsMessage::manager,

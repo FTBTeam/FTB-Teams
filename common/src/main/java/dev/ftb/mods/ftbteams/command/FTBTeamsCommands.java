@@ -37,7 +37,10 @@ public class FTBTeamsCommands {
 	}
 
 	static Predicate<CommandSourceStack> requiresOPorSP() {
-		return source -> source.getServer().isSingleplayer() || source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+		// server CAN be null!
+        //noinspection ConstantValue
+        return source -> source.getServer() != null && source.getServer().isSingleplayer()
+				|| source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
 	}
 
 	static RequiredArgumentBuilder<CommandSourceStack, TeamArgumentProvider> createTeamArg() {

@@ -27,4 +27,8 @@ public class TeamProperties {
             = (StringSetProperty) new StringSetProperty(FTBTeamsAPI.id("team_stages"), new HashSet<>())
             .hidden()
             .notPlayerEditable();
+    public static final IntProperty LIVES_REMAINING
+            = (IntProperty) new IntProperty(FTBTeamsAPI.id("lives_remaining"), 0, 0, Integer.MAX_VALUE)
+            .hidden()
+            .notPlayerEditable();
 }

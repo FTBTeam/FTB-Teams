@@ -47,6 +47,7 @@ public class TeamArgument implements ArgumentType<TeamArgumentProvider> {
 	public static final SimpleCommandExceptionType NAME_TOO_SHORT = new SimpleCommandExceptionType(Component.translatable("ftbteams.name_too_short"));
 	public static final SimpleCommandExceptionType NO_PERMISSION = new SimpleCommandExceptionType(Component.translatable("ftbteams.server_permissions_prevent"));
 	public static final DynamicCommandExceptionType TEAM_ALREADY_EXISTS = new DynamicCommandExceptionType(object -> Component.translatable("ftbteams.team_already_exists", object));
+	public static final SimpleCommandExceptionType OUT_OF_LIVES = new SimpleCommandExceptionType(Component.translatable("ftbteams.out_of_lives"));
 
 	@Nullable
 	private final TeamType type;

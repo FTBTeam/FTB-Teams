@@ -14,6 +14,7 @@ import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamManagerEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.command.TeamArgument;
+import dev.ftb.mods.ftbteams.config.ServerConfig;
 import dev.ftb.mods.ftbteams.net.SyncMessageHistoryMessage;
 import dev.ftb.mods.ftbteams.net.SyncTeamsMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatResponseMessage;
@@ -442,9 +443,13 @@ public class TeamManagerImpl implements TeamManager {
 		team.sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.joined", playerName).withStyle(ChatFormatting.YELLOW));
 		team.markDirty();
 
+		ServerConfig.limitedLives().ifPresent(lives -> {
+			team.setProperty(TeamProperties.LIVES_REMAINING, ServerConfig.LIMITED_LIVES.get());
+			team.sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.message.limited_lives", lives, lives).withStyle(ChatFormatting.GOLD));
+		});
+
 		playerTeam.removeMember(playerId);
 		playerTeam.markDirty();
-
 		playerTeam.updatePresence();
 		syncToAll(team, playerTeam);
 		team.onPlayerChangeTeam(playerTeam, playerId, player, false);

@@ -1,0 +1,7 @@
+{
+  "icon": "ftblibrary:textures/icons/heart.png",
+  "sort_index": 551,
+  "click": [
+    "ftbteams:open_gui"
+  ]
+}

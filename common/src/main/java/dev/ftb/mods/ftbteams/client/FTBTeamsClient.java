@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbteams.client;
 
-import com.mojang.blaze3d.platform.InputConstants;
 import dev.ftb.mods.ftblibrary.api.event.client.SidebarButtonCreatedEvent;
 import dev.ftb.mods.ftblibrary.client.config.EditableConfigGroup;
 import dev.ftb.mods.ftblibrary.client.config.gui.EditConfigScreen;
@@ -8,6 +7,7 @@ import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
 import dev.ftb.mods.ftblibrary.client.util.ClientUtils;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.platform.client.PlatformClient;
+import dev.ftb.mods.ftblibrary.platform.client.input.InputHelper;
 import dev.ftb.mods.ftblibrary.platform.network.Play2ServerNetworking;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
@@ -34,11 +34,11 @@ import java.util.*;
 
 public class FTBTeamsClient {
 	public static final Identifier OPEN_GUI_ID = FTBTeamsAPI.id("open_gui");
-    public static final KeyMapping.Category FTBTEAMS_KEY_CATEGORY = new KeyMapping.Category(FTBTeamsAPI.id("ftbteams_key"));
 	public static final Identifier TEAM_LIVES_ID = FTBTeamsAPI.id("team_lives");
 
-	public static final KeyMapping openTeamsKey
-			= new KeyMapping("key.ftbteams.open_gui", InputConstants.Type.KEYSYM, -1, FTBTEAMS_KEY_CATEGORY);
+	public static final KeyMapping.Category FTBTEAMS_KEY_CATEGORY = new KeyMapping.Category(FTBTeamsAPI.id("default"));
+	public static final KeyMapping openTeamsKey = InputHelper.createSimpleKeyMapping("open_gui", FTBTEAMS_KEY_CATEGORY);
+
 	private static boolean chatRedirected = false;
 
 	public static void init() {
@@ -54,7 +54,7 @@ public class FTBTeamsClient {
 	}
 
 	private static void registerKeys() {
-		PlatformClient.get().registerKeyMapping(FTBTeamsAPI.MOD_ID, openTeamsKey);
+		PlatformClient.get().input().registerKeyMapping(FTBTeamsAPI.MOD_ID, openTeamsKey);
 	}
 
 	public static void keyPressed(Minecraft ignoredClient) {

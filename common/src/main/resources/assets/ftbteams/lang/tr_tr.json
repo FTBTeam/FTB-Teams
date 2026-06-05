@@ -71,8 +71,8 @@
 	"ftbteams.team_type.party": "Grup Takımı",
 	"ftbteams.team_type.server": "Sunucu Takımı",
 	
-	"key.ftbteams.open_gui": "Ekipler GUI'sini Aç",
-	"key.categories.ftbteams": "FTB Takımları",
+	"key.ftbteams.default.open_gui": "Ekipler GUI'sini Aç",
+	"key.category.ftbteams.default": "FTB Takımları",
 	
 	"ftbteams.message.invited": "%s davet edildi",
 	"ftbteams.message.invite_sent": "%s sizi grubuna katılmanız için davet etti!",

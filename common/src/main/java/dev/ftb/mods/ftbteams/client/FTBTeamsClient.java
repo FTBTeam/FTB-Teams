@@ -51,7 +51,6 @@ public class FTBTeamsClient {
 
 		ClientRawInputEvent.KEY_PRESSED.register(FTBTeamsClient::keyPressed);
 
-
 		SidebarButtonCreatedEvent.EVENT.register(FTBTeamsClient::onSidebarButtonCreated);
 	}
 

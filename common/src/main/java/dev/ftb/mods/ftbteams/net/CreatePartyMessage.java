@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import dev.architectury.networking.NetworkManager;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.PartyCreationValidator;
 import dev.ftb.mods.ftbteams.data.PlayerTeam;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
@@ -31,12 +32,15 @@ public record CreatePartyMessage(String name, String description, int color, Set
 		context.queue(() -> {
 			ServerPlayer player = (ServerPlayer) context.getPlayer();
 			FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
-				if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
-					player.displayClientMessage(Component.translatable("ftbteams.party_api_only").withStyle(ChatFormatting.RED), false);
-				} else if (team instanceof PlayerTeam playerTeam) {
-					playerTeam.createParty(player.getUUID(), player, message.name, message.description, message.color, message.invited);
-				}
-			});
+				var res = FTBTeamsAPIImpl.INSTANCE.validatePartyCreation(player);
+                if (res.isSuccess()) {
+                    if (team instanceof PlayerTeam playerTeam) {
+                        playerTeam.createParty(player.getUUID(), player, message.name, message.description, message.color, message.invited);
+                    }
+                } else {
+                    player.displayClientMessage(Component.translatable("ftbteams.party_api_only", res.reason().copy().withStyle(ChatFormatting.GOLD)).withStyle(ChatFormatting.RED), false);
+                }
+            });
 		});
 	}
 

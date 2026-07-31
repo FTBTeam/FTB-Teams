@@ -332,10 +332,13 @@ public class FTBTeamsCommands {
 	}
 
 	private static int tryCreateParty(CommandSourceStack source, String partyName) throws CommandSyntaxException {
-		if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
-			throw TeamArgument.API_OVERRIDE.create();
+		ServerPlayer player = source.getPlayerOrException();
+
+		var res = FTBTeamsAPIImpl.INSTANCE.validatePartyCreation(player);
+		if (!res.isSuccess()) {
+			throw TeamArgument.API_OVERRIDE.create(res.reason().copy().withStyle(ChatFormatting.GOLD));
 		}
-		TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName);
+		TeamManagerImpl.INSTANCE.createParty(player, partyName);
 		return Command.SINGLE_SUCCESS;
 	}
 

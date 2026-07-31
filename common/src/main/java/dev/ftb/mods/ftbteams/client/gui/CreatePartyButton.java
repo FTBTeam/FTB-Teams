@@ -7,16 +7,17 @@ import dev.ftb.mods.ftblibrary.ui.input.MouseButton;
 import dev.ftb.mods.ftblibrary.util.TooltipList;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.data.PlayerPermissions;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 public class CreatePartyButton extends NordButton {
-	private final boolean enabled;
+	private final PlayerPermissions permissions;
 
-	CreatePartyButton(Panel panel, boolean enabled) {
-		super(panel, makeTitle(enabled), Icons.ADD);
-		this.enabled = enabled;
+	CreatePartyButton(Panel panel, PlayerPermissions permissions) {
+		super(panel, makeTitle(permissions.createParty()), Icons.ADD);
+		this.permissions = permissions;
 	}
 
 	private static Component makeTitle(boolean enabled) {
@@ -26,13 +27,17 @@ public class CreatePartyButton extends NordButton {
 
 	@Override
 	public void addMouseOverText(TooltipList list) {
-		list.translate(enabled ? "ftbteams.create_party.info" : "ftbteams.server_permissions_prevent");
+		if (permissions.createParty()) {
+			list.translate("ftbteams.create_party.info");
+		} else {
+			list.add(permissions.partyPreventionReason());
+		}
 		list.maxWidth = 130;
 	}
 
 	@Override
 	public void onClicked(MouseButton button) {
-		if (enabled) {
+		if (permissions.createParty()) {
 			if (FTBTeamsAPI.api().getCustomPartyCreationHandler() != null) {
 				FTBTeamsAPIImpl.INSTANCE.getCustomPartyCreationHandler().createParty(button);
 			} else {

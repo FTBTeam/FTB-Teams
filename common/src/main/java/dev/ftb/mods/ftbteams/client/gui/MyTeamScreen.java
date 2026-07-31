@@ -359,7 +359,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 
 			if (manager.selfTeam().isPlayerTeam()) {
-				add(new CreatePartyButton(this, permissions.createParty()));
+				add(new CreatePartyButton(this, permissions));
 			}
 		}
 

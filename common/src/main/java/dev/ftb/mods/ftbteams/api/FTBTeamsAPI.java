@@ -113,8 +113,24 @@ public class FTBTeamsAPI {
 		 * By default, FTB Teams allows party creation via all methods.
 		 *
 		 * @param apiOnly true to allow party creation via API only, false to allow normal creation
+		 * @deprecated use {@link #addPartyCreationValidator(PartyCreationValidator)}
 		 */
+		@Deprecated
 		void setPartyCreationFromAPIOnly(boolean apiOnly);
+
+		/**
+		 * Add a validator to determine whether normal party creation can be done. Multiple validators may be added,
+		 * and are queried in order of addition.
+		 * <p>
+		 * If any validator returns a {@code SUCCESS} result, then party creation
+		 * may continue; if any validator returns a {@code FAIL} result, then creation is prevented; if all validators
+		 * return a {@code PASS} (don't care) result, then creation may continue.
+		 * <p>
+		 * This applies to party teams created via command or GUI; it does not affect party teams created via API.
+		 *
+		 * @param validator the validator to add
+		 */
+		void addPartyCreationValidator(PartyCreationValidator validator);
 
 		/**
 		 * Create a team message with a timestamp of the current system time.

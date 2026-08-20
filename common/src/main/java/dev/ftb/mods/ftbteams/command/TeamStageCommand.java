@@ -17,12 +17,10 @@ import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Collection;
 
-import static dev.ftb.mods.ftbteams.command.FTBTeamsCommands.requiresOPorSP;
-
 public class TeamStageCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register() {
         return Commands.literal("teamstage")
-                .requires(requiresOPorSP())
+                .requires(FTBTeamsCommands::sourceHasAdminPrivs)
                 .then(Commands.argument("player", EntityArgument.player())
                         .then(Commands.literal("add")
                                 .then(Commands.argument("stage", StringArgumentType.string())

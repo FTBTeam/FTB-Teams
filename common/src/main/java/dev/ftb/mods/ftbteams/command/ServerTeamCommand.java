@@ -16,7 +16,7 @@ import static dev.ftb.mods.ftbteams.command.FTBTeamsCommands.*;
 public class ServerTeamCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register() {
         return Commands.literal("server")
-                .requires(requiresOPorSP())
+                .requires(FTBTeamsCommands::sourceHasAdminPrivs)
                 .then(Commands.literal("create")
                         .then(Commands.argument("name", StringArgumentType.greedyString())
                                 .executes(ServerTeamCommand::tryCreateServerTeam)

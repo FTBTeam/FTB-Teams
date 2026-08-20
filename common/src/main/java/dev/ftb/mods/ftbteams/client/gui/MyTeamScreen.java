@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import dev.ftb.mods.ftblibrary.client.config.editable.EditableColor;
+import dev.ftb.mods.ftblibrary.client.gui.SimpleToast;
 import dev.ftb.mods.ftblibrary.client.gui.input.Key;
 import dev.ftb.mods.ftblibrary.client.gui.layout.WidgetLayout;
 import dev.ftb.mods.ftblibrary.client.gui.theme.NordColors;
@@ -65,7 +66,13 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		teamID = getManager().selfTeam().getId();
 
 		settingsButton = new SettingsButton(this);
-		infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (_, _) -> {}) {
+		infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (_, _) -> {
+            setClipboardString(teamID.toString());
+			SimpleToast.info(
+					Component.translatable("ftbteams.info.uuid_copied"),
+					Component.literal(teamID.toString())
+			);
+        }) {
 			@Override
 			public void addMouseOverText(TooltipList list) {
 				addTeamInfo(list);
@@ -166,6 +173,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			if (!team.getOwner().equals(Util.NIL_UUID)) {
 				list.add(Component.translatable("ftbteams.info.owner", getManager().formatName(team.getOwner())));
 			}
+			list.add(Component.translatable("ftbteams.info.click_to_copy_uuid").withStyle(ChatFormatting.GRAY));
 
 			NativeEventPosting.INSTANCE.postEvent(new TeamInfoEvent.Data(team, list::add));
 		}

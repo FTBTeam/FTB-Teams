@@ -21,6 +21,8 @@
 	"ftbteams.info.owner.none": "None",
 	"ftbteams.info.members": "Members:",
 	"ftbteams.info.members.none": "No members",
+	"ftbteams.info.click_to_copy_uuid": "Click to copy team UUID",
+	"ftbteams.info.uuid_copied": "Team UUID copied!",
 	"ftbteams.list": "All FTB Teams: %s",
 	"ftbteams.property_not_found": "Property ID not found!",
 	"ftbteams.owner_cant_leave": "You must transfer ownership of the team before you can leave!",

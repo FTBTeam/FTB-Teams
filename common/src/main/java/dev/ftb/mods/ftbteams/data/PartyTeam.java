@@ -78,6 +78,10 @@ public class PartyTeam extends AbstractTeam {
 			throw TeamArgument.OUT_OF_LIVES.create();
 		}
 
+		if (ServerConfig.isPartyFull(getMembers().size())) {
+			throw TeamArgument.PARTY_FULL.create(ServerConfig.MAX_TEAM_SIZE.get());
+		}
+
 		Team oldTeam = manager.getTeamForPlayerID(id)
 				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(id));
 
@@ -106,6 +110,10 @@ public class PartyTeam extends AbstractTeam {
 
 		if (ServerConfig.limitedLives().isPresent() && getProperty(TeamProperties.LIVES_REMAINING) <= 0) {
 			throw TeamArgument.OUT_OF_LIVES.create();
+		}
+
+		if (ServerConfig.isPartyFull(getMembers().size())) {
+			throw TeamArgument.PARTY_FULL.create(ServerConfig.MAX_TEAM_SIZE.get());
 		}
 
 		for (GameProfile profile : profiles) {

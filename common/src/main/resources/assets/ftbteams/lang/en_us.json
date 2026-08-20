@@ -13,6 +13,7 @@
 	"ftbteams.lost_a_life": "Your party has lost a life! %s / %s lives remaining!",
 	"ftbteams.kicked_no_lives": "Player %s was kicked because they died and your party has no lives left!",
 	"ftbteams.disbanded_no_lives": "Your party was disbanded because you ran out of lives and players!",
+	"ftbteams.party_full": "Cannot add new players, your party is full! Max size is %s member(s)",
 	"ftbteams.server_permissions_prevent": "Server permissions prevent you from doing that.",
 	"ftbteams.info.id": "Long Team ID: %s",
 	"ftbteams.info.short_id": "Short Team ID: %s",

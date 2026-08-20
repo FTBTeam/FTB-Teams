@@ -24,7 +24,7 @@ public interface ServerConfig {
                     "Parties with no lives remaining cannot invite new members."
             );
 
-    IntValue MAX_TEAM_SIZE = CONFIG.addInt("max_team_size", 0, 0, Integer.MAX_VALUE)
+    IntValue MAX_TEAM_SIZE = CONFIG.addInt("max_party_size", 0, 0, Integer.MAX_VALUE)
             .comment("If >0, teams can contain no more than this number of players.",
                     "If 0, there is no limit to team sizes.",
                     "Note: if this setting is altered and teams larger than the new value already exist on the server",

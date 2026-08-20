@@ -106,5 +106,9 @@
 	"ftbteams.message.property_not_editable": "Property %s may not be edited!",
 	"ftbteams.accept": "Accept ✔",
 	"ftbteams.decline": "Decline ✘",
-	"ftbteams.click_show_info": "Click to show team info"
+	"ftbteams.click_show_info": "Click to show team info",
+	"ftbteams.config.server.limited_lives": "Limited Team Lives",
+	"ftbteams.config.server.limited_lives.tooltip": "If >0, limited party team lives apply:\n• When members die, a party life is lost\n• If a member dies when the party has no lives remaining, they are kicked from the party\n• If the party owner dies, a random member is promoted to owner (officers have priority)\n• Parties with no lives remaining cannot invite new members.",
+	"ftbteams.config.server.max_party_size": "Max Party Team Size",
+	"ftbteams.config.server.max_party_size.tooltip": "If >0, party teams can contain no more than this number of players.\nIf 0, there is no limit to team sizes.\nNote: if this setting is altered and teams larger than the new value already exist on the server, they will be allowed to continue at their current size, but not able to invite new members."
 }

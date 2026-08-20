@@ -42,7 +42,7 @@ public class FTBTeams {
 	private static final Identifier TEAM_RESPONSE_HANDLER = FTBTeamsAPI.id("team");
 
 	public FTBTeams() {
-		ConfigManager.getInstance().registerServerConfig(ServerConfig.CONFIG, FTBTeamsAPI.MOD_ID + ".config.server", false);
+		ConfigManager.getInstance().registerServerConfig(ServerConfig.CONFIG, FTBTeamsAPI.MOD_ID + ".config.server", true);
 
 		FTBTeamsAPI._init(FTBTeamsAPIImpl.INSTANCE);
 		FTBTeamsNet.register();

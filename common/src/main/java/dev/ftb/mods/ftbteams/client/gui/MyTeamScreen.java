@@ -23,10 +23,7 @@ import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.config.ServerConfig;
-import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
-import dev.ftb.mods.ftbteams.data.PlayerPermissions;
-import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
-import dev.ftb.mods.ftbteams.data.TeamType;
+import dev.ftb.mods.ftbteams.data.*;
 import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatRedirectionMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
@@ -207,11 +204,12 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.invitePlayer()) {
+			ClientTeam team = ClientTeamManagerImpl.getInstance().selfTeam();
+			if (team.getType() != TeamType.PARTY || !permissions.invitePlayer() || ServerConfig.isPartyFull(team.getMembers().size())) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
-			return knownPlayer.online() && ClientTeamManagerImpl.getInstance().selfTeam().isOfficerOrBetter(knownPlayer.id());
+			return knownPlayer.online() && team.isOfficerOrBetter(knownPlayer.id());
 		}
 
 		@Override

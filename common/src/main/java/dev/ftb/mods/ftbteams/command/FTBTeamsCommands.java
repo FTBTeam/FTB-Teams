@@ -23,23 +23,24 @@ import java.util.function.Predicate;
 public class FTBTeamsCommands {
 	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal(FTBTeamsAPI.MOD_ID)
-						.then(AddFakePlayerCommand.register())
-						.then(ForceCommand.register())
-						.then(InfoCommand.register())
-						.then(ListCommand.register())
-						.then(MessageCommand.register())
-						.then(NbtEditCommand.register())
-						.then(PartyTeamCommand.register())
-						.then(RedirectChatCommand.register())
-						.then(ServerTeamCommand.register())
-						.then(TeamStageCommand.register())
+				.then(AddFakePlayerCommand.register())
+				.then(ForceCommand.register())
+				.then(InfoCommand.register())
+				.then(ListCommand.register())
+				.then(MessageCommand.register())
+				.then(NbtEditCommand.register())
+				.then(PartyTeamCommand.register())
+				.then(RedirectChatCommand.register())
+				.then(ServerConfigCommand.register())
+				.then(ServerTeamCommand.register())
+				.then(TeamStageCommand.register())
 		);
 	}
 
 	static Predicate<CommandSourceStack> requiresOPorSP() {
 		// server CAN be null!
-        //noinspection ConstantValue
-        return source -> source.getServer() != null && source.getServer().isSingleplayer()
+		//noinspection ConstantValue
+		return source -> source.getServer() != null && source.getServer().isSingleplayer()
 				|| source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
 	}
 

@@ -19,7 +19,18 @@ public interface ServerConfig {
                     "Parties with no lives remaining cannot invite new members."
             );
 
+    IntValue MAX_TEAM_SIZE = CONFIG.addInt("max_party_size", 0, 0, Integer.MAX_VALUE)
+            .comment("If >0, teams can contain no more than this number of players.",
+                    "If 0, there is no limit to team sizes.",
+                    "Note: if this setting is altered and teams larger than the new value already exist on the server",
+                    "they will be allowed to continue at their current size, but not able to invite new members."
+            );
+
     static OptionalInt limitedLives() {
         return LIMITED_LIVES.get() > 0 ? OptionalInt.of(LIMITED_LIVES.get()) : OptionalInt.empty();
+    }
+
+    static boolean isPartyFull(int memberCount) {
+        return MAX_TEAM_SIZE.get() != 0 && MAX_TEAM_SIZE.get() <= memberCount;
     }
 }

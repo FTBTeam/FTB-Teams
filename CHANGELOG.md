@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   * If >0, teams can be no larger than this value (no inviting/adding new players)
   * Allies are not subject to this limit, only team members
   * If this is reduced, any existing teams larger than the value remain intact, but can't invite new players
+* Added a `/ftbteams serverconfig` command to allow GUI editing of the server config
 
 ## [2101.1.10]
 

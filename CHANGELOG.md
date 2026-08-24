@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Added better API for restricting party team creation to API-only which allows a reason to be display to the player
   * Use `FTBTeamsAPI.api().addPartyCreationValidator`
   * `FTBTeamsAPI.api().setPartyCreationFromAPIOnly` is now deprecated
+* Added `max_party_size` server config setting, default 0 (unlimited)
+  * If >0, teams can be no larger than this value (no inviting/adding new players)
+  * Allies are not subject to this limit, only team members
+  * If this is reduced, any existing teams larger than the value remain intact, but can't invite new players
 
 ## [2101.1.10]
 

@@ -7,8 +7,10 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import dev.architectury.networking.NetworkManager;
 import dev.architectury.platform.Platform;
 import dev.ftb.mods.ftblibrary.FTBLibraryCommands;
+import dev.ftb.mods.ftblibrary.net.EditConfigChoicePacket;
 import dev.ftb.mods.ftblibrary.net.EditNBTPacket;
 import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
@@ -16,6 +18,7 @@ import dev.ftb.mods.ftbteams.api.*;
 import dev.ftb.mods.ftbteams.api.event.TeamEvent;
 import dev.ftb.mods.ftbteams.api.event.TeamInfoEvent;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;
+import dev.ftb.mods.ftbteams.config.ServerConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -232,6 +235,13 @@ public class FTBTeamsCommands {
 								)
 						)
 				)
+				.then(Commands.literal("serverconfig")
+						.requires(sourceStack -> sourceStack.isPlayer() && sourceStack.hasPermission(2))
+						.executes(context -> {
+							NetworkManager.sendToPlayer(context.getSource().getPlayerOrException(), EditConfigChoicePacket.server(ServerConfig.KEY));
+							return 1;
+						})
+				)
 		);
 
 		if (Platform.isDevelopmentEnvironment()) {
@@ -332,10 +342,13 @@ public class FTBTeamsCommands {
 	}
 
 	private static int tryCreateParty(CommandSourceStack source, String partyName) throws CommandSyntaxException {
-		if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
-			throw TeamArgument.API_OVERRIDE.create();
+		ServerPlayer player = source.getPlayerOrException();
+
+		var res = FTBTeamsAPIImpl.INSTANCE.validatePartyCreation(player);
+		if (!res.isSuccess()) {
+			throw TeamArgument.API_OVERRIDE.create(res.reason().copy().withStyle(ChatFormatting.GOLD));
 		}
-		TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName);
+		TeamManagerImpl.INSTANCE.createParty(player, partyName);
 		return Command.SINGLE_SUCCESS;
 	}
 

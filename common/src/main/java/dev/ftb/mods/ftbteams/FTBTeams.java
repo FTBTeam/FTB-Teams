@@ -56,7 +56,7 @@ public class FTBTeams {
 
 		EnvExecutor.runInEnv(Env.CLIENT, () -> FTBTeamsClient::init);
 
-		ConfigManager.getInstance().registerServerConfig(ServerConfig.CONFIG, FTBTeamsAPI.MOD_ID + ".config.server", false);
+		ConfigManager.getInstance().registerServerConfig(ServerConfig.CONFIG, FTBTeamsAPI.MOD_ID + ".config.server", true);
 
 		FTBTeamsNet.register();
 	}

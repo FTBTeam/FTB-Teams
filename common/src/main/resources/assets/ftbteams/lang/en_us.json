@@ -13,6 +13,7 @@
 	"ftbteams.lost_a_life": "Your party has lost a life! %s / %s lives remaining!",
 	"ftbteams.kicked_no_lives": "Player %s was kicked because they died and your party has no lives left!",
 	"ftbteams.disbanded_no_lives": "Your party was disbanded because you ran out of lives and players!",
+	"ftbteams.party_full": "Cannot add new players, your party is full! Max size is %s member(s)",
 	"ftbteams.server_permissions_prevent": "Server permissions prevent you from doing that.",
 	"ftbteams.info.id": "Long Team ID: %s",
 	"ftbteams.info.short_id": "Short Team ID: %s",
@@ -24,7 +25,7 @@
 	"ftbteams.property_not_found": "Property ID not found!",
 	"ftbteams.owner_cant_leave": "You must transfer ownership of the team before you can leave!",
 	"ftbteams.cant_kick_owner": "Can't kick the owner!",
-	"ftbteams.party_api_only": "In this modpack you cannot create party teams directly!",
+	"ftbteams.party_api_only": "In this modpack you cannot create party teams directly!\n%s",
 	"ftbteams.api_override": "In this modpack you can only create party from inventory 'My Team' button!",
 	"ftbteams.missing_data": "Team data has not been received from the server!\nFTB Teams will not function correctly.\nCheck server log for errors, and ensure your server is in online mode.",
 	"sidebar_button.ftbteams.my_team": "My Team",
@@ -105,5 +106,9 @@
 	"ftbteams.message.property_not_editable": "Property %s may not be edited!",
 	"ftbteams.accept": "Accept ✔",
 	"ftbteams.decline": "Decline ✘",
-	"ftbteams.click_show_info": "Click to show team info"
+	"ftbteams.click_show_info": "Click to show team info",
+	"ftbteams.config.server.limited_lives": "Limited Team Lives",
+	"ftbteams.config.server.limited_lives.tooltip": "If >0, limited party team lives apply:\n• When members die, a party life is lost\n• If a member dies when the party has no lives remaining, they are kicked from the party\n• If the party owner dies, a random member is promoted to owner (officers have priority)\n• Parties with no lives remaining cannot invite new members.",
+	"ftbteams.config.server.max_party_size": "Max Party Team Size",
+	"ftbteams.config.server.max_party_size.tooltip": "If >0, party teams can contain no more than this number of players.\nIf 0, there is no limit to team sizes.\nNote: if this setting is altered and teams larger than the new value already exist on the server, they will be allowed to continue at their current size, but not able to invite new members."
 }

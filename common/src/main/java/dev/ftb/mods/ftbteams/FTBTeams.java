@@ -42,20 +42,10 @@ public class FTBTeams {
 	private static final Identifier TEAM_RESPONSE_HANDLER = FTBTeamsAPI.id("team");
 
 	public FTBTeams() {
-		ConfigManager.getInstance().registerServerConfig(ServerConfig.CONFIG, FTBTeamsAPI.MOD_ID + ".config.server", true);
+		ConfigManager.getInstance().registerServerConfig(ServerConfig.CONFIG, FTBTeamsAPI.MOD_ID + ".config.server", true, ServerConfig::onChanged);
 
 		FTBTeamsAPI._init(FTBTeamsAPIImpl.INSTANCE);
 		FTBTeamsNet.register();
-	}
-
-	public void serverStarted(MinecraftServer server) {
-		NBTEditResponseHandlers.INSTANCE.registerHandler(TEAM_RESPONSE_HANDLER, (ignoredPlayer, info, data) ->
-				info.read("id", UUIDUtil.CODEC).flatMap(uuid -> FTBTeamsAPI.api().getManager().getTeamByID(uuid)).ifPresent(team -> {
-                    if (team instanceof AbstractTeam abstractTeam && NbtOps.INSTANCE.convertTo(Json5Ops.INSTANCE, data) instanceof Json5Object json) {
-                        abstractTeam.deserializeJson(json, server.registryAccess());
-                        abstractTeam.markDirty();
-                    }
-				}));
 	}
 
 	public void serverAboutToStart(MinecraftServer server) {
@@ -66,6 +56,18 @@ public class FTBTeams {
 		} catch (IOException e) {
 			FTBTeams.LOGGER.error("Load failure for team manager: {}", e.getMessage());
 		}
+	}
+
+	public void serverStarted(MinecraftServer server) {
+		NBTEditResponseHandlers.INSTANCE.registerHandler(TEAM_RESPONSE_HANDLER, (ignoredPlayer, info, data) ->
+				info.read("id", UUIDUtil.CODEC).flatMap(uuid -> FTBTeamsAPI.api().getManager().getTeamByID(uuid)).ifPresent(team -> {
+					if (team instanceof AbstractTeam abstractTeam && NbtOps.INSTANCE.convertTo(Json5Ops.INSTANCE, data) instanceof Json5Object json) {
+						abstractTeam.deserializeJson(json, server.registryAccess());
+						abstractTeam.markDirty();
+					}
+				}));
+
+		ScoreboardTeamHelper.checkAllTeams(TeamManagerImpl.INSTANCE);
 	}
 
 	public void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext ignoredContext, Commands.CommandSelection ignoredSelection) {
@@ -98,6 +100,8 @@ public class FTBTeams {
 	public void playerLoggedIn(ServerPlayer player) {
 		if (TeamManagerImpl.INSTANCE != null) {
 			TeamManagerImpl.INSTANCE.playerLoggedIn(player, player.getUUID(), player.getScoreboardName());
+
+			ScoreboardTeamHelper.checkPlayer(TeamManagerImpl.INSTANCE, player);
 		}
 	}
 
@@ -117,22 +121,22 @@ public class FTBTeams {
 		return Outcome.PASS;
 	}
 
-    public static void playerCloned(ServerPlayer ignoredOldPlayer, ServerPlayer newPlayer, boolean wonGame) {
+	public static void playerCloned(ServerPlayer ignoredOldPlayer, ServerPlayer newPlayer, boolean wonGame) {
 		if (!wonGame) {
 			ServerConfig.limitedLives().ifPresent(maxLives -> FTBTeamsAPI.api().getManager().getTeamForPlayer(newPlayer).ifPresent(team -> {
 				if (team instanceof PartyTeam partyTeam) {
 					MinecraftServer server = newPlayer.level().getServer();
 					// defer a tick so player is alive again and gets client team syncs
-                    server.schedule(new TickTask(server.getTickCount(), () -> {
-                        int newLives = partyTeam.getProperty(TeamProperties.LIVES_REMAINING) - 1;
-                        if (newLives >= 0) {
-                            partyTeam.setProperty(TeamProperties.LIVES_REMAINING, newLives);
-                            partyTeam.syncOnePropertyToTeam(TeamProperties.LIVES_REMAINING, newLives);
-                            partyTeam.sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.lost_a_life", newLives, maxLives).withStyle(ChatFormatting.RED));
-                        } else {
-                            kickPlayerNoLivesLeft(newPlayer, partyTeam);
-                        }
-                    }));
+					server.schedule(new TickTask(server.getTickCount(), () -> {
+						int newLives = partyTeam.getProperty(TeamProperties.LIVES_REMAINING) - 1;
+						if (newLives >= 0) {
+							partyTeam.setProperty(TeamProperties.LIVES_REMAINING, newLives);
+							partyTeam.syncOnePropertyToTeam(TeamProperties.LIVES_REMAINING, newLives);
+							partyTeam.sendMessage(Util.NIL_UUID, Component.translatable("ftbteams.lost_a_life", newLives, maxLives).withStyle(ChatFormatting.RED));
+						} else {
+							kickPlayerNoLivesLeft(newPlayer, partyTeam);
+						}
+					}));
 				}
 			}));
 		}

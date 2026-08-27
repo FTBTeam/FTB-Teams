@@ -9,6 +9,7 @@ import dev.ftb.mods.ftblibrary.platform.event.NativeEventPosting;
 import dev.ftb.mods.ftblibrary.platform.network.Server2PlayNetworking;
 import dev.ftb.mods.ftblibrary.util.TextComponentUtils;
 import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.ScoreboardTeamHelper;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
@@ -161,6 +162,9 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 				if (!key.shouldSyncToAll()) {
 					syncOnePropertyToTeam(key, value);
 				}
+
+				ScoreboardTeamHelper.onPropertiesChanged(manager.getServer(), this);
+
 				return Command.SINGLE_SUCCESS;
 			}).orElseGet(() -> {
 				source.sendFailure(Component.translatable("ftbteams.message.parse_failed", valueStrStripped));
@@ -272,6 +276,8 @@ public abstract class AbstractTeam extends AbstractTeamBase {
 		properties.updateFrom(newProperties);
 		NativeEventPosting.INSTANCE.postEvent(new TeamPropertiesChangedEvent.Data(this, oldProperties, false));
 		markDirty();
+
+		ScoreboardTeamHelper.onPropertiesChanged(manager.getServer(), this);
 	}
 
 	void saveIfNeeded(Path directory) {

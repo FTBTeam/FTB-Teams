@@ -112,7 +112,15 @@
 	"ftbteams.party_creation_failed": "Something went wrong creating a party! %s",
 	"ftbteams.config.server": "Server Configuration",
 	"ftbteams.config.server.limited_lives": "Limited Team Lives",
-	"ftbteams.config.server.limited_lives.tooltip": "If >0, limited party team lives apply:\n• When members die, a party life is lost\n• If a member dies when the party has no lives remaining, they are kicked from the party\n• If the party owner dies, a random member is promoted to owner (officers have priority)\n• Parties with no lives remaining cannot invite new members.",
+	"ftbteams.config.server.limited_lives.tooltip": "If >0, limited party team lives apply:\n• When members die, a party life is lost\n• If a member dies when the party has no lives remaining, they are kicked from the party\n• If the party owner dies, a random member is promoted to owner (officers have priority)\n• Parties with no lives remaining cannot invite new members",
 	"ftbteams.config.server.max_party_size": "Max Party Team Size",
-	"ftbteams.config.server.max_party_size.tooltip": "If >0, party teams can contain no more than this number of players.\nIf 0, there is no limit to team sizes.\nNote: if this setting is altered and teams larger than the new value already exist on the server, they will be allowed to continue at their current size, but not able to invite new members."
+	"ftbteams.config.server.max_party_size.tooltip": "If >0, party teams can contain no more than this number of players.\nIf 0, there is no limit to team sizes.\nNote: if this setting is altered and teams larger than the new value already exist on the server, they will be allowed to continue at their current size, but not able to invite new members",
+	"ftbteams.config.server.scoreboard_team": "Scoreboard Team Sync",
+	"ftbteams.config.server.scoreboard_team.team_sync_enabled": "Enable Scoreboard Team Sync",
+	"ftbteams.config.server.scoreboard_team.team_sync_enabled.tooltip": "If true, then a vanilla scoreboard team will be created to match any FTB party team\nThe scoreboard team name is 'ftbteams-' followed by the party team UUID\nPlayers added to the party team are added to the scoreboard team, and removed if they leave the party team\nThe scoreboard team is deleted if the party team is disbanded",
+	"ftbteams.config.server.scoreboard_team.friendly_fire": "Friendly Fire Allowed",
+	"ftbteams.config.server.scoreboard_team.collisions": "Friendly Player Collision Control",
+	"ftbteams.config.server.scoreboard_team.friendly_invis": "See Friendly Invisible Players",
+	"ftbteams.config.server.scoreboard_team.death_messages": "Player Death Message Visibility",
+	"ftbteams.config.server.scoreboard_team.nametag_visibility": "Player Name Tag Visibility"
 }

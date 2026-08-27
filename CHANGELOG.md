@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [26.1.2.5]
+
+### Added
+* Added vanilla scoreboard team sync
+  * Disabled by default; see new `scoreboard_team` section in server config
+  * When enabled, a vanilla scoreboard team is set up to parallel each FTB Teams party team
+* Added `max_party_size` server config setting, default 0 (unlimited)
+  * If >0, teams can be no larger than this value (no inviting/adding new players)
+  * Allies are not subject to this limit, only team members
+  * If this is reduced, any existing teams larger than the value remain intact, but can't invite new players
+* Added better API for restricting party team creation to API-only which allows a reason to be display to the player
+  * Use `FTBTeamsAPI.api().addPartyCreationValidator`
+  * `FTBTeamsAPI.api().setPartyCreationFromAPIOnly` is now deprecated
+* The info button on the team screen can now be clicked to copy the team UUID to clipboard
+* Added a `/ftbteams serverconfig` command to allow GUI editing of the server config
+
 ## [26.1.2.4-beta]
 
 ### Added

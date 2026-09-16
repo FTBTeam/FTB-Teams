@@ -33,7 +33,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
-import org.lwjgl.glfw.GLFW;
+import org.lwjgl.sdl.SDLKeycode;
 
 import java.text.DateFormat;
 import java.util.*;
@@ -104,7 +104,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	}
 
 	public static void refreshIfOpen() {
-		if (Minecraft.getInstance().screen instanceof ScreenWrapper w && w.getGui() instanceof MyTeamScreen mts) {
+		if (Minecraft.getInstance().gui.screen() instanceof ScreenWrapper w && w.getGui() instanceof MyTeamScreen mts) {
 			if (mts.getManager().selfTeam().getId().equals(mts.teamID)) {
 				mts.refreshWidgets();
 			} else {
@@ -194,7 +194,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 	@Override
 	public boolean keyPressed(Key key) {
-		if (key.is(GLFW.GLFW_KEY_TAB)) {
+		if (key.is(SDLKeycode.SDLK_TAB)) {
 			chatBox.setFocused(true);
 			return true;
 		}

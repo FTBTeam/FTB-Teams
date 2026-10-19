@@ -100,7 +100,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	}
 
 	public static void refreshIfOpen() {
-		if (Minecraft.getInstance().screen instanceof ScreenWrapper w && w.getGui() instanceof MyTeamScreen mts) {
+		if (Minecraft.getInstance().gui.screen() instanceof ScreenWrapper w && w.getGui() instanceof MyTeamScreen mts) {
 			if (mts.getManager().selfTeam().getId().equals(mts.teamID)) {
 				mts.refreshWidgets();
 			} else {

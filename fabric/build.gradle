@@ -1,9 +1,5 @@
 plugins {
-	id "com.github.johnrengelman.shadow" version "7.1.0"
-}
-
-configurations {
-	shadowCommon
+	id "com.gradleup.shadow" version "9.5.0"
 }
 
 architectury {

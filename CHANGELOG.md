@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * The info button on the team screen can now be clicked to copy the team UUID to clipboard
 * Added a `/ftbteams serverconfig` command to allow GUI editing of the server config
 
+### Fixed
+* Fixed the `team_stages` team property wrongly leaking stages across teams
+
 ## [26.1.2.4-beta]
 
 ### Added

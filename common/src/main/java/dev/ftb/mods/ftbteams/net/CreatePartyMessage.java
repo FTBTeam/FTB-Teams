@@ -5,7 +5,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.platform.network.PacketContext;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
-import dev.ftb.mods.ftbteams.api.PartyCreationValidator;
 import dev.ftb.mods.ftbteams.data.PlayerPermissions;
 import dev.ftb.mods.ftbteams.data.PlayerTeam;
 import net.minecraft.ChatFormatting;

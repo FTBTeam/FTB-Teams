@@ -8,6 +8,7 @@ import dev.ftb.mods.ftblibrary.client.gui.theme.NordColors;
 import dev.ftb.mods.ftblibrary.client.gui.theme.Theme;
 import dev.ftb.mods.ftblibrary.client.gui.widget.*;
 import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
+import dev.ftb.mods.ftblibrary.client.util.ClientUtils;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftblibrary.platform.event.NativeEventPosting;
@@ -29,7 +30,6 @@ import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatRedirectionMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
@@ -104,7 +104,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	}
 
 	public static void refreshIfOpen() {
-		if (Minecraft.getInstance().screen instanceof ScreenWrapper w && w.getGui() instanceof MyTeamScreen mts) {
+		if (ClientUtils.getCurrentGuiAs(MyTeamScreen.class) instanceof MyTeamScreen mts) {
 			if (mts.getManager().selfTeam().getId().equals(mts.teamID)) {
 				mts.refreshWidgets();
 			} else {

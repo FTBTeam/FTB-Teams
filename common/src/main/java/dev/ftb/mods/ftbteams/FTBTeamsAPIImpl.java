@@ -1,20 +1,24 @@
 package dev.ftb.mods.ftbteams;
 
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.api.PartyCreationValidator;
 import dev.ftb.mods.ftbteams.api.TeamMessage;
 import dev.ftb.mods.ftbteams.api.client.ClientTeamManager;
 import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
 import dev.ftb.mods.ftbteams.data.TeamManagerImpl;
 import dev.ftb.mods.ftbteams.data.TeamMessageImpl;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public enum FTBTeamsAPIImpl implements FTBTeamsAPI.API {
     INSTANCE;
 
-    private boolean partyCreationFromAPIOnly = false;
+    private final List<PartyCreationValidator> creationValidators = new CopyOnWriteArrayList<>();
 
     @Override
     public boolean isManagerLoaded() {
@@ -38,11 +42,27 @@ public enum FTBTeamsAPIImpl implements FTBTeamsAPI.API {
 
     @Override
     public void setPartyCreationFromAPIOnly(boolean apiOnly) {
-        partyCreationFromAPIOnly = apiOnly;
+        if (apiOnly) {
+            addPartyCreationValidator(player -> PartyCreationValidator.CreationResult.fail(Component.empty()));
+        } else {
+            creationValidators.clear();
+        }
     }
 
-    public boolean isPartyCreationFromAPIOnly() {
-        return partyCreationFromAPIOnly;
+    @Override
+    public void addPartyCreationValidator(PartyCreationValidator validator) {
+        creationValidators.add(validator);
+    }
+
+    public PartyCreationValidator.CreationResult validatePartyCreation(ServerPlayer player) {
+        for (var validator : creationValidators) {
+            PartyCreationValidator.CreationResult result = validator.validatePartyCreation(player);
+            if (result.status() != PartyCreationValidator.ResultStatus.PASS) {
+                return result;
+            }
+        }
+
+        return PartyCreationValidator.SUCCESS;
     }
 
     @Override

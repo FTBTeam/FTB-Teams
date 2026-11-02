@@ -6,6 +6,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import de.marhali.json5.Json5Object;
 import dev.ftb.mods.ftblibrary.json5.Json5Util;
 import dev.ftb.mods.ftblibrary.platform.event.NativeEventPosting;
+import dev.ftb.mods.ftbteams.ScoreboardTeamHelper;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamRank;
@@ -84,6 +85,10 @@ public class PartyTeam extends AbstractTeam {
 			throw TeamArgument.OUT_OF_LIVES.create();
 		}
 
+		if (ServerConfig.isPartyFull(getMembers().size())) {
+			throw TeamArgument.PARTY_FULL.create(ServerConfig.MAX_TEAM_SIZE.get());
+		}
+
 		Team oldTeam = manager.getTeamForPlayerID(id)
 				.orElseThrow(() -> TeamArgument.TEAM_NOT_FOUND.create(playerProfile.name()));
 
@@ -102,6 +107,8 @@ public class PartyTeam extends AbstractTeam {
 		manager.syncToAll(this, oldTeam);
 		onPlayerChangeTeam(oldTeam, id, player, false);
 
+		ScoreboardTeamHelper.addPlayerToTeam(manager.getServer(), this, playerProfile);
+
 		return Command.SINGLE_SUCCESS;
 	}
 
@@ -113,6 +120,11 @@ public class PartyTeam extends AbstractTeam {
 		if (ServerConfig.limitedLives().isPresent() && getProperty(TeamProperties.LIVES_REMAINING) <= 0) {
 			throw TeamArgument.OUT_OF_LIVES.create();
 		}
+
+		if (ServerConfig.isPartyFull(getMembers().size())) {
+			throw TeamArgument.PARTY_FULL.create(ServerConfig.MAX_TEAM_SIZE.get());
+		}
+
 		for (NameAndId profile : profiles) {
 			FTBTeamsAPI.api().getManager().getTeamForPlayerID(profile.id()).ifPresent(team -> {
 				if (!(team instanceof PartyTeam)) {
@@ -184,6 +196,8 @@ public class PartyTeam extends AbstractTeam {
 			}
 
 			playerTeam.onPlayerChangeTeam(this, id, playerToKick, false);
+
+			ScoreboardTeamHelper.removePlayerFromTeam(manager.getServer(), id, this);
 		}
 
 		return Command.SINGLE_SUCCESS;
@@ -296,6 +310,7 @@ public class PartyTeam extends AbstractTeam {
 		// remove the player from this party team
 		ranks.remove(id);
 		manager.markDirty();
+		ScoreboardTeamHelper.removePlayerFromTeam(manager.getServer(), id, this);
 
 		// party team empty? delete it!
 		boolean deletingTeam = false;
@@ -303,6 +318,7 @@ public class PartyTeam extends AbstractTeam {
 			deletingTeam = true;
 			invalidateTeam();
 			manager.deleteTeam(this);
+			ScoreboardTeamHelper.removeScoreboardTeam(manager.getServer(), this);
 		}
 
 		playerTeam.updatePresence();
@@ -401,11 +417,13 @@ public class PartyTeam extends AbstractTeam {
 
 		kick(from, members);
 		
-		// now make the owner leave too`
+		// now make the owner leave too
 		leave(owner);
 
 		from.sendSuccess(() -> Component.translatable("ftbteams.message.team_disbanded", getName(), getId().toString())
 				.withStyle(ChatFormatting.GOLD), false);
+
+		ScoreboardTeamHelper.removeScoreboardTeam(manager.getServer(), this);
 
 		return Command.SINGLE_SUCCESS;
 	}

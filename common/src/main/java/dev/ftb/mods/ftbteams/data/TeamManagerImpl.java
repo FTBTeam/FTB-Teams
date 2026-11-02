@@ -9,6 +9,7 @@ import dev.ftb.mods.ftblibrary.json5.Json5Util;
 import dev.ftb.mods.ftblibrary.platform.event.NativeEventPosting;
 import dev.ftb.mods.ftblibrary.platform.network.Server2PlayNetworking;
 import dev.ftb.mods.ftbteams.FTBTeams;
+import dev.ftb.mods.ftbteams.ScoreboardTeamHelper;
 import dev.ftb.mods.ftbteams.api.Team;
 import dev.ftb.mods.ftbteams.api.TeamManager;
 import dev.ftb.mods.ftbteams.api.TeamRank;
@@ -457,6 +458,13 @@ public class TeamManagerImpl implements TeamManager {
 		playerTeam.updatePresence();
 		syncToAll(team, playerTeam);
 		team.onPlayerChangeTeam(playerTeam, playerId, player, false);
+
+		if (player != null) {
+			ScoreboardTeamHelper.addPlayerToTeam(server, team, player.nameAndId());
+		} else {
+			ScoreboardTeamHelper.addPlayerToTeam(server, team, playerId);
+		}
+
 		return team;
 	}
 

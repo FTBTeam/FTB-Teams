@@ -17,7 +17,7 @@ import static dev.ftb.mods.ftbteams.command.FTBTeamsCommands.*;
 public class ForceCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register() {
         return Commands.literal("force")
-                .requires(requiresOPorSP())
+                .requires(FTBTeamsCommands::sourceHasAdminPrivs)
                 .then(Commands.literal("disband")
                         .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER))
                         .then(createTeamArg(TeamType.PARTY)

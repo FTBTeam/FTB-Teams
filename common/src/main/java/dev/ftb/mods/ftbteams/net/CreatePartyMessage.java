@@ -5,6 +5,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftblibrary.platform.network.PacketContext;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.FTBTeamsAPI;
+import dev.ftb.mods.ftbteams.data.PlayerPermissions;
 import dev.ftb.mods.ftbteams.data.PlayerTeam;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.FriendlyByteBuf;
@@ -30,17 +31,22 @@ public record CreatePartyMessage(String name, String description, int color, Set
 
 	public static void handle(CreatePartyMessage message, PacketContext context) {
 		ServerPlayer player = (ServerPlayer) context.player();
-		FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
-			if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
-				player.sendSystemMessage(Component.translatable("ftbteams.party_api_only").withStyle(ChatFormatting.RED));
-			} else if (team instanceof PlayerTeam playerTeam) {
-				try {
-					playerTeam.createParty(player.getUUID(), player, message.name, message.description, message.color, message.invited);
-				} catch (CommandSyntaxException e) {
-					player.sendSystemMessage(Component.translatable("ftbteams.party_creation_failed", e.getMessage()));
+		if (PlayerPermissions.forPlayer(player).createParty()) {
+			FTBTeamsAPI.api().getManager().getTeamForPlayer(player).ifPresent(team -> {
+				var res = FTBTeamsAPIImpl.INSTANCE.validatePartyCreation(player);
+				if (res.isSuccess()) {
+					if (team instanceof PlayerTeam playerTeam) {
+						try {
+							playerTeam.createParty(player.getUUID(), player, message.name, message.description, message.color, message.invited);
+						} catch (CommandSyntaxException e) {
+							player.sendSystemMessage(Component.translatable("ftbteams.party_creation_failed", e.getMessage()));
+						}
+					}
+				} else {
+					player.sendSystemMessage(Component.translatable("ftbteams.party_api_only", res.reason().copy().withStyle(ChatFormatting.GOLD)).withStyle(ChatFormatting.RED), false);
 				}
-			}
-		});
+			});
+		}
 	}
 
 	@Override

@@ -24,7 +24,7 @@ import static dev.ftb.mods.ftbteams.command.FTBTeamsCommands.*;
 public class NbtEditCommand {
     public static LiteralArgumentBuilder<CommandSourceStack> register() {
         return Commands.literal("nbtedit")
-                .requires(requiresOPorSP())
+                .requires(FTBTeamsCommands::sourceHasAdminPrivs)
                 .executes(NbtEditCommand::editPlayerTeamNBT)
                 .then(createTeamArg()
                         .executes(NbtEditCommand::editTeamNBT)

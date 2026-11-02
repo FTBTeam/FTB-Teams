@@ -23,24 +23,31 @@ import java.util.function.Predicate;
 public class FTBTeamsCommands {
 	public void register(CommandDispatcher<CommandSourceStack> dispatcher) {
 		dispatcher.register(Commands.literal(FTBTeamsAPI.MOD_ID)
-						.then(AddFakePlayerCommand.register())
-						.then(ForceCommand.register())
-						.then(InfoCommand.register())
-						.then(ListCommand.register())
-						.then(MessageCommand.register())
-						.then(NbtEditCommand.register())
-						.then(PartyTeamCommand.register())
-						.then(RedirectChatCommand.register())
-						.then(ServerTeamCommand.register())
-						.then(TeamStageCommand.register())
+				.then(AddFakePlayerCommand.register())
+				.then(ForceCommand.register())
+				.then(InfoCommand.register())
+				.then(ListCommand.register())
+				.then(MessageCommand.register())
+				.then(NbtEditCommand.register())
+				.then(PartyTeamCommand.register())
+				.then(RedirectChatCommand.register())
+				.then(ServerConfigCommand.register())
+				.then(ServerTeamCommand.register())
+				.then(TeamStageCommand.register())
 		);
 	}
 
-	static Predicate<CommandSourceStack> requiresOPorSP() {
-		// server CAN be null!
-        //noinspection ConstantValue
-        return source -> source.getServer() != null && source.getServer().isSingleplayer()
-				|| source.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
+	static boolean sourceHasAdminPrivs(CommandSourceStack source) {
+		// source.getServer() *can* return null: https://github.com/FTBTeam/FTB-Mods-Issues/issues/766
+		//noinspection ConstantValue
+		if (source.getServer() == null) {
+			return false;
+		}
+
+		// from console, or owner of SSP world (incl open to LAN), or has at least GM perm level
+		return source.getPlayer() == null
+				|| source.getServer().isSingleplayerOwner(source.getPlayer().nameAndId())
+				|| source.getPlayer().permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER);
 	}
 
 	static RequiredArgumentBuilder<CommandSourceStack, TeamArgumentProvider> createTeamArg() {

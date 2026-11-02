@@ -1,12 +1,14 @@
 package dev.ftb.mods.ftbteams.client.gui;
 
 import dev.ftb.mods.ftblibrary.client.config.editable.EditableColor;
+import dev.ftb.mods.ftblibrary.client.gui.SimpleToast;
 import dev.ftb.mods.ftblibrary.client.gui.input.Key;
 import dev.ftb.mods.ftblibrary.client.gui.layout.WidgetLayout;
 import dev.ftb.mods.ftblibrary.client.gui.theme.NordColors;
 import dev.ftb.mods.ftblibrary.client.gui.theme.Theme;
 import dev.ftb.mods.ftblibrary.client.gui.widget.*;
 import dev.ftb.mods.ftblibrary.client.icon.IconHelper;
+import dev.ftb.mods.ftblibrary.client.util.ClientUtils;
 import dev.ftb.mods.ftblibrary.icon.Color4I;
 import dev.ftb.mods.ftblibrary.icon.Icons;
 import dev.ftb.mods.ftblibrary.platform.event.NativeEventPosting;
@@ -23,15 +25,11 @@ import dev.ftb.mods.ftbteams.api.property.TeamProperties;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyCollection;
 import dev.ftb.mods.ftbteams.client.FTBTeamsClient;
 import dev.ftb.mods.ftbteams.config.ServerConfig;
-import dev.ftb.mods.ftbteams.data.ClientTeamManagerImpl;
-import dev.ftb.mods.ftbteams.data.PlayerPermissions;
-import dev.ftb.mods.ftbteams.data.TeamPropertyCollectionImpl;
-import dev.ftb.mods.ftbteams.data.TeamType;
+import dev.ftb.mods.ftbteams.data.*;
 import dev.ftb.mods.ftbteams.net.SendMessageMessage;
 import dev.ftb.mods.ftbteams.net.ToggleChatRedirectionMessage;
 import dev.ftb.mods.ftbteams.net.UpdatePropertiesRequestMessage;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Util;
@@ -68,7 +66,13 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 		teamID = getManager().selfTeam().getId();
 
 		settingsButton = new SettingsButton(this);
-		infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (_, _) -> {}) {
+		infoButton = new SimpleButton(this, Component.empty(), Icons.INFO, (_, _) -> {
+            setClipboardString(teamID.toString());
+			SimpleToast.info(
+					Component.translatable("ftbteams.info.uuid_copied"),
+					Component.literal(teamID.toString())
+			);
+        }) {
 			@Override
 			public void addMouseOverText(TooltipList list) {
 				addTeamInfo(list);
@@ -100,7 +104,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 	}
 
 	public static void refreshIfOpen() {
-		if (Minecraft.getInstance().screen instanceof ScreenWrapper w && w.getGui() instanceof MyTeamScreen mts) {
+		if (ClientUtils.getCurrentGuiAs(MyTeamScreen.class) instanceof MyTeamScreen mts) {
 			if (mts.getManager().selfTeam().getId().equals(mts.teamID)) {
 				mts.refreshWidgets();
 			} else {
@@ -169,6 +173,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			if (!team.getOwner().equals(Util.NIL_UUID)) {
 				list.add(Component.translatable("ftbteams.info.owner", getManager().formatName(team.getOwner())));
 			}
+			list.add(Component.translatable("ftbteams.info.click_to_copy_uuid").withStyle(ChatFormatting.GRAY));
 
 			NativeEventPosting.INSTANCE.postEvent(new TeamInfoEvent.Data(team, list::add));
 		}
@@ -207,11 +212,12 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 
 		@Override
 		public boolean isEnabled() {
-			if (ClientTeamManagerImpl.getInstance().selfTeam().getType() != TeamType.PARTY || !permissions.invitePlayer()) {
+			ClientTeam team = ClientTeamManagerImpl.getInstance().selfTeam();
+			if (team.getType() != TeamType.PARTY || !permissions.invitePlayer() || ServerConfig.isPartyFull(team.getMembers().size())) {
 				return false;
 			}
 			KnownClientPlayer knownPlayer = ClientTeamManagerImpl.getInstance().self();
-			return knownPlayer.online() && ClientTeamManagerImpl.getInstance().selfTeam().isOfficerOrBetter(knownPlayer.id());
+			return knownPlayer.online() && team.isOfficerOrBetter(knownPlayer.id());
 		}
 
 		@Override
@@ -360,7 +366,7 @@ public class MyTeamScreen extends BaseScreen implements NordColors {
 			}
 
 			if (manager.selfTeam().isPlayerTeam()) {
-				add(new CreatePartyButton(this, permissions.createParty()));
+				add(new CreatePartyButton(this, permissions));
 			}
 		}
 

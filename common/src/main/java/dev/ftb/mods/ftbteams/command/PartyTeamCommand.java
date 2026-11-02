@@ -7,11 +7,12 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import dev.ftb.mods.ftbteams.FTBTeamsAPIImpl;
 import dev.ftb.mods.ftbteams.api.TeamRank;
 import dev.ftb.mods.ftbteams.api.property.TeamPropertyArgument;
-import dev.ftb.mods.ftbteams.data.TeamManagerImpl;
 import dev.ftb.mods.ftbteams.data.TeamType;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.GameProfileArgument;
+import net.minecraft.server.level.ServerPlayer;
 
 import static dev.ftb.mods.ftbteams.command.FTBTeamsCommands.*;
 
@@ -60,7 +61,7 @@ public class PartyTeamCommand {
                         )
                 )
                 .then(Commands.literal("transfer_ownership_for")
-                        .requires(requiresOPorSP())
+                        .requires(FTBTeamsCommands::sourceHasAdminPrivs)
                         .then(createTeamArg(TeamType.PARTY)
                                 .then(Commands.argument("player_id", GameProfileArgument.gameProfile())
                                         .executes(ctx -> partyTeamArg(ctx, TeamRank.NONE).transferOwnership(ctx.getSource(), GameProfileArgument.getGameProfiles(ctx, "player_id")))
@@ -77,7 +78,7 @@ public class PartyTeamCommand {
                         )
                 )
                 .then(Commands.literal("settings_for")
-                        .requires(requiresOPorSP())
+                        .requires(FTBTeamsCommands::sourceHasAdminPrivs)
                         .then(createTeamArg(TeamType.PARTY)
                                 .then(Commands.argument("key", TeamPropertyArgument.create())
                                         .then(Commands.argument("value", StringArgumentType.greedyString())
@@ -109,13 +110,13 @@ public class PartyTeamCommand {
     }
 
     private static int tryCreateParty(CommandSourceStack source, String partyName) throws CommandSyntaxException {
-        if (TeamManagerImpl.INSTANCE != null) {
-            if (FTBTeamsAPIImpl.INSTANCE.isPartyCreationFromAPIOnly()) {
-                throw TeamArgument.API_OVERRIDE.create();
-            }
-            var ignoredParty = TeamManagerImpl.INSTANCE.createParty(source.getPlayerOrException(), partyName);
-            return Command.SINGLE_SUCCESS;
+        ServerPlayer player = source.getPlayerOrException();
+
+        var res = FTBTeamsAPIImpl.INSTANCE.validatePartyCreation(player);
+        if (!res.isSuccess()) {
+            throw TeamArgument.API_OVERRIDE.create(res.reason().copy().withStyle(ChatFormatting.GOLD));
         }
-        return 0;
+        FTBTeamsAPIImpl.INSTANCE.getManager().createParty(player, partyName);
+        return Command.SINGLE_SUCCESS;
     }
 }
